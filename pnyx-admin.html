@@ -214,6 +214,10 @@ function renderFeed(){
    +'<div class="lbl" style="font-size:10px;font-weight:800;color:var(--muted);margin-bottom:5px">TÍTULO EDITADO POR IA (editable)</div>'
    +'<textarea class="edit" style="min-height:46px" onblur="guardarFeedTitulo(this,\''+d.bill_id+'\')">'+esc(d.oracion_ia||'')+'</textarea>'
    +'<div style="font-size:11px;color:var(--faint);margin-top:6px">Oficial: '+esc(d.titulo||'')+'</div>'
+   +'<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">'
+   +'<button class="btn sec sm" onclick="toggleExpertos(\''+d.bill_id+'\')">🎬 Opiniones de expertos <span id="expcount-'+d.bill_id+'" class="muted"></span></button>'
+   +'<div id="expbox-'+d.bill_id+'" style="display:none;margin-top:10px"></div>'
+   +'</div>'
    +'</div></div>';
  });
  $('#feedLista').innerHTML=h;
@@ -229,6 +233,59 @@ function guardarFeedTitulo(ta,billId){
   var d=feedDatos.find(function(x){return x.bill_id===billId;});if(d)d.oracion_ia=ta.value.trim();
   toast('Título guardado');
  });
+}
+
+/* ===== EXPERTOS ===== */
+var POSTURAS={a_favor:'A favor',en_contra:'En contra',abstencion:'Abstención'};
+var POST_COLOR={a_favor:'var(--favor)',en_contra:'var(--contra)',abstencion:'var(--abst)'};
+function toggleExpertos(bill){
+ var box=document.getElementById('expbox-'+bill);
+ if(box.style.display==='none'){box.style.display='block';cargarExpertos(bill);}
+ else{box.style.display='none';}
+}
+function cargarExpertos(bill){
+ var box=document.getElementById('expbox-'+bill);
+ box.innerHTML='<div class="muted" style="font-size:12px">Cargando…</div>';
+ rpc('admin_expertos_ley',{p_bill:bill}).then(function(filas){
+  var arr=Array.isArray(filas)?filas:[];
+  var cnt=document.getElementById('expcount-'+bill);
+  if(cnt)cnt.textContent=arr.length?('· '+arr.length):'';
+  var h='';
+  arr.forEach(function(e){
+   h+='<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:6px;background:#fff">'
+    +'<span style="font-weight:700;font-size:11px;color:'+(POST_COLOR[e.postura]||'var(--muted)')+'">'+(POSTURAS[e.postura]||'?')+'</span>'
+    +'<div style="flex:1;font-size:12.5px"><b>'+esc(e.nombre)+'</b> <span class="muted">· '+esc(e.afiliacion)+'</span><br>'
+    +'<a href="'+esc(e.youtube_url)+'" target="_blank" style="color:var(--brand);font-size:11px">'+esc(e.youtube_url)+'</a></div>'
+    +'<button class="btn sec sm" onclick="delExperto('+e.id+',\''+bill+'\')">✕</button>'
+    +'</div>';
+  });
+  // formulario de alta
+  h+='<div style="border:1px dashed var(--line);border-radius:8px;padding:11px;margin-top:8px">'
+   +'<div class="lbl" style="font-size:10px;font-weight:800;color:var(--muted);margin-bottom:7px">AGREGAR OPINIÓN</div>'
+   +'<input class="buscador" style="margin:0 0 6px" id="exp-nom-'+bill+'" placeholder="Nombre del experto">'
+   +'<input class="buscador" style="margin:0 0 6px" id="exp-afi-'+bill+'" placeholder="Afiliación o cercanía declarada (obligatorio)">'
+   +'<input class="buscador" style="margin:0 0 6px" id="exp-url-'+bill+'" placeholder="Link de YouTube">'
+   +'<div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">'
+   +'<span class="muted" style="font-size:12px">Postura:</span>'
+   +'<select id="exp-pos-'+bill+'" class="buscador" style="margin:0;max-width:150px"><option value="a_favor">A favor</option><option value="en_contra">En contra</option><option value="abstencion">Abstención</option></select>'
+   +'</div>'
+   +'<button class="btn ok sm" onclick="addExperto(\''+bill+'\')">Agregar opinión</button>'
+   +'</div>';
+  box.innerHTML=h;
+ }).catch(function(e){box.innerHTML='<div class="muted" style="font-size:12px">Error: '+esc(String(e))+'</div>';});
+}
+function addExperto(bill){
+ var nom=document.getElementById('exp-nom-'+bill).value.trim();
+ var afi=document.getElementById('exp-afi-'+bill).value.trim();
+ var url=document.getElementById('exp-url-'+bill).value.trim();
+ var pos=document.getElementById('exp-pos-'+bill).value;
+ if(!nom||!afi||!url){toast('Completá nombre, afiliación y link');return;}
+ rpc('admin_expertos_add',{p_bill:bill,p_nombre:nom,p_afil:afi,p_postura:pos,p_url:url}).then(function(){
+  toast('Opinión agregada');cargarExpertos(bill);
+ });
+}
+function delExperto(id,bill){
+ rpc('admin_expertos_del',{p_id:id}).then(function(){toast('Opinión eliminada');cargarExpertos(bill);});
 }
 
 function filtrar(f){filtroActual=f;document.querySelectorAll('.chip').forEach(function(c){c.classList.toggle('on',c.getAttribute('data-f')===f);});render();}
