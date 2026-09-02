@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pnyx</title>
+<style>
+:root{
+ --paper:#E9F1FA;--surface:#FFFFFF;--surface2:#EAF2FB;
+ --ink:#0E2336;--muted:#56697C;--faint:#8FA1B4;--line:#D6E3F0;
+ --brand:#1C5BAE;--celeste:#3C90DA;--brand-soft:#E0EDFA;
+ --favor:#1E8C57;--favor-bg:#E2F0E7;--contra:#C03A2B;--contra-bg:#F7E5E1;
+ --abst:#B07F20;--abst-bg:#F6ECD6;--ia:#6B4FB0;--ia-bg:#ECE6F7;
+ --aus:#C2CEDA;--r:14px;--r-sm:10px;
+ --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+ --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--paper);font-family:var(--sans);color:var(--ink);display:flex;justify-content:center;min-height:100vh}
+.app{width:100%;max-width:430px;min-height:100vh;background:var(--surface);display:flex;flex-direction:column;position:relative;overflow:hidden}
+@media(min-width:480px){.app{min-height:96vh;margin:2vh 0;border-radius:26px;box-shadow:0 18px 60px rgba(28,91,174,.18);border:1px solid var(--line)}body{align-items:center}}
+.serif{font-family:var(--serif)}.muted{color:var(--muted)}
+h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
+.ob{flex:1;display:none;flex-direction:column;padding:28px 24px;overflow-y:auto}.ob.show{display:flex}
+.logo{font-family:var(--serif);font-weight:700;color:var(--brand)}.logoBig{font-size:42px;letter-spacing:1px;text-align:center}
+.carousel{min-height:140px;display:flex;flex-direction:column;justify-content:center;text-align:center}
+.cphrase{font-family:var(--serif);font-size:23px;line-height:1.3;transition:opacity .45s;font-style:italic}
+.cauth{font-size:12px;color:var(--muted);margin-top:9px;transition:opacity .45s;min-height:15px}
+.cdots{display:flex;gap:6px;justify-content:center;margin-top:16px}
+.cdot{width:6px;height:6px;border-radius:50%;background:var(--line)}.cdot.on{background:var(--celeste)}
+.tag{font-size:11.5px;padding:4px 11px;border-radius:20px;background:var(--surface2);color:var(--brand);font-weight:600;display:inline-block}
+.chiprow{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
+.primary{width:100%;border:none;background:var(--brand);color:#fff;border-radius:var(--r);padding:15px;font-size:16px;font-weight:700;margin-top:auto;transition:transform .12s}
+.primary:active{transform:scale(.985)}.primary:disabled{opacity:.4}
+.primary.sm{margin-top:0;padding:13px;font-size:15px}
+.note{border-radius:var(--r);padding:13px 15px;font-size:12.5px;line-height:1.5}
+.note.ok{background:var(--favor-bg);color:#16623e}.note.info{background:var(--brand-soft);color:var(--brand)}.note.warn{background:var(--abst-bg);color:#7d5a14}
+.bigsecret{background:linear-gradient(120deg,var(--brand),var(--celeste));color:#fff;border-radius:var(--r);padding:18px;text-align:center;margin-bottom:16px}
+.bigsecret .em{font-size:30px}.bigsecret b{font-size:17px;display:block;margin:7px 0 3px}
+.opt{width:100%;text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:var(--r);padding:15px 16px;margin-bottom:11px;display:flex;align-items:center;gap:13px;color:var(--ink)}
+.opt.off{opacity:.6}.opt .em{font-size:22px}
+.chk{display:flex;gap:11px;align-items:flex-start;border:2px solid var(--line);border-radius:var(--r);padding:13px 14px;margin-bottom:11px}
+.chk.on{border-color:var(--brand)}
+.box{width:22px;height:22px;border-radius:6px;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;font-weight:700}
+.box.on{background:var(--brand);border-color:var(--brand)}
+.sech{font-size:11.5px;color:var(--faint);font-weight:700;letter-spacing:.04em;margin-bottom:8px}
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 18px 11px;border-bottom:1px solid var(--line);flex-shrink:0}
+.hdr .logo{font-size:22px}
+.civicbar{background:var(--brand-soft);color:var(--brand);font-size:11.5px;font-weight:600;text-align:center;padding:6px 10px;flex-shrink:0}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;padding:3px 10px;border-radius:20px;font-weight:700}
+.pill.brand{background:var(--brand-soft);color:var(--brand)}
+.main{flex:1;overflow-y:auto;position:relative}
+.pad{padding:16px 16px 22px;display:none}.pad.show{display:block}
+.nav{display:flex;border-top:1px solid var(--line);flex-shrink:0;background:var(--surface)}
+.nav button{flex:1;border:none;background:transparent;padding:8px 1px 10px;font-size:10px;color:var(--faint);display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:600}
+.nav button.on{color:var(--brand)}.nav .em{font-size:19px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:17px;display:flex;flex-direction:column;gap:9px}
+.deckwrap{position:relative;min-height:330px;margin-bottom:12px}
+.behind{position:absolute;left:8px;right:8px;top:14px;height:300px;background:var(--surface2);border-radius:18px;border:1px solid var(--line)}
+.deck{position:relative;z-index:1}.swcard{touch-action:pan-y;user-select:none;cursor:grab;min-height:300px}
+.ovl{position:absolute;top:16px;font-size:22px;font-weight:800;padding:5px 13px;border-radius:9px;opacity:0;transition:opacity .08s;z-index:3;border:3px solid}
+.cat{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.k{font-size:11.5px;padding:2px 10px;border-radius:20px;font-weight:700;display:inline-block}
+.k.ci{background:var(--brand-soft);color:var(--brand)}.k.nt{background:var(--surface2);color:var(--muted);border:1px solid var(--line)}
+.k.ok{background:var(--favor-bg);color:var(--favor)}.k.con{background:var(--contra-bg);color:var(--contra)}.k.ab{background:var(--abst-bg);color:var(--abst)}.k.urg{background:var(--abst-bg);color:var(--abst)}.k.fav{background:var(--favor-bg);color:var(--favor)}.k.ia{background:var(--ia-bg);color:var(--ia)}
+.title{font-family:var(--serif);font-size:21px;line-height:1.2;margin:3px 0 0}
+.prop{display:flex;align-items:center;gap:10px;margin-top:auto}
+.av{width:34px;height:34px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.infobtn{width:100%;border:2px solid var(--brand);background:var(--brand-soft);color:var(--brand);border-radius:var(--r);padding:12px;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px}
+.vrow{display:flex;gap:9px}
+.vbtn{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:10px 4px;font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px}
+.vbtn .em{font-size:20px}.vbtn.f{color:var(--favor)}.vbtn.c{color:var(--contra)}.vbtn.a{color:var(--abst)}
+.hint{font-size:11px;color:var(--faint);text-align:center;margin:9px 0 0}
+.bar{height:10px;border-radius:6px;overflow:hidden;display:flex;background:var(--surface2);margin:7px 0 5px}
+.overlay{position:absolute;inset:0;background:var(--surface);padding:16px;overflow:auto;display:none}.overlay.show{display:block}
+#detail{z-index:5}#experts{z-index:6}#fulltext{z-index:7}#blocd{z-index:8}#banca{z-index:8}#repstats{z-index:8}
+.back{border:1px solid var(--line);background:var(--surface);color:var(--brand);font-size:15px;padding:9px 16px;margin-bottom:14px;font-weight:700;border-radius:22px;display:inline-flex;align-items:center;gap:6px}
+.expbtn{width:100%;border:1px solid var(--brand);background:var(--surface);color:var(--brand);border-radius:var(--r-sm);padding:11px;font-size:13.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:10px}
+.fullbtn{width:100%;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:var(--r-sm);padding:11px;font-size:13.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px}
+.exp{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}
+.yt{margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#c4302b;text-decoration:none;white-space:nowrap}
+.artic{background:var(--surface2);border-radius:var(--r-sm);padding:12px 14px;font-size:13px;line-height:1.6;color:var(--ink);white-space:pre-line;margin-bottom:10px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px}
+.chip{white-space:nowrap;font-size:12.5px;padding:7px 13px;border-radius:20px;border:2px solid var(--line);background:var(--surface);color:var(--muted);font-weight:700}
+.chip.on{border-color:var(--brand);color:var(--brand);background:var(--brand-soft)}
+.storybanner{width:100%;border:none;border-radius:var(--r);padding:13px 15px;margin-bottom:14px;display:flex;align-items:center;gap:11px;color:#fff;background:linear-gradient(120deg,var(--brand),var(--celeste));text-align:left}
+.cham{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px;margin-bottom:12px}
+.tbar{height:11px;border-radius:6px;overflow:hidden;display:flex;margin:9px 0 6px}
+.brow{display:flex;align-items:center;gap:9px;margin:6px 0;padding:3px 4px;border-radius:8px}.brow:active{background:var(--surface2)}
+.blab{width:50px;font-size:12px;font-weight:700;flex-shrink:0}
+.bbar{flex:1;height:9px;border-radius:5px;overflow:hidden;display:flex;background:var(--surface2)}
+.bnum{font-size:11px;width:48px;text-align:right;flex-shrink:0}.chev{color:var(--faint);font-size:15px;flex-shrink:0}
+.legend{display:flex;gap:13px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin:10px 0 2px}
+.sq{display:inline-block;width:9px;height:9px;border-radius:2px;vertical-align:-1px;margin-right:4px}
+.verdict{border-radius:var(--r);padding:12px 14px;margin:10px 0 14px;border:1px solid var(--line);background:var(--surface2)}
+.mem{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.repav{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.sw{width:44px;height:25px;border-radius:20px;background:var(--favor);position:relative;flex-shrink:0;cursor:pointer}
+.sw::after{content:'';position:absolute;width:19px;height:19px;border-radius:50%;background:#fff;top:3px;right:3px;transition:all .15s}
+.sw.off{background:var(--aus)}.sw.off::after{right:auto;left:3px}
+.lockwrap{position:relative}
+.lockover{position:absolute;inset:0;background:var(--surface);opacity:.9;border-radius:var(--r);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;padding:10px}
+.cargo{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.cgo{font-size:12.5px;padding:8px 12px;border-radius:10px;border:2px solid var(--line);background:var(--surface);color:var(--muted);font-weight:700}
+.cgo.on{border-color:var(--brand);color:var(--brand);background:var(--brand-soft)}
+.fld{margin-bottom:12px}.fld label{font-size:12px;color:var(--muted);font-weight:600;display:block;margin-bottom:4px}
+.fld input{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:14px;font-family:inherit;color:var(--ink);background:var(--surface)}
+.frow{display:flex;gap:10px}.frow .fld{flex:1}
+#stories{position:absolute;inset:0;background:#0B1A2A;z-index:9;display:none;flex-direction:column;padding:12px 14px 18px}#stories.show{display:flex}
+.segs{display:flex;gap:4px;margin-bottom:10px}.segs .s{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.25);overflow:hidden}.segs .s i{display:block;height:100%;width:0;background:#fff}.segs .s.done i,.segs .s.now i{width:100%}
+.stvideo{flex:1;border-radius:18px;background:linear-gradient(150deg,var(--celeste),var(--brand));display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;position:relative;overflow:hidden}
+.stplay{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:28px}
+.fade{animation:f .35s ease both}@keyframes f{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.fade{animation:none}}
+
+.gq{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;background:var(--brand-soft);color:var(--brand);font-size:10px;font-weight:800;cursor:pointer;vertical-align:middle;margin-left:4px}
+.gpop{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);max-width:320px;width:88%;background:var(--ink);color:#fff;border-radius:12px;padding:13px 15px;font-size:13px;line-height:1.5;z-index:99;box-shadow:0 8px 30px rgba(0,0,0,.35);display:none}
+.gpop.show{display:block}
+.tipcard{background:var(--brand-soft);border:1px solid var(--brand);border-radius:var(--r-sm);padding:11px 13px;font-size:12.5px;line-height:1.5;color:var(--ink);margin-bottom:10px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <div id="onb">
+    <div class="ob show" id="o0">
+      <div style="text-align:center;margin-top:14px"><div class="logo logoBig">Pnyx</div><div class="muted" style="font-size:13px;margin-top:2px">la asamblea ciudadana</div></div>
+      <div class="carousel" style="margin:24px 0"><div class="cphrase serif" id="cph"></div><div class="cauth" id="cau"></div><div class="cdots" id="cdots"></div></div>
+      <div class="chiprow"><span class="tag">anonimato por diseño</span><span class="tag">una persona, un voto</span><span class="tag">código abierto</span></div>
+      <button class="primary" data-act="goto" data-arg="oC">Empezar</button>
+    </div>
+    <div class="ob" id="oC">
+      <div style="text-align:center;margin-top:4px;font-size:40px">🌐</div>
+      <h2 class="serif" style="font-size:24px;text-align:center;margin:12px 0 4px">¿Desde qué país participás?</h2>
+      <p class="muted" style="text-align:center;font-size:13px;margin:0 0 18px">Empezamos por Argentina. Vamos sumando países.</p>
+      <div id="countryList"></div>
+      <div class="note warn" id="ccNote" style="display:none;margin-top:4px">🚧 Ese país está <b>en construcción</b>. Por ahora podés explorar la versión de Argentina.</div>
+    </div>
+    <div class="ob" id="oTyc">
+      <button class="back" data-act="goto" data-arg="oC">← Volver</button>
+      <div class="bigsecret"><div class="em">🔒</div><b>Tu identidad y tus votos quedan por separado.</b><span style="font-size:13px;opacity:.95">Nadie puede saber qué votaste.</span></div>
+      <p class="muted" style="margin:0 0 14px">Necesitamos tu acuerdo. El segundo va aparte porque tu opinión política es un dato sensible.</p>
+      <div class="chk" id="k1" data-act="chk" data-arg="1"><div class="box" id="b1"></div><div class="muted" style="color:var(--ink)">Acepto los <b style="font-weight:700">Términos y la Política de Privacidad</b>. <span style="color:var(--brand);font-weight:700">Ver resumen</span></div></div>
+      <div class="chk" id="k2" data-act="chk" data-arg="2"><div class="box" id="b2"></div><div class="muted" style="color:var(--ink)">Consiento el <b style="font-weight:700">tratamiento de mi opinión política</b> y la verificación de identidad.</div></div>
+      <button class="primary" id="tycBtn" disabled data-act="goto" data-arg="oRen">Continuar →</button>
+    </div>
+    <div class="ob" id="oRen">
+      <button class="back" data-act="goto" data-arg="oTyc">← Volver</button>
+      <div style="text-align:center;margin-top:14px;font-size:46px">🛡️</div>
+      <h2 class="serif" style="font-size:23px;text-align:center;margin:12px 0 6px">Creá tu cuenta</h2>
+      <p class="muted" style="text-align:center;margin:0 0 18px">Ingresá tu email. Te mandamos un link para entrar — sin contraseña.</p>
+      <div id="loginBody">
+        <div class="fld"><label>Tu email</label><input type="email" id="emailInput" placeholder="nombre@ejemplo.com" autocomplete="email"></div>
+        <div class="fld"><label>Contraseña</label><input type="password" id="passInput" placeholder="Tu contraseña" autocomplete="current-password"></div>
+        <button class="primary sm" id="loginBtn" onclick="doPassword('in')">Entrar</button>
+        <button class="fullbtn" style="margin-top:10px" onclick="doPassword('up')">Crear cuenta nueva</button>
+        <div style="text-align:center;margin:14px 0 4px"><span class="muted" style="font-size:12px">— o —</span></div>
+        <button class="fullbtn" onclick="doMagicLink()">📬 Entrar con link por email (sin contraseña)</button>
+        <div id="loginMsg" style="margin-top:14px;font-size:13px;text-align:center;color:var(--muted);display:none"></div>
+      </div>
+    </div>
+
+    <div class="ob" id="oVer">
+      <div style="text-align:center;margin-top:14px;font-size:46px">🪪</div>
+      <h2 class="serif" style="font-size:23px;text-align:center;margin:12px 0 6px">Verificá que sos vos</h2>
+      <p class="muted" style="text-align:center;margin:0 0 18px">Para que cada persona vote una sola vez, confirmamos tu identidad con RENAPER. Es rápido: una selfie y tu DNI.</p>
+      <div class="note info" style="margin-bottom:14px">🔒 Tu identidad queda separada de tus votos. Verificamos que sos una persona real y única, pero <b>nadie puede saber cómo votaste</b>.</div>
+      <button class="primary sm" onclick="iniciarVerificacionDidit()">Verificar mi identidad</button>
+      <button class="fullbtn" style="margin-top:10px" onclick="saltearVerificacion()">Saltear por ahora (modo prueba)</button>
+      <div id="verMsg" style="margin-top:14px;font-size:13px;text-align:center;color:var(--muted);display:none"></div>
+    </div>
+  </div>
+
+  <div id="app" style="display:none;flex:1;flex-direction:column;min-height:0">
+    <div class="hdr"><span class="logo">Pnyx</span><span class="pill brand">🇦🇷 Argentina · Nacional</span></div>
+    <div class="civicbar">🔒 Tu voto es secreto · tu identidad y tus votos quedan separados</div>
+    <div class="main">
+      <div id="sc-vote" class="pad show">
+        <div class="deckwrap"><div class="behind"></div><div class="deck" id="deck"></div></div>
+        <div class="actions" id="actions">
+          <button class="infobtn" data-act="info">📄 Ver el proyecto (recomendado)</button>
+          <div class="vrow"><button class="vbtn c" data-act="vote" data-arg="contra"><span class="em">👎</span>En contra</button><button class="vbtn a" data-act="vote" data-arg="abst"><span class="em">➖</span>Abstención<span class="gq" onclick="event.stopPropagation();glosa(&quot;abstencion&quot;)">i</span></button><button class="vbtn f" data-act="vote" data-arg="favor"><span class="em">👍</span>A favor</button></div>
+          <p class="hint">Deslizá la tarjeta → a favor · ← en contra</p>
+        </div>
+        <div class="overlay" id="detail"></div>
+        <div class="overlay" id="experts"></div>
+        <div class="overlay" id="fulltext"></div>
+      </div>
+      <div id="sc-trend" class="pad"></div>
+      <div id="sc-voted" class="pad"></div>
+      <div id="sc-banc" class="pad"></div>
+      <div id="sc-perfil" class="pad"></div>
+      <div class="overlay" id="blocd"></div>
+      <div class="overlay" id="banca"></div>
+      <div class="overlay" id="repstats"></div>
+      <div id="stories"></div>
+    </div>
+    <div class="nav">
+      <button class="on" data-act="tab" data-arg="vote"><span class="em">🗳️</span>Votar</button>
+      <button data-act="tab" data-arg="trend"><span class="em">📊</span>Tendencias</button>
+      <button data-act="tab" data-arg="voted"><span class="em">⚖️</span>Votadas</button>
+      <button data-act="tab" data-arg="banc"><span class="em">👥</span>Bancas</button>
+      <button data-act="tab" data-arg="perfil"><span class="em">🪪</span>Perfil</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+var $=function(s){return document.querySelector(s);};
+var C={favor:{c:'fav',t:'A favor'},contra:{c:'con',t:'En contra'},abst:{c:'ab',t:'Abstención'},aus:{c:'nt',t:'Ausente'}};
+var FLOOR=5000;
+function nf(n){return n.toLocaleString('es-AR');}
+function k(t,cls){return '<span class="k '+cls+'">'+t+'</span>';}
+function seg(w,col){return w>0?'<div style="width:'+w+'%;background:'+col+'"></div>':'';}
+
+var phrases=[
+ {t:'«El gobierno del pueblo, por el pueblo y para el pueblo.»',a:'— Abraham Lincoln, 1863'},
+ {t:'Contamos con vos para mejorar la democracia.',a:''},
+ {t:'Si no decidís vos, alguien decide por vos.',a:''},
+ {t:'Una ley te cambia la vida, la leas o no.',a:''},
+ {t:'La democracia no se mira: se hace.',a:''},
+ {t:'Tu opinión, acá, llega a quien tiene que llegar.',a:''},
+ {t:'El precio del pan, tu sueldo y el alquiler no son casualidad: son política.',a:'— libremente inspirado en Bertolt Brecht'},
+ {t:'La democracia consiste en poner bajo control al poder político.',a:'— Karl Popper'},
+ {t:'Una democracia vale lo que valen los ciudadanos que la sostienen.',a:'— inspirado en Alexis de Tocqueville'}
+];
+(function(){var i=0,cph=$('#cph'),cau=$('#cau'),dn=$('#cdots');
+ dn.innerHTML=phrases.map(function(_,j){return '<span class="cdot'+(j===0?' on':'')+'"></span>';}).join('');
+ function show(){cph.textContent=phrases[i].t;cau.textContent=phrases[i].a;var d=dn.children;for(var j=0;j<d.length;j++)d[j].className='cdot'+(j===i?' on':'');}
+ show();setInterval(function(){cph.style.opacity=0;cau.style.opacity=0;setTimeout(function(){i=(i+1)%phrases.length;show();cph.style.opacity=1;cau.style.opacity=1;},420);},4200);
+})();
+
+var countries=[{n:'Argentina',f:'🇦🇷',on:true},{n:'Uruguay',f:'🇺🇾'},{n:'Chile',f:'🇨🇱'},{n:'México',f:'🇲🇽'},{n:'Colombia',f:'🇨🇴'},{n:'España',f:'🇪🇸'}];
+$('#countryList').innerHTML=countries.map(function(c){
+ return '<button class="opt'+(c.on?'':' off')+'" data-act="country" data-arg="'+(c.on?'1':'0')+'"><span class="em">'+c.f+'</span><div style="flex:1"><div style="font-weight:700;font-size:16px">'+c.n+'</div>'+(c.on?'<div class="muted" style="font-size:12px">activo</div>':'<div style="margin-top:3px"><span class="tag" style="background:var(--abst-bg);color:#7d5a14">En construcción</span></div>')+'</div></button>';
+}).join('');
+
+var c1=false,c2=false;
+function showScreen(id){['o0','oC','oTyc','oRen'].forEach(function(s){$('#'+s).classList.toggle('show',s===id);});$('#onb').scrollTop=0;}
+
+/* SUPABASE */
+var SUPABASE_URL='https://ihmbhbhwlntsjqdavxge.supabase.co';
+var SUPABASE_KEY='sb_publishable_ih-dOjPauQayOpzn7uL6vw_vIt96ZHR';
+var supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+var usuarioActual=null;
+
+/* AUTH */
+async function doPassword(modo){
+  var email=$('#emailInput').value.trim();
+  var pass=$('#passInput').value;
+  var msg=$('#loginMsg');
+  if(!email||!email.includes('@')){msg.style.display='block';msg.style.color='var(--muted)';msg.textContent='Ingresá un email válido.';return;}
+  if(!pass||pass.length<6){msg.style.display='block';msg.style.color='var(--muted)';msg.textContent='La contraseña necesita al menos 6 caracteres.';return;}
+  msg.style.display='block';msg.style.color='var(--muted)';msg.textContent=(modo==='up')?'Creando cuenta…':'Entrando…';
+  var res;
+  if(modo==='up'){res=await supabase.auth.signUp({email:email,password:pass});}
+  else{res=await supabase.auth.signInWithPassword({email:email,password:pass});}
+  if(res.error){msg.style.color='#c0392b';msg.textContent='Error: '+res.error.message;return;}
+  if(res.data&&res.data.session){usuarioActual=res.data.session.user;continuarTrasLogin();}
+  else{msg.style.color='var(--favor)';msg.textContent='Cuenta creada. Ya podés entrar con tu email y contraseña.';}
+}
+
+async function doMagicLink(){
+  var email=$('#emailInput').value.trim();
+  var btn=$('#loginBtn'),msg=$('#loginMsg');
+  if(!email||!email.includes('@')){msg.style.display='block';msg.textContent='Ingresá un email válido.';return;}
+  btn.disabled=true;btn.textContent='Enviando…';
+  var redirectTo=window.location.href.split('?')[0].split('#')[0];
+  var res=await supabase.auth.signInWithOtp({email:email,options:{emailRedirectTo:redirectTo}});
+  if(res.error){msg.style.display='block';msg.textContent='Error: '+res.error.message;btn.disabled=false;btn.textContent='Enviar link de acceso';return;}
+  msg.style.display='block';msg.style.color='var(--favor)';
+  msg.innerHTML='📬 <b>¡Listo!</b> Revisá tu email y tocá el link. Podés cerrar esta pestaña si querés.';
+  btn.style.display='none';
+}
+
+/* Tras login: chequea si el usuario verificó su identidad.
+   Verificado -> entra. No verificado -> pantalla de verificación. */
+async function continuarTrasLogin(){
+  try{
+    var {data:{session}}=await supabase.auth.getSession();
+    if(!session){mostrarVerificacion();return;}
+    var r=await fetch(SUPABASE_URL+'/rest/v1/identidad_verificada?select=verificado&user_id=eq.'+session.user.id,
+      {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token}});
+    var filas=await r.json();
+    var ok=Array.isArray(filas)&&filas[0]&&filas[0].verificado;
+    console.log('VERIF check:',filas,'-> ok:',ok);
+    if(ok){enterApp();}else{mostrarVerificacion();}
+  }catch(e){mostrarVerificacion();}
+}
+
+function mostrarVerificacion(){
+  $('#onb').style.display='block';
+  $('#app').style.display='none';
+  ['o0','oC','oTyc','oRen','oVer'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='oVer');});
+}
+
+/* Llama a la Edge Function crear-sesion, que crea la sesión en Didit
+   y devuelve la URL. Abre esa URL para que el usuario haga selfie + DNI. */
+async function iniciarVerificacionDidit(){
+  var msg=$('#verMsg');
+  msg.style.display='block';msg.style.color='var(--muted)';
+  msg.textContent='Preparando la verificación…';
+  try{
+    var {data:{session}}=await supabase.auth.getSession();
+    if(!session){msg.textContent='Tenés que iniciar sesión primero.';return;}
+    var r=await fetch(SUPABASE_URL+'/functions/v1/crear-sesion',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
+      body:JSON.stringify({user_id:session.user.id,callback_url:window.location.href.split('#')[0]})
+    });
+    var data=await r.json();
+    if(data.url){
+      msg.innerHTML='Abriendo la verificación… Si no se abre, <a href="'+data.url+'" target="_blank" style="color:var(--brand)">tocá acá</a>.';
+      window.location.href=data.url;
+    }else{
+      msg.style.color='#c0392b';
+      msg.textContent='No se pudo iniciar: '+(data.error||'error desconocido');
+    }
+  }catch(e){
+    msg.style.color='#c0392b';
+    msg.textContent='Error al conectar: '+String(e);
+  }
+}
+
+/* Desarrollo: saltear verificación y entrar igual */
+function saltearVerificacion(){enterApp();}
+
+function enterApp(){
+  $('#onb').style.display='none';
+  $('#app').style.display='flex';
+  var d=$('#deck');
+  if(d)d.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted)">Cargando leyes del Congreso...</div>';
+  // Primero traer qué leyes ya votó este usuario, después cargar el feed filtrado
+  cargarVotadas(function(){cargarLeyes(function(){renderCard();});});
+}
+
+/* Trae de ya_voto las leyes que el usuario ya votó, para no volver a mostrarlas */
+async function cargarVotadas(listo){
+  votadas={};
+  try{
+    var {data:{session}}=await supabase.auth.getSession();
+    var tok=session?session.access_token:SUPABASE_KEY;
+    var uid=usuarioActual?usuarioActual.id:null;
+    var url=SUPABASE_URL+'/rest/v1/ya_voto?select=ley_bill_id';
+    if(!session&&uid)url+='&user_id=eq.'+uid; // sin sesión, filtro por el usuario fijo
+    var r=await fetch(url,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+tok}});
+    var filas=await r.json();
+    if(Array.isArray(filas)){filas.forEach(function(x){votadas[x.ley_bill_id]=true;});}
+  }catch(e){console.log('no pude cargar votadas:',e);}
+  listo();
+}
+
+/* Al cargar: verificar si hay sesión activa (vuelta del magic link) */
+(async function initAuth(){
+  /* LOGIN Y VERIFICACION DESACTIVADOS TEMPORALMENTE (reponer antes de produccion) */
+  var {data:{session}}=await supabase.auth.getSession();
+  if(session&&session.user){usuarioActual=session.user;}
+  else{usuarioActual={id:'75c330d1-d369-4746-8e2b-2d12294aaad8',email:'prueba@pnyx.dev'};} // usuario fijo de desarrollo
+  enterApp();   // entra directo al feed, sin login ni Didit
+})();
+
+var pending=[];
+var votadas={};
+
+function cargarLeyes(listo){
+ var url=SUPABASE_URL+'/rest/v1/leyes?select=*&publicada=eq.true&order=puntaje_pnyx.desc&limit=60';
+ fetch(url,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}})
+  .then(function(r){return r.json();})
+  .then(function(filas){
+    pending=filas
+     .filter(function(f){return !votadas[f.bill_id];})
+     .map(function(f,i){
+      var camNombre=(f.camara==='Senado')?'Senadores':'Diputados';
+      var ms=f.media_sancion;
+      return {
+        id:'L'+(f.id||i),
+        leyDbId:f.id||null,
+        billId:f.bill_id||null,
+        n:f.titulo||'(sin titulo)',
+        tema:'',
+        camara:camNombre,
+        estado:ms?'Media sancion - por tratarse':'En tramite',
+        urgente:!!ms,
+        ing:f.fecha||'',
+        autor:'',
+        bloque:'',
+        ini:'-',
+        nat:{favor:0,contra:0,abst:0,n:0},
+        sub:f.oracion_ia||f.titulo||'',
+        tieneIA:!!f.oracion_ia,
+        resumen:f.resumen_ia||'Esta ley todavia no tiene resumen disponible.',
+        completa:''
+      };
+    });
+    if(listo)listo();
+  })
+  .catch(function(e){
+    var d=$('#deck');
+    if(d)d.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted)">No se pudieron cargar las leyes de la nube.<br>Revisa tu conexion.<br><span style="font-size:11px">'+e+'</span></div>';
+  });
+}
+
+var experts={favor:[{n:'Dra. Ana Field',r:'Economista, Univ. Nacional',lean:'cercanía: liberal'},{n:'Lic. Marta Ruiz',r:'ONG del sector',lean:'cercanía: progresista'}],contra:[{n:'Dr. Juan Pérez',r:'Constitucionalista',lean:'cercanía: conservador'},{n:'Lic. Pedro Gómez',r:'Dirigente sindical',lean:'cercanía: peronista'}],abst:[{n:'Dra. Lucía Torres',r:'Investigadora CONICET',lean:'cercanía: socialdemócrata'}]};
+var YT='https://www.youtube.com/';
+/* ===== VOTADAS: datos REALES desde Supabase (funciones votadas_*) ===== */
+var voted={};          // key -> {n, camara, estado, r, tot:[af,ng,ab,au], blocs:{sigla:[..]}, blocFull:{sigla:nombre}, cargado}
+var votedOrder=[];     // orden de los chips
+var votedLabels={};    // key -> etiqueta corta del chip
+var votedLoaded=false; // ya se bajó la lista?
+var votedVista='rec';  // 'rec' = recientes | 'hist' = históricas
+var histTexto='', histAnio=null, histAnios=[], histResultados=null, histBuscando=false;
+var VOTADAS_RECIENTES=15;  // cuántas se muestran en "Recientes"
+var votedTipo='LEY';   // filtro por tipo — por ahora solo leyes (null = todos)
+var votedTipos=[];     // [{tipo,cantidad}] para armar los filtros
+// etiquetas legibles + emoji por tipo
+var TIPO_LABEL={LEY:'📜 Leyes',ACUERDO:'🤝 Acuerdos',DECLARACION:'📣 Declaraciones',
+                RESOLUCION:'📋 Resoluciones',HOMENAJE:'🎖️ Homenajes',INTERNO:'⚙️ Internos'};
+var TIPO_CHIP={LEY:'Ley',ACUERDO:'Acuerdo',DECLARACION:'Declaración',
+               RESOLUCION:'Resolución',HOMENAJE:'Homenaje',INTERNO:'Interno'};
+
+/* Siglas conocidas de los bloques principales (clave: nombre normalizado sin tildes, minusculas) */
+var SIGLAS={
+ 'la libertad avanza':'LLA',
+ 'union por la patria':'UxP',
+ 'justicialista':'PJ',
+ 'provincias unidas':'PU',
+ 'pro':'PRO',
+ 'frente pro':'PRO',
+ 'ucr - union civica radical':'UCR',
+ 'union civica radical':'UCR',
+ 'coalicion civica':'CC',
+ 'innovacion federal':'InFe',
+ 'encuentro federal':'EF',
+ 'independencia':'Indep',
+ 'produccion y trabajo':'PyT',
+ 'conviccion federal':'ConFe',
+ 'democracia para siempre':'DpS',
+ 'frente de izquierda y de trabajadores unidad':'FIT',
+ 'pts-frente de izquierda y de trabajadores unidad':'FIT-PTS',
+ 'partido obrero en el frente de izquierda y de trabajadores-unidad':'PO-FIT',
+ 'mid - movimiento de integracion y desarrollo':'MID',
+ 'coherencia':'Coh',
+ 'elijo catamarca':'ElCat',
+ 'defendamos cordoba':'DefCba',
+ 'adelante buenos aires':'AdBA',
+ 'por santa cruz':'PSC',
+ 'primero san luis':'1SL',
+ 'la neuquinidad':'Neuq',
+ 'pais federal':'PaisF',
+ 'despierta chubut':'DespCh',
+ 'encuentro misionero':'EncMis',
+ 'frente civico por santiago':'FCS',
+ 'justicia social federal':'JSF',
+ 'movere santa cruz':'Movere',
+ 'primero los saltenos':'1Salta'
+};
+
+/* Genera una sigla del bloque: primero busca en el diccionario, si no la arma. */
+function siglaBloque(nombre){
+  if(!nombre) return '—';
+  var clave=nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+  if(SIGLAS[clave]) return SIGLAS[clave];
+  // fallback: iniciales de las palabras significativas (incluye "la"/"de" si son parte del nombre corto)
+  var palabras=clave.replace(/[^a-z ]/g,' ').split(/\s+/).filter(function(w){return w.length>0;});
+  if(palabras.length===1) return palabras[0].substring(0,5).toUpperCase();
+  var ini=palabras.filter(function(w){return !/^(de|del|y|en|por|para|el|los|las)$/.test(w);})
+                  .map(function(w){return w.charAt(0).toUpperCase();}).join('');
+  return ini.substring(0,5) || nombre.substring(0,4).toUpperCase();
+}
+
+/* resultado -> etiqueta/estado legible */
+function estadoDe(res){
+  if(!res) return 'Votada';
+  var r=res.toUpperCase();
+  if(r.indexOf('AFIRMATIV')>=0) return 'Aprobada';
+  if(r.indexOf('NEGATIV')>=0||r.indexOf('RECHAZ')>=0) return 'Rechazada';
+  return res;
+}
+
+/* etiqueta corta para el chip (primeras palabras del titulo) */
+function chipLabel(titulo){
+  var t=titulo.replace(/^(LEY|PROYECTO|RÉGIMEN|REGIMEN)\s+/i,'');
+  return t.length>22 ? t.substring(0,22).trim()+'…' : t;
+}
+
+var UMBRAL_BLOC_MENOR=0;  // mostrar todos los bloques con al menos 1 voto
+var votes={},idx=0,curLaw='';
+/* estado del representante */
+var repState='none',selCargo='dipnac',cfg={escucha:true,ideo:true,foto:false},vidDone={};
+
+function renderCard(){var deck=$('#deck');
+ if(idx>=pending.length){deck.innerHTML='<div class="card fade" style="align-items:center;text-align:center;gap:13px;min-height:300px;justify-content:center"><div style="font-size:42px">✅</div><div class="serif" style="font-weight:700;font-size:17px">Votaste todo lo que está en trámite</div><div class="muted" style="font-size:13px">Volvé más tarde. Mirá tus tendencias abajo.</div></div>';$('#actions').style.display='none';return;}
+ $('#actions').style.display='block';var b=pending[idx];
+ var tipsHtml=tipUnaVez('voto','Tu voto aca es tu opinion ciudadana. No reemplaza al Congreso: le muestra que piensa la gente.');if(b.urgente)tipsHtml+=tipUnaVez('urgente',GLOSA.urgente);deck.innerHTML=tipsHtml+'<div class="card swcard fade" id="card"><div class="ovl" id="ovlR" style="right:14px;border-color:var(--favor);color:var(--favor)">A FAVOR</div><div class="ovl" id="ovlL" style="left:14px;border-color:var(--contra);color:var(--contra)">EN CONTRA</div><div class="cat">'+k(b.tema,'ci')+'<span onclick="glosa(&quot;camara&quot;)">'+k(b.camara,'nt')+'</span>'+(b.urgente?'<span onclick="glosa(&quot;urgente&quot;)">'+k('⏰ Urgente','urg')+'</span>':k(b.estado,'nt'))+'</div>'+(b.tieneIA?'<h3 class="title">'+b.sub+'</h3><div>'+k('✨ título editado por IA','ia')+'</div><p class="muted" style="font-size:11px;margin:6px 0 0;line-height:1.4">Título oficial: '+b.n+'</p>':'<h3 class="title">'+b.n+'</h3>')+'<div class="prop"><div class="av">'+b.ini+'</div><div><div class="muted" style="font-size:11.5px">Propone</div><div style="font-size:13px;font-weight:700">'+b.autor+' · '+b.bloque+'</div></div></div></div>';
+ bindDrag();}
+function bindDrag(){var card=$('#card');if(!card)return;var sx=0,dx=0,drag=false;
+ function dn(e){drag=true;sx=(e.touches?e.touches[0].clientX:e.clientX);card.style.transition='none';}
+ function mv(e){if(!drag)return;var x=(e.touches?e.touches[0].clientX:e.clientX);dx=x-sx;card.style.transform='translateX('+dx+'px) rotate('+(dx/24)+'deg)';$('#ovlR').style.opacity=dx>0?Math.min(dx/90,1):0;$('#ovlL').style.opacity=dx<0?Math.min(-dx/90,1):0;}
+ function up(){if(!drag)return;drag=false;card.style.transition='transform .25s';if(dx>92){card.style.transform='translateX(520px) rotate(28deg)';doVote('favor');}else if(dx<-92){card.style.transform='translateX(-520px) rotate(-28deg)';doVote('contra');}else{card.style.transform='';$('#ovlR').style.opacity=0;$('#ovlL').style.opacity=0;}dx=0;}
+ card.addEventListener('mousedown',dn);window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
+ card.addEventListener('touchstart',dn,{passive:true});card.addEventListener('touchmove',mv,{passive:true});card.addEventListener('touchend',up);}
+function guardarVoto(ley,choice){
+ if(!ley||!ley.billId)return;
+ if(!usuarioActual){console.log('voto no guardado: sin sesión');return;}
+ var mapa={favor:'a_favor',contra:'en_contra',abst:'abstencion'};
+ var voto=mapa[choice]||choice;
+ fetch(SUPABASE_URL+'/rest/v1/rpc/emitir_voto',{
+   method:'POST',
+   headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
+   body:JSON.stringify({p_usuario:usuarioActual.id,p_ley_bill_id:ley.billId,p_voto:voto})
+ }).then(function(r){return r.json();})
+ .then(function(resultado){
+   if(resultado==='OK'||resultado==='YA_VOTASTE'){votadas[ley.billId]=true;}
+   console.log('emitir_voto:',resultado);
+ }).catch(function(e){console.log('error al guardar voto:',e);});
+}
+function pedirResultados(ley,cb){
+ if(!ley||!ley.billId){cb(null);return;}
+ var url=SUPABASE_URL+'/rest/v1/rpc/resultados_por_ley';
+ fetch(url,{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({bill:ley.billId})})
+  .then(function(r){return r.json();})
+  .then(function(filas){
+    var tot={a_favor:0,en_contra:0,abstencion:0};
+    (filas||[]).forEach(function(f){if(tot[f.voto]!==undefined)tot[f.voto]=f.cantidad;});
+    cb(tot);
+  }).catch(function(){cb(null);});
+}
+function mostrarTermometro(ley,miVoto){
+ pedirResultados(ley,function(tot){
+  var deck=$('#deck');if(!deck)return;
+  if(!tot){idx++;renderCard();return;}
+  var n=tot.a_favor+tot.en_contra+tot.abstencion;
+  var pf=n?Math.round(tot.a_favor/n*100):0,pc=n?Math.round(tot.en_contra/n*100):0,pa=n?Math.round(tot.abstencion/n*100):0;
+  var etq={favor:'A favor',contra:'En contra',abst:'Abstencion'};
+  deck.innerHTML='<div class="card fade" style="gap:14px;min-height:300px;justify-content:center;text-align:center;padding:24px">'+
+   '<div style="font-size:13px;color:var(--muted)">Tu voto: <b>'+(etq[miVoto]||miVoto)+'</b></div>'+
+   '<div class="serif" style="font-weight:700;font-size:16px">Así va la opinión ciudadana</div>'+
+   '<div class="bar" style="height:14px">'+seg(pf,'var(--favor)')+seg(pa,'var(--abst)')+seg(pc,'var(--contra)')+'</div>'+
+   '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)"><span>👍 '+pf+'%</span><span>➖ '+pa+'%</span><span>👎 '+pc+'%</span></div>'+
+   '<div style="font-size:11.5px;color:var(--muted)">'+nf(n)+(n===1?' voto':' votos')+' · anónimos</div>'+
+   '<button class="primary sm" data-act="siguienteLey" style="margin-top:6px">Siguiente ley →</button>'+
+   '</div>';
+  $('#actions').style.display='none';
+ });
+}
+function siguienteLey(){idx++;$('#actions').style.display='';renderCard();}
+function doVote(choice){if(idx>=pending.length)return;var ley=pending[idx];votes[ley.id]=choice;guardarVoto(ley,choice);setTimeout(function(){idx++;renderCard();},170);}
+function flyAndVote(choice){var c=$('#card');if(c){c.style.transition='transform .25s';if(choice==='favor')c.style.transform='translateX(520px) rotate(28deg)';else if(choice==='contra')c.style.transform='translateX(-520px) rotate(-28deg)';else c.style.opacity='0';}doVote(choice);}
+
+function openDetail(){if(idx>=pending.length)return;var b=pending[idx],d=$('#detail');
+ d.innerHTML='<button class="back" data-act="closeDetail">← Volver</button><h3 class="title" style="font-size:20px">'+b.n+'</h3><p class="muted" style="font-size:12.5px;margin:4px 0 12px">'+b.camara+' · '+b.estado+'</p><div class="prop" style="margin:0 0 12px"><div class="av">'+b.ini+'</div><div><div class="muted" style="font-size:11.5px">Propone</div><div style="font-size:13px;font-weight:700">'+b.autor+' · '+b.bloque+'</div></div></div><div style="margin-bottom:6px">'+k('✨ resumen IA','ia')+'</div><p style="font-size:14px;line-height:1.55;margin:0 0 14px">'+b.resumen+'</p><button class="expbtn" data-act="experts">👥 Ver expertos (5) · videos de 2 min</button><button class="fullbtn" data-act="full">📜 Leer la ley completa</button><div class="note info" style="margin:12px 0 16px">🔁 Cuando el Congreso lo vote, vas a ver cómo votó cada bloque frente a tu postura.</div><div class="vrow"><button class="vbtn c" data-act="voteD" data-arg="contra"><span class="em">👎</span>En contra</button><button class="vbtn a" data-act="voteD" data-arg="abst"><span class="em">➖</span>Abstención<span class="gq" onclick="event.stopPropagation();glosa(&quot;abstencion&quot;)">i</span></button><button class="vbtn f" data-act="voteD" data-arg="favor"><span class="em">👍</span>A favor</button></div>';
+ d.classList.add('show');}
+function openFull(){if(idx>=pending.length)return;var b=pending[idx],f=$('#fulltext');
+ var cab='<button class="back" data-act="closeFull">← Volver al resumen</button><h3 class="title" style="font-size:20px">'+b.n+'</h3><p class="muted" style="font-size:12px;margin:4px 0 12px">📜 Texto del proyecto · '+b.camara+'</p>';
+ f.innerHTML=cab+'<div class="artic" id="artcuerpo"><span class="muted">Cargando texto oficial…</span></div>';
+ f.classList.add('show');
+ var cuerpo=function(){return document.getElementById('artcuerpo');};
+ // Si ya lo trajimos antes, no volver a pedirlo
+ if(b.completa){cuerpo().textContent=b.completa;return;}
+ if(!b.leyDbId){cuerpo().innerHTML='<span class="muted">Esta ley todavía no tiene texto oficial cargado.</span>';return;}
+ fetch(SUPABASE_URL+'/rest/v1/leyes?select=texto_oficial&id=eq.'+b.leyDbId,
+   {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}})
+  .then(function(r){return r.json();})
+  .then(function(rows){
+    var txt=(rows&&rows[0]&&rows[0].texto_oficial)?rows[0].texto_oficial:'';
+    if(txt){b.completa=txt;cuerpo().textContent=txt;}
+    else{cuerpo().innerHTML='<span class="muted">Esta ley todavía no tiene texto oficial cargado. Podés leerla en el sitio del Congreso.</span>';}
+  })
+  .catch(function(){cuerpo().innerHTML='<span class="muted">No se pudo cargar el texto ahora. Probá de nuevo.</span>';});
+}
+function expGroup(t,arr){var h='<div class="sech" style="margin-top:14px">'+t+'</div>';arr.forEach(function(e){h+='<div class="exp"><div class="repav" style="background:var(--surface2);color:var(--muted)">👤</div><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13.5px">'+e.n+'</div><div class="muted" style="font-size:11.5px">'+e.r+' · '+e.lean+'</div></div><a class="yt" href="'+YT+'" target="_blank" rel="noopener">▶ 2:00</a></div>';});return h;}
+function panelBlock(){return '<div class="sech" style="margin-top:16px">PANEL CIUDADANO (1)</div><p class="muted" style="font-size:11.5px;margin:0 0 4px">Ciudadano convocado por participación sostenida (no es experto). Video de 1 minuto.</p><div class="exp"><div class="repav" style="background:var(--brand-soft);color:var(--brand)">👤</div><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13.5px">Ciudadano verificado · Córdoba</div><div class="muted" style="font-size:11.5px">elegido esta semana para esta ley</div></div><a class="yt" href="'+YT+'" target="_blank" rel="noopener">▶ 1:00</a></div>';}
+function openExperts(){var x=$('#experts');x.innerHTML='<button class="back" data-act="closeExperts">← Volver al proyecto</button><h3 class="title" style="font-size:19px">Qué dicen los expertos</h3><p class="muted" style="font-size:12.5px;margin:5px 0 4px">Siempre al menos 2 voces, con su afiliación o cercanía declarada. Nadie se cataloga como apolítico.</p>'+expGroup('A FAVOR (2)',experts.favor)+expGroup('EN CONTRA (2)',experts.contra)+expGroup('CON MATICES / ABSTENCIÓN (1)',experts.abst)+panelBlock()+'<p class="muted" style="font-size:11px;text-align:center;margin:16px 4px 0">Voces ilustrativas. Los videos abren en YouTube.</p>';x.classList.add('show');x.scrollTop=0;}
+
+function renderTrend(){var v=pending.filter(function(b){return votes[b.id];}),el=$('#sc-trend');
+ if(!v.length){el.innerHTML='<div style="text-align:center;padding:48px 12px"><div style="font-size:38px">📊</div><p class="muted">Votá proyectos para ver cómo va opinando la ciudadanía.</p></div>';return;}
+ el.innerHTML='<div class="sech">TENDENCIA CIUDADANA · EN CURSO</div><p class="muted" style="font-size:13px;margin:0 0 14px">Sobre lo que votaste. Datos reales y anónimos.</p><div id="trendBody"><p class="muted" style="font-size:13px">Cargando resultados...</p></div>';
+ var cont=$('#trendBody');cont.innerHTML='';
+ v.forEach(function(b){
+   var card=document.createElement('div');card.className='card';card.style.cssText='gap:7px;padding:14px;margin-bottom:10px';
+   card.innerHTML='<div style="font-weight:700;font-size:14px;margin-bottom:4px">'+b.n+'</div><div class="muted" style="font-size:12px">Cargando...</div>';
+   cont.appendChild(card);
+   pedirResultados(b,function(tot){
+     var mine=votes[b.id];
+     if(!tot){card.querySelector('.muted').textContent='Sin datos aún.';return;}
+     var n=tot.a_favor+tot.en_contra+tot.abstencion;
+     var pf=n?Math.round(tot.a_favor/n*100):0,pc=n?Math.round(tot.en_contra/n*100):0,pa=n?Math.round(tot.abstencion/n*100):0;
+     var top=Math.max(pf,pc,pa),clear=top>=60;
+     var tag=k(clear?(pf===top?'Tiende a favor':pc===top?'Tiende en contra':'Tiende a abst.'):'Dividido',clear?(pf===top?'ok':pc===top?'con':'ab'):'nt');
+     card.innerHTML='<div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><div style="font-weight:700;font-size:14px">'+b.n+'</div>'+tag+'</div>'+
+      '<div class="bar">'+seg(pf,'var(--favor)')+seg(pa,'var(--abst)')+seg(pc,'var(--contra)')+'</div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:11px"><span class="muted">Tu voto: '+C[mine].t+'</span><span class="muted">'+nf(n)+(n===1?' voto':' votos')+'</span></div>';
+   });
+ });}
+
+/* dibuja el bloque de una votacion (una sola camara) con sus bloques reales */
+function chamber(l){var t=l.tot,total=t[0]+t[1]+t[2]+t[3]||1,ok=estadoDe(l.r)==='Aprobada';
+ var h='<div class="cham"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:700;font-size:15px">'+l.camara+'</span>'+k(ok?'Aprobado':estadoDe(l.r),ok?'ok':'con')+'</div><div class="tbar">'+seg(t[0]/total*100,'var(--favor)')+seg(t[2]/total*100,'var(--abst)')+seg(t[1]/total*100,'var(--contra)')+seg(t[3]/total*100,'var(--aus)')+'</div><p class="muted" style="font-size:12px;margin:0 0 4px">'+t[0]+' a favor · '+t[1]+' en contra · '+t[2]+' abst. · '+t[3]+' aus. · <span style="color:var(--brand)">tocá un bloque ▾</span></p><div style="border-top:1px solid var(--line);padding-top:4px">';
+ var orden=Object.keys(l.blocs).sort(function(a,b){var sa=l.blocs[a],sb=l.blocs[b];return (sb[0]+sb[1]+sb[2]+sb[3])-(sa[0]+sa[1]+sa[2]+sa[3]);});
+ l.blocOrden=orden;   // guardo el orden para poder referenciar por indice
+ orden.forEach(function(key,i){var a=l.blocs[key],tb=a[0]+a[1]+a[2]+a[3];if(tb===0)return;
+  h+='<div class="brow" data-act="bloc" data-arg="'+i+'"><span class="blab" title="'+(l.blocFull[key]||key).replace(/"/g,'&quot;')+'">'+siglaBloque(key)+'</span><span class="bbar">'+seg(a[0]/tb*100,'var(--favor)')+seg(a[2]/tb*100,'var(--abst)')+seg(a[1]/tb*100,'var(--contra)')+seg(a[3]/tb*100,'var(--aus)')+'</span><span class="bnum" style="min-width:64px"><span style="color:var(--favor)">'+a[0]+'</span>·<span style="color:var(--contra)">'+a[1]+'</span>'+(a[3]>0?'·<span style="color:var(--aus)" title="ausentes">'+a[3]+'</span>':'')+'</span><span class="chev">›</span></div>';});
+ return h+'</div></div>';}
+
+function renderVoted(){var el=$('#sc-voted');
+ if(!votedLoaded){el.innerHTML='<p class="muted" style="font-size:13px;padding:20px 0">Cargando votaciones del Congreso…</p>';cargarVotadasLista();return;}
+
+ // pestañas: Recientes | Históricas
+ var tabs='<div class="chips" style="margin-bottom:4px">'
+  +'<button class="chip'+(votedVista==='rec'?' on':'')+'" data-act="votedVista" data-arg="rec">Recientes</button>'
+  +'<button class="chip'+(votedVista==='hist'?' on':'')+'" data-act="votedVista" data-arg="hist">🔎 Históricas</button></div>';
+
+ if(votedVista==='hist'){ el.innerHTML=tabs+renderHistoricas(); return; }
+
+ if(votedOrder.length===0){el.innerHTML=tabs+'<p class="muted" style="font-size:13px;padding:20px 0">Todavía no hay votaciones cargadas.</p>';return;}
+
+ // filtros por TIPO
+ var ftipos='<div class="chips" style="margin-bottom:6px">'
+  +'<button class="chip'+(votedTipo===null?' on':'')+'" data-act="votedTipo" data-arg="">Todo</button>';
+ votedTipos.forEach(function(t){
+   ftipos+='<button class="chip'+(votedTipo===t.tipo?' on':'')+'" data-act="votedTipo" data-arg="'+t.tipo+'">'+(TIPO_CHIP[t.tipo]||t.tipo)+' ('+t.cantidad+')</button>';
+ });
+ ftipos+='</div>';
+
+ // chips: una FILA POR CAMARA, apiladas (Diputados arriba, Senado abajo)
+ var chips='';
+ ['Diputados','Senado'].forEach(function(cam){
+   var ks=votedOrder.filter(function(key){return voted[key].camara===cam;});
+   if(ks.length===0) return;
+   chips+='<div style="font-size:11px;font-weight:700;color:var(--muted);margin:8px 0 3px;letter-spacing:.04em">'+cam.toUpperCase()+'</div>';
+   chips+='<div class="chips" style="margin-bottom:2px">';
+   ks.forEach(function(key){chips+='<button class="chip'+(key===curLaw?' on':'')+'" data-act="selLaw" data-arg="'+key+'">'+votedLabels[key]+'</button>';});
+   chips+='</div>';
+ });
+ chips=ftipos+chips;
+
+ var l=voted[curLaw],h='';
+ if(!l){el.innerHTML=tabs+chips+'<p class="muted" style="padding:16px 0">Elegí una votación.</p>';return;}
+ h='<h3 class="title" style="font-size:20px;margin-top:10px">'+l.n+'</h3><div style="margin:6px 0 8px">'+(l.tipo?'<span class="chip" style="pointer-events:none;margin-right:4px">'+(TIPO_CHIP[l.tipo]||l.tipo)+'</span>':'')+k((estadoDe(l.r)==='Aprobada'?'✅ ':'')+estadoDe(l.r),estadoDe(l.r)==='Aprobada'?'ok':'con')+(l.fecha?' <span class="muted" style="font-size:11.5px">· '+l.fecha+'</span>':'')+'</div>';
+ if(!l.cargado){h+='<p class="muted" style="font-size:12.5px">Cargando el detalle…</p>';el.innerHTML=tabs+chips+h;cargarDetalleVotada(curLaw);return;}
+ if(l.ley_bill_id){
+   if(l.cruce===undefined){h+='<div id="cruce-'+l.id+'" class="note info" style="margin:0 0 12px">🔗 Comparando tu comunidad con el Congreso…</div>';cargarCruce(l);}
+   else if(l.cruce){h+=l.cruce;}
+ }
+ h+='<div class="legend"><span><span class="sq" style="background:var(--favor)"></span>a favor</span><span><span class="sq" style="background:var(--contra)"></span>en contra</span><span><span class="sq" style="background:var(--abst)"></span>abstención</span><span><span class="sq" style="background:var(--aus)"></span>ausente</span></div>';
+ h+=chamber(l);
+ h+='<p class="muted" style="font-size:11px;text-align:center;margin:8px 4px 0">Voto nominal real. Tocá un bloque para ver sus nombres.</p>';
+ el.innerHTML=tabs+chips+h;}
+
+/* ===== HISTORICAS: buscador por titulo + filtro por año ===== */
+function renderHistoricas(){
+ var h='<div style="margin:10px 0 6px"><input id="histQ" type="text" placeholder="Buscar por título…" value="'+(histTexto||'').replace(/"/g,'&quot;')+'" style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:11px;font-size:14px;font-family:inherit;box-sizing:border-box"></div>';
+ // filtro de TIPO
+ h+='<div class="chips" style="margin-bottom:6px">';
+ h+='<button class="chip'+(votedTipo===null?' on':'')+'" data-act="histTipo" data-arg="">Todo</button>';
+ votedTipos.forEach(function(t){h+='<button class="chip'+(votedTipo===t.tipo?' on':'')+'" data-act="histTipo" data-arg="'+t.tipo+'">'+(TIPO_CHIP[t.tipo]||t.tipo)+'</button>';});
+ h+='</div>';
+ // filtro de años
+ h+='<div class="chips" style="margin-bottom:8px">';
+ h+='<button class="chip'+(histAnio===null?' on':'')+'" data-act="histAnio" data-arg="">Todos los años</button>';
+ histAnios.forEach(function(a){h+='<button class="chip'+(histAnio===a.anio?' on':'')+'" data-act="histAnio" data-arg="'+a.anio+'">'+a.anio+' ('+a.cantidad+')</button>';});
+ h+='</div>';
+ h+='<div id="histRes">'+(histBuscando?'<p class="muted" style="font-size:13px">Buscando…</p>':renderHistResultados())+'</div>';
+ return h;}
+
+function renderHistResultados(){
+ if(!histResultados) return '<p class="muted" style="font-size:13px;padding:10px 0">Escribí para buscar, o elegí un año o tipo.</p>';
+ if(histResultados.length===0) return '<p class="muted" style="font-size:13px;padding:10px 0">No se encontraron votaciones.</p>';
+ var h='';
+ histResultados.forEach(function(row){
+   var key='v'+row.id, ok=estadoDe(row.resultado)==='Aprobada';
+   var f=row.votada_en?new Date(row.votada_en).toLocaleDateString('es-AR'):'';
+   h+='<div class="brow" data-act="histAbrir" data-arg="'+row.id+'" style="align-items:flex-start;padding:11px 2px">'
+     +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13.5px;line-height:1.35">'+row.titulo+'</div>'
+     +'<div class="muted" style="font-size:11.5px;margin-top:3px">'+(row.tipo?(TIPO_CHIP[row.tipo]||row.tipo)+' · ':'')+row.camara+' · '+f+' · '
+     +'<span style="color:var(--favor)">'+row.afirmativos+'</span>·<span style="color:var(--contra)">'+row.negativos+'</span>'
+     +(row.ausentes>0?'·<span style="color:var(--aus)">'+row.ausentes+' aus.</span>':'')+'</div></div>'
+     +k(ok?'Aprobada':estadoDe(row.resultado),ok?'ok':'con')+'<span class="chev">›</span></div>';
+ });
+ return h;}
+
+function buscarHistoricas(){
+ histBuscando=true;
+ var cont=$('#histRes'); if(cont)cont.innerHTML='<p class="muted" style="font-size:13px">Buscando…</p>';
+ fetch(SUPABASE_URL+'/rest/v1/rpc/votadas_buscar',{method:'POST',
+   headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
+   body:JSON.stringify({p_texto:histTexto||'',p_anio:histAnio,p_tipo:votedTipo,p_limite:50})})
+  .then(function(r){return r.json();})
+  .then(function(rows){histResultados=rows||[];histBuscando=false;
+    // solo actualizo los resultados: NO re-renderizo todo, para no perder el foco del input
+    var c=$('#histRes'); if(c)c.innerHTML=renderHistResultados();})
+  .catch(function(){histBuscando=false;var c=$('#histRes');if(c)c.innerHTML='<p class="muted" style="font-size:13px">No se pudo buscar.</p>';});}
+
+function cargarAnios(){
+ fetch(SUPABASE_URL+'/rest/v1/rpc/votadas_anios',{method:'POST',
+   headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},body:'{}'})
+  .then(function(r){return r.json();})
+  .then(function(rows){histAnios=rows||[];if(votedVista==='hist')renderVoted();})
+  .catch(function(){});}
+
+/* abrir una votacion desde Historicas: la carga y salta a la vista de detalle */
+function abrirHistorica(id){
+ var row=null;
+ (histResultados||[]).forEach(function(r){if(String(r.id)===String(id))row=r;});
+ if(!row)return;
+ var key='v'+row.id;
+ voted[key]={id:row.id,camara:row.camara,n:row.titulo,tipo:row.tipo,r:row.resultado,
+   tot:[row.afirmativos,row.negativos,row.abstenciones,row.ausentes],
+   blocs:{},blocFull:{},cargado:false,ley_bill_id:row.ley_bill_id,
+   fecha:row.votada_en?new Date(row.votada_en).toLocaleDateString('es-AR'):''};
+ if(votedOrder.indexOf(key)<0)votedOrder.push(key);
+ votedLabels[key]=chipLabel(row.titulo);
+ curLaw=key; votedVista='rec'; renderVoted();}
+var VOTO_MAP={AFIRMATIVO:'favor',NEGATIVO:'contra',ABSTENCION:'abst',AUSENTE:'aus',PRESIDENTE:'aus'};
+function openBloc(i){var l=voted[curLaw];if(!l||!l.blocOrden)return;
+ var key=l.blocOrden[parseInt(i,10)];if(!key)return;
+ var arr=l.blocs[key],bd=$('#blocd'),tot=arr[0]+arr[1]+arr[2]+arr[3];
+ var nombreCompleto=l.blocFull[key]||key;
+ var h='<button class="back" data-act="closeBloc">← Volver a la votación</button><h3 class="title" style="font-size:19px">'+nombreCompleto+'</h3><p class="muted" style="font-size:12.5px;margin:4px 0 0">'+l.camara+' · '+l.n+'</p>';
+ h+='<div class="bar" style="margin-top:12px">'+seg(arr[0]/tot*100,'var(--favor)')+seg(arr[2]/tot*100,'var(--abst)')+seg(arr[1]/tot*100,'var(--contra)')+seg(arr[3]/tot*100,'var(--aus)')+'</div><p class="muted" style="font-size:12px;margin:0 0 12px">'+arr[0]+' a favor · '+arr[1]+' en contra · '+arr[2]+' abst. · '+arr[3]+' aus.</p>';
+ h+='<div class="sech">CÓMO VOTÓ CADA UNO</div><div id="blocMembers"><p class="muted" style="font-size:12px">Cargando nombres…</p></div>';
+ bd.innerHTML=h;bd.classList.add('show');bd.scrollTop=0;
+ // lazy load de los nombres reales de este bloque en esta votacion
+ fetch(SUPABASE_URL+'/rest/v1/rpc/votada_nombres',{method:'POST',
+   headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
+   body:JSON.stringify({p_votacion_id:l.id,p_bloque:key})})
+  .then(function(r){
+    if(!r.ok) return r.text().then(function(t){throw new Error('HTTP '+r.status+': '+t);});
+    return r.json();
+  })
+  .then(function(rows){
+    var cont=$('#blocMembers');if(!cont)return;
+    if(!rows||rows.length===0){cont.innerHTML='<p class="muted" style="font-size:12px">Sin nombres para este bloque.</p>';return;}
+    var mh='';rows.forEach(function(x){var vc=VOTO_MAP[x.voto]||'aus';var cc=C[vc]||{c:'nt',t:x.voto||'—'};
+      mh+='<div class="mem"><div class="repav" style="background:var(--surface2);color:var(--muted)">👤</div><div style="flex:1"><div style="font-weight:700;font-size:13.5px">'+x.nombre+'</div>'+(x.provincia?'<div class="muted" style="font-size:11px">'+x.provincia+'</div>':'')+'</div>'+k(cc.t,cc.c)+'</div>';});
+    cont.innerHTML=mh;
+  })
+  .catch(function(err){
+    console.error('votada_nombres FALLO. bloque=',key,'votacion=',l.id,err);
+    var cont=$('#blocMembers');
+    if(cont)cont.innerHTML='<p class="muted" style="font-size:12px">No se pudieron cargar los nombres.<br><span style="font-size:10px">'+(err&&err.message?err.message:'')+'</span></p>';
+  });}
+
+/* ===== carga de datos reales ===== */
+function cargarVotadasLista(){
+ fetch(SUPABASE_URL+'/rest/v1/rpc/votadas_lista',{method:'POST',
+   headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
+   body:JSON.stringify({p_limite:VOTADAS_RECIENTES,p_tipo:votedTipo})})
+  .then(function(r){return r.json();})
+  .then(function(rows){
+    voted={};votedOrder=[];votedLabels={};
+    (rows||[]).forEach(function(row){
+      var key='v'+row.id;
+      voted[key]={id:row.id,camara:row.camara,n:row.titulo,tipo:row.tipo,r:row.resultado,
+        tot:[row.afirmativos,row.negativos,row.abstenciones,row.ausentes],
+        blocs:{},blocFull:{},cargado:false,ley_bill_id:row.ley_bill_id,
+        fecha:row.votada_en?new Date(row.votada_en).toLocaleDateString('es-AR'):''};
+      votedLabels[key]=chipLabel(row.titulo);
+      votedOrder.push(key);
+    });
+    votedLoaded=true;
+    if(votedOrder.length && (!curLaw||!voted[curLaw])) curLaw=votedOrder[0];
+    cargarAnios();cargarTipos();
+    renderVoted();
+  })
+  .catch(function(){$('#sc-voted').innerHTML='<p class="muted" style="padding:20px 0">No se pudieron cargar las votaciones.</p>';});
+}
+
+/* conteos por tipo (para los filtros) */
+function cargarTipos(){
+ if(votedTipos.length)return;  // una sola vez
+ fetch(SUPABASE_URL+'/rest/v1/rpc/votadas_tipos',{method:'POST',
+   headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},body:'{}'})
+  .then(function(r){return r.json();})
+  .then(function(rows){votedTipos=(rows||[]).filter(function(t){return t.tipo!=='INTERNO';});renderVoted();})
+  .catch(function(){});
+}
+
+/* CRUCE: tendencia ciudadana (Pnyx) vs resultado del Congreso.
+   El voto ciudadano se cuenta en el servidor de forma agregada y anónima
+   (resultados_por_ley). Acá solo comparamos dos totales, sin tocar identidades. */
+function cargarCruce(l){
+ fetch(SUPABASE_URL+'/rest/v1/rpc/resultados_por_ley',{method:'POST',
+   headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
+   body:JSON.stringify({bill:l.ley_bill_id})})
+  .then(function(r){return r.json();})
+  .then(function(filas){
+    var t={a_favor:0,en_contra:0,abstencion:0};
+    (filas||[]).forEach(function(f){if(t[f.voto]!==undefined)t[f.voto]=f.cantidad;});
+    var n=t.a_favor+t.en_contra+t.abstencion;
+    if(n<1){ l.cruce=''; var e0=document.getElementById('cruce-'+l.id); if(e0)e0.outerHTML=''; return; }
+    var pf=Math.round(t.a_favor/n*100), pc=Math.round(t.en_contra/n*100), pa=Math.round(t.abstencion/n*100);
+    // postura mayoritaria de la comunidad
+    var cmayor = (t.a_favor>=t.en_contra && t.a_favor>=t.abstencion)?'favor':((t.en_contra>=t.abstencion)?'contra':'abst');
+    // resultado del Congreso: AFIRMATIVO/NEGATIVO
+    var congreso = (String(l.r||'').toUpperCase().indexOf('AFIRMATIV')>=0)?'favor':'contra';
+    var coincide = (cmayor===congreso);
+    var cTxt={favor:'a favor',contra:'en contra',abst:'dividida'}[cmayor];
+    var gTxt=(congreso==='favor')?'la aprobó':'la rechazó';
+    var veredicto = coincide
+      ? '<div style="font-weight:700;color:var(--favor);font-size:13px">✅ El Congreso votó igual que la comunidad de Pnyx</div>'
+      : '<div style="font-weight:700;color:var(--contra);font-size:13px">↔️ El Congreso votó distinto a la comunidad de Pnyx</div>';
+    var barra='<div style="display:flex;height:8px;border-radius:6px;overflow:hidden;margin:8px 0 4px">'
+      +'<div style="width:'+pf+'%;background:var(--favor)"></div>'
+      +'<div style="width:'+pc+'%;background:var(--contra)"></div>'
+      +'<div style="width:'+pa+'%;background:var(--abst)"></div></div>';
+    var html='<div class="card" style="margin:0 0 12px;padding:13px 15px">'
+      +'<div class="sech" style="margin-bottom:6px">🔗 TU COMUNIDAD vs EL CONGRESO</div>'
+      +'<div style="font-size:12.5px;color:var(--muted);margin-bottom:2px">La comunidad de Pnyx ('+n+' voto'+(n>1?'s':'')+') opinó <b style="color:var(--ink)">'+cTxt+'</b>:</div>'
+      +barra
+      +'<div style="font-size:11px;color:var(--muted);margin-bottom:10px"><span style="color:var(--favor)">'+pf+'% a favor</span> · <span style="color:var(--contra)">'+pc+'% en contra</span> · <span style="color:var(--abst)">'+pa+'% abst.</span></div>'
+      +'<div style="font-size:12.5px;color:var(--muted);margin-bottom:8px">El Congreso <b style="color:var(--ink)">'+gTxt+'</b>.</div>'
+      +veredicto
+      +'</div>';
+    l.cruce=html;
+    var e=document.getElementById('cruce-'+l.id);
+    if(e)e.outerHTML=html;
+  })
+  .catch(function(){ l.cruce=''; var e=document.getElementById('cruce-'+l.id); if(e)e.outerHTML=''; });
+}
+
+function cargarDetalleVotada(key){
+ var l=voted[key];if(!l||l.cargado)return;
+ fetch(SUPABASE_URL+'/rest/v1/rpc/votada_por_bloque',{method:'POST',
+   headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
+   body:JSON.stringify({p_votacion_id:l.id})})
+  .then(function(r){return r.json();})
+  .then(function(rows){
+    l.blocs={};l.blocFull={};
+    (rows||[]).forEach(function(b){
+      l.blocs[b.bloque]=[b.afirmativos,b.negativos,b.abstenciones,b.ausentes];
+      l.blocFull[b.bloque]=b.bloque;
+    });
+    l.cargado=true;
+    if(curLaw===key)renderVoted();
+  })
+  .catch(function(){l.cargado=true;if(curLaw===key)renderVoted();});
+}
+
+var storiesData=[{n:'Dip. R. Sosa',d:'Santa Fe',ley:'Ley de Glaciares',voto:'favor'},{n:'Sen. M. Ríos',d:'Mendoza',ley:'Reforma Laboral',voto:'contra'},{n:'Dip. L. Vega',d:'Córdoba',ley:'Régimen Penal Juvenil',voto:'favor'},{n:'Dip. J. Bravo',d:'Buenos Aires',ley:'Reforma Laboral',voto:'favor'},{n:'Sen. C. Díaz',d:'Salta',ley:'Ley de Glaciares',voto:'contra'}];
+var stOrder=[],stIdx=0;
+function openStories(){stOrder=storiesData.map(function(_,i){return i;});for(var i=stOrder.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=stOrder[i];stOrder[i]=stOrder[j];stOrder[j]=t;}stIdx=0;$('#stories').classList.add('show');renderStory();}
+function renderStory(){if(stIdx>=stOrder.length){$('#stories').classList.remove('show');return;}var s=storiesData[stOrder[stIdx]],segs='';for(var i=0;i<stOrder.length;i++)segs+='<div class="s '+(i<stIdx?'done':(i===stIdx?'now':''))+'"><i></i></div>';var pr=s.n.split(' '),ini=pr[1][0]+pr[2][0];
+ $('#stories').innerHTML='<div class="segs">'+segs+'</div><div style="display:flex;align-items:center;gap:10px;color:#fff;margin-bottom:10px"><div class="repav" style="background:rgba(255,255,255,.2);color:#fff">'+ini+'</div><div style="flex:1"><div style="font-weight:700;font-size:14px">'+s.n+'</div><div style="font-size:12px;opacity:.85">'+s.d+'</div></div><button data-act="closeStories" style="background:transparent;border:none;color:#fff;font-size:22px;line-height:1">×</button></div><div class="stvideo" data-act="storyNext"><div class="stplay">▶</div><div style="margin-top:14px;font-size:12px;opacity:.9">0:30</div><div style="position:absolute;bottom:18px;left:18px;right:18px;text-align:center"><div style="font-size:12px;opacity:.85;margin-bottom:4px">Explica su voto en</div><div class="serif" style="font-size:18px;font-weight:700">'+s.ley+'</div><div style="margin-top:8px">'+k(C[s.voto].t,C[s.voto].c)+'</div></div></div><p style="color:rgba(255,255,255,.6);font-size:11px;text-align:center;margin:10px 0 0">Tocá para el siguiente · orden aleatorio · sin me gusta · video ilustrativo</p>';}
+
+function renderBanc(){var reps=[{n:'Dip. L. Vega',d:'Córdoba',p:true},{n:'Dip. R. Sosa',d:'Santa Fe',p:true},{n:'Dip. J. Bravo',d:'Buenos Aires',p:true},{n:'Sen. M. Ríos',d:'Mendoza',p:false},{n:'Sen. C. Díaz',d:'Salta',p:false}];var yes=reps.filter(function(r){return r.p;}).length;
+ var h='<div class="sech">TRANSPARENCIA · BANCAS QUE ESCUCHAN</div><p class="muted" style="font-size:13px;margin:0 0 14px">'+yes+' de '+reps.length+' participan. El sello lo pone cada legislador; su historial lo respalda o lo desmiente.</p>';
+ reps.forEach(function(r){var pr=r.n.split(' '),ini=pr[1][0]+pr[2][0];h+='<div class="mem" style="border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:9px"><div class="repav" style="background:'+(r.p?'var(--favor-bg)':'var(--surface2)')+';color:'+(r.p?'var(--favor)':'var(--muted)')+'">'+ini+'</div><div style="flex:1"><div style="font-weight:700;font-size:14px">'+r.n+'</div><div class="muted" style="font-size:12px">'+r.d+'</div></div>'+(r.p?k('✅ Escucha','ok'):k('No participa','nt'))+'</div>';});
+ $('#sc-banc').innerHTML=h+'<p class="muted" style="font-size:11px;text-align:center;margin:14px 4px 0">Legisladores y datos ilustrativos.</p>';}
+
+/* PERFIL — hub: ciudadano + capa representante */
+function renderPerfil(){var n=Object.keys(votes).length;
+ var emailMostrar=usuarioActual?usuarioActual.email:'—';
+ var ini=usuarioActual?(usuarioActual.email.substring(0,2).toUpperCase()):'CV';
+ var h='<div class="card" style="display:flex;flex-direction:row;align-items:center;gap:13px"><div class="av" style="width:50px;height:50px;font-size:17px">'+ini+'</div><div style="flex:1"><div style="font-weight:700;font-size:16px">Ciudadano verificado</div><div class="muted" style="font-size:12px">'+emailMostrar+'</div></div><button style="border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12px;padding:6px 12px;border-radius:20px;font-weight:600" data-act="logout">Salir</button></div>'
+  +'<div class="card" style="margin-top:12px"><div class="sech">📚 APRENDER</div><p class="muted" style="font-size:12.5px;margin:0 0 10px">Videos cortos que explican como funciona el Congreso: que es una camara, que pasa cuando una ley se aprueba, que hace tu voto aca.</p><div style="border:1px dashed var(--line);border-radius:var(--r-sm);padding:16px;text-align:center;color:var(--muted);font-size:12.5px">🎬 Proximamente<br>Los primeros videos estan en produccion.</div></div>'+'<div class="card" style="margin-top:12px"><div class="sech">TU ACTIVIDAD</div><div style="display:flex;justify-content:space-between"><span class="muted">Proyectos votados</span><b style="font-weight:700">'+n+'</b></div><div style="display:flex;justify-content:space-between;margin-top:6px"><span class="muted">Tu voto</span><span class="k ci">🔒 anónimo</span></div></div>';
+
+ if(repState==='none'){
+  h+='<div class="card" style="margin-top:12px;gap:6px"><div style="font-weight:700;font-size:14px">🏛️ ¿Ocupás una banca?</div><p class="muted" style="font-size:12.5px;margin:0">Seguís siendo ciudadano y votás como todos. Validá tu banca para sumar la capa de representante: ver la señal de tu distrito y elegir qué mostrás.</p><button class="primary sm" style="margin-top:6px" data-act="validarBanca">Validar mi banca</button></div>';
+ } else if(repState==='pending'){
+  h+='<div class="card" style="margin-top:12px;text-align:center"><div style="font-size:34px">⏳</div><div style="font-weight:700;margin:8px 0 4px">Banca en validación (24 hs)</div><p class="muted" style="margin:0;font-size:12.5px">Verificamos tu cargo contra la nómina oficial. Mientras tanto seguís usando Pnyx como ciudadano.</p><button class="primary sm" style="margin-top:12px;background:var(--favor)" data-act="aprobarBanca">Simular validación aprobada (demo)</button></div>';
+ } else {
+  var cargoTxt={dipnac:'Diputado nacional',sennac:'Senador nacional',dipprov:'Diputado provincial',senprov:'Senador provincial',concejal:'Concejal'}[selCargo];
+  h+='<div class="card" style="margin-top:12px;gap:8px"><div style="display:flex;align-items:center;gap:11px"><div class="repav" style="background:var(--brand-soft);color:var(--brand)">🏛️</div><div style="flex:1"><div style="font-weight:700;font-size:15px">Tu banca · '+cargoTxt+'</div><div class="muted" style="font-size:12px">Córdoba · validada ✅</div></div></div>'+(cfg.escucha?'<div>'+k('✅ Banca que escucha','ok')+'</div>':'')+'</div>';
+  h+='<div class="card" style="margin-top:12px"><div class="sech">¿QUÉ MOSTRÁS A LA CIUDADANÍA?</div>'
+   +'<div class="row"><div><div style="font-weight:700;font-size:13.5px">Sello «Banca que escucha»</div><div class="muted" style="font-size:11.5px">aparecés como banca que escucha</div></div><div class="sw'+(cfg.escucha?'':' off')+'" data-act="cfg" data-arg="escucha"></div></div>'
+   +'<div class="row"><div><div style="font-weight:700;font-size:13.5px">Ideología declarada</div><div class="muted" style="font-size:11.5px">tu etiqueta o la de tu frente</div></div><div class="sw'+(cfg.ideo?'':' off')+'" data-act="cfg" data-arg="ideo"></div></div>'
+   +'<div class="row" style="border-bottom:none"><div><div style="font-weight:700;font-size:13.5px">Foto y bio</div><div class="muted" style="font-size:11.5px">sos cargo público: tu cara puede figurar</div></div><div class="sw'+(cfg.foto?'':' off')+'" data-act="cfg" data-arg="foto"></div></div></div>';
+  h+='<button class="primary sm" style="margin-top:12px" data-act="repStats">📊 Estadísticas de mi distrito</button>';
+ }
+ h+='<div class="sech" style="margin:16px 2px 8px">QUÉ VES COMO CIUDADANO</div>'
+  +'<div class="card" style="margin-bottom:12px"><div style="font-weight:700;font-size:13.5px">🏛️ Tendencia nacional</div><div class="muted" style="font-size:12px;margin-top:2px">El total del país, agregado y anónimo.</div></div>';
+ if(repState!=='validated'){
+  h+='<div class="card lockwrap" style="margin-bottom:12px"><div style="font-weight:700;font-size:13.5px">📍 Señal por distrito</div><div class="bar" style="margin-top:8px"><div style="width:50%;background:var(--aus)"></div></div><div class="muted">—</div><div class="lockover"><div style="font-size:26px">🔒</div><div class="muted" style="font-weight:700;font-size:12.5px">Se desbloquea al validar tu banca</div><div class="muted" style="font-size:11px">Como ciudadano ves el total nacional</div></div></div>';
+ }
+ h+='<div class="card" style="opacity:.65;display:flex;flex-direction:row;align-items:center;gap:11px"><div style="font-size:22px">👥</div><div><div style="font-weight:700;font-size:13.5px">Comunidad</div><div class="muted" style="font-size:11px">👁️ acá todo es público · en construcción</div></div></div>';
+ $('#sc-perfil').innerHTML=h;}
+
+function openBanca(){var b=$('#banca');var cargos=[['dipnac','Dip. nacional'],['sennac','Sen. nacional'],['dipprov','Dip. provincial'],['senprov','Sen. provincial'],['concejal','Concejal']];
+ var cg='';cargos.forEach(function(c){cg+='<button class="cgo'+(selCargo===c[0]?' on':'')+'" data-act="cargo" data-arg="'+c[0]+'">'+c[1]+'</button>';});
+ b.innerHTML='<button class="back" data-act="closeBanca">← Volver</button><h3 class="title" style="font-size:20px">Validar mi banca</h3><p class="muted" style="font-size:12.5px;margin:4px 0 16px">Cargá tus datos. Se verifican contra la nómina oficial.</p>'
+  +'<div class="sech">TIPO DE CARGO</div><div class="cargo">'+cg+'</div>'
+  +'<div class="fld"><label>Distrito</label><input type="text" value="Córdoba"></div>'
+  +'<div class="fld"><label>Bloque / Frente</label><input type="text" placeholder="Ej: Frente Amplio"></div>'
+  +'<div class="frow"><div class="fld"><label>Inicio de mandato</label><input type="text" value="2025"></div><div class="fld"><label>Hasta</label><input type="text" value="2029"></div></div>'
+  +'<div class="note info" style="margin:4px 0 16px">El nivel nacional se valida con los datos abiertos del Congreso. Provincial y municipal pueden requerir verificación manual.</div>'
+  +'<button class="primary sm" data-act="enviarBanca">Enviar a validación</button>';
+ b.classList.add('show');b.scrollTop=0;}
+
+var distritoStats={glaciares:{favor:61,abst:6,contra:33,n:3120},laboral:{favor:44,abst:7,contra:49,n:2980},humedales:{favor:57,abst:8,contra:35,n:2840}};
+function openRepStats(){var r=$('#repstats');
+ var laws=[['humedales','Ley de humedales','En agenda · por tratarse','urg'],['glaciares','Ley de Glaciares','Votada'],['laboral','Reforma Laboral','Votada']];
+ var h='<button class="back" data-act="closeRepStats">← Volver al perfil</button><h3 class="title" style="font-size:20px">Estadísticas de tu distrito</h3><p class="muted" style="font-size:12.5px;margin:4px 0 14px">📍 Córdoba · agregado y anónimo. Solo lo ve tu banca validada.</p>';
+ laws.forEach(function(l){var s=distritoStats[l[0]],top=Math.max(s.favor,s.contra,s.abst),clear=top>=60,lbl=clear?(s.favor===top?'Tiende a favor':'Tiende en contra'):'Dividido',lc=clear?(s.favor===top?'ok':'con'):'nt';
+  h+='<div class="cham"><div style="display:flex;justify-content:space-between;align-items:start;gap:8px"><div style="font-weight:700;font-size:15px">'+l[1]+'</div>'+(l[3]?k('⏰ Urgente','urg'):k(l[2],'nt'))+'</div><div class="bar" style="margin-top:8px">'+seg(s.favor,'var(--favor)')+seg(s.abst,'var(--abst)')+seg(s.contra,'var(--contra)')+'</div><div style="display:flex;justify-content:space-between;align-items:center"><span class="muted" style="font-size:12px">'+s.favor+'% a favor · '+nf(s.n)+' votos</span>'+k(lbl,lc)+'</div></div>';});
+ h+='<div class="sech" style="margin-top:8px">EXPLICÁ TU VOTO (videos de 30 s)</div><p class="muted" style="font-size:11.5px;margin:0 0 8px">Solo leyes con votación nominal (donde quedó tu voto). Se muestran al ciudadano en orden aleatorio, sin me gusta.</p>';
+ [['glaciares','Ley de Glaciares'],['laboral','Reforma Laboral'],['penal','Régimen Penal Juvenil']].forEach(function(l){var done=vidDone[l[0]];
+  h+='<div class="mem"><div class="repav" style="background:var(--surface2);color:var(--muted)">🎬</div><div style="flex:1"><div style="font-weight:700;font-size:13.5px">'+l[1]+'</div><div class="muted" style="font-size:11px">'+(done?'video subido':'sin explicar')+'</div></div>'+(done?k('✅ subido','ok'):'<button class="cgo" data-act="subirVid" data-arg="'+l[0]+'">＋ Subir video</button>')+'</div>';});
+ h+='<p class="muted" style="font-size:11px;margin:14px 4px 0">Números del distrito ilustrativos.</p>';
+ r.innerHTML=h;r.classList.add('show');r.scrollTop=0;}
+
+/* buscador de historicas: escucha el input con debounce */
+var histTimer=null;
+document.addEventListener('input',function(e){
+  if(e.target && e.target.id==='histQ'){
+    histTexto=e.target.value;
+    clearTimeout(histTimer);
+    histTimer=setTimeout(buscarHistoricas,350);
+  }
+});
+
+function selectTab(s){var btns=document.querySelectorAll('.nav button');for(var i=0;i<btns.length;i++)btns[i].classList.toggle('on',btns[i].getAttribute('data-arg')===s);['vote','trend','voted','banc','perfil'].forEach(function(x){$('#sc-'+x).classList.toggle('show',x===s);});if(s==='trend')renderTrend();if(s==='voted')renderVoted();if(s==='banc')renderBanc();if(s==='perfil')renderPerfil();var m=$('.main');if(m)m.scrollTop=0;}
+
+document.addEventListener('click',function(e){var el=e.target.closest('[data-act]');if(!el)return;var a=el.getAttribute('data-act'),arg=el.getAttribute('data-arg');
+ if(a==='goto')showScreen(arg);
+ else if(a==='country'){if(arg==='1'){$('#ccNote').style.display='none';showScreen('oTyc');}else{$('#ccNote').style.display='block';}}
+ else if(a==='chk'){if(arg==='1'){c1=!c1;$('#b1').className='box'+(c1?' on':'');$('#b1').innerHTML=c1?'✓':'';$('#k1').className='chk'+(c1?' on':'');}else{c2=!c2;$('#b2').className='box'+(c2?' on':'');$('#b2').innerHTML=c2?'✓':'';$('#k2').className='chk'+(c2?' on':'');}$('#tycBtn').disabled=!(c1&&c2);}
+ else if(a==='tab')selectTab(arg);
+ else if(a==='vote')flyAndVote(arg);
+ else if(a==='siguienteLey')siguienteLey();
+ else if(a==='info')openDetail();
+ else if(a==='closeDetail')$('#detail').classList.remove('show');
+ else if(a==='experts')openExperts();
+ else if(a==='closeExperts')$('#experts').classList.remove('show');
+ else if(a==='full')openFull();
+ else if(a==='closeFull')$('#fulltext').classList.remove('show');
+ else if(a==='voteD'){$('#detail').classList.remove('show');$('#fulltext').classList.remove('show');flyAndVote(arg);}
+ else if(a==='selLaw'){curLaw=arg;renderVoted();}
+ else if(a==='votedVista'){votedVista=arg;renderVoted();if(arg==='hist'&&histResultados===null)buscarHistoricas();}
+ else if(a==='votedTipo'){votedTipo=arg||null;curLaw='';cargarVotadasLista();}
+ else if(a==='histTipo'){votedTipo=arg||null;renderVoted();buscarHistoricas();}
+ else if(a==='histAnio'){histAnio=arg?parseInt(arg,10):null;renderVoted();buscarHistoricas();}
+ else if(a==='histAbrir'){abrirHistorica(arg);}
+ else if(a==='bloc'){openBloc(arg);}
+ else if(a==='closeBloc')$('#blocd').classList.remove('show');
+ else if(a==='stories')openStories();
+ else if(a==='storyNext'){stIdx++;renderStory();}
+ else if(a==='closeStories')$('#stories').classList.remove('show');
+ else if(a==='validarBanca')openBanca();
+ else if(a==='closeBanca')$('#banca').classList.remove('show');
+ else if(a==='cargo'){selCargo=arg;openBanca();}
+ else if(a==='enviarBanca'){repState='pending';$('#banca').classList.remove('show');renderPerfil();}
+ else if(a==='aprobarBanca'){repState='validated';renderPerfil();}
+ else if(a==='repStats')openRepStats();
+ else if(a==='closeRepStats')$('#repstats').classList.remove('show');
+ else if(a==='cfg'){cfg[arg]=!cfg[arg];renderPerfil();}
+ else if(a==='logout'){supabase.auth.signOut().then(function(){location.reload();});}
+});
+</script>
+
+<div class="gpop" id="gpop" onclick="this.classList.remove('show')"></div>
+<script>
+var GLOSA={
+ urgente:'Urgente = ya la aprobo una de las dos camaras del Congreso. Si la otra tambien la aprueba, se convierte en ley.',
+ camara:'El Congreso tiene 2 salas: Diputados y Senadores. Para que un proyecto sea ley, las dos tienen que aprobarlo.',
+ abstencion:'Abstenerse = ni a favor ni en contra. Es una postura valida: registras que participaste sin inclinarte.',
+ nominal:'Votacion nominal = con nombre y apellido. Quedo registrado que voto cada legislador.',
+ tramite:'En tramite = el Congreso todavia lo esta discutiendo. No es ley (todavia).',
+ bloque:'Los legisladores se agrupan en bloques (equipos politicos) y suelen votar juntos.',
+ disciplina:'Romper la disciplina = votar distinto a lo que voto tu propio bloque.',
+ banca:'Una banca es el asiento de un diputado o senador en el Congreso.'
+};
+function glosa(clave){var g=document.getElementById('gpop');g.textContent=GLOSA[clave]||'';g.classList.add('show');setTimeout(function(){g.classList.remove('show');},6000);}
+var tips={};
+try{tips=JSON.parse(sessionStorage.getItem('pnyxTips')||'{}');}catch(e){}
+function tipUnaVez(clave,texto){
+  if(tips[clave])return '';
+  tips[clave]=true;
+  try{sessionStorage.setItem('pnyxTips',JSON.stringify(tips));}catch(e){}
+  return '<div class="tipcard">💡 '+texto+'</div>';
+}
+</script>
+</body>
+</html>

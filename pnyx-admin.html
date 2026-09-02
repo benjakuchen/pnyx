@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pnyx · Consola de administración</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+:root{
+ --paper:#E9F1FA;--surface:#FFFFFF;--surface2:#EAF2FB;
+ --ink:#0E2336;--muted:#56697C;--faint:#8FA1B4;--line:#D6E3F0;
+ --brand:#1C5BAE;--celeste:#3C90DA;--brand-soft:#E0EDFA;
+ --favor:#1E8C57;--favor-bg:#E2F0E7;--contra:#C03A2B;--contra-bg:#F7E5E1;
+ --abst:#B07F20;--abst-bg:#F6ECD6;
+ --sans:'Segoe UI',system-ui,-apple-system,sans-serif;
+ --serif:Georgia,'Times New Roman',serif;--r:12px;--r-sm:9px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);font-family:var(--sans);color:var(--ink)}
+.top{background:var(--surface);border-bottom:1px solid var(--line);padding:14px 22px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10}
+.logo{font-family:var(--serif);font-weight:700;color:var(--brand);font-size:22px}
+.top .sub{color:var(--muted);font-size:13px}
+.wrap{max-width:1200px;margin:0 auto;padding:22px}
+.tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:var(--surface);color:var(--muted);padding:9px 16px;border-radius:20px;font-weight:600;font-size:13.5px;cursor:pointer}
+.tab.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:14px}
+.sech{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.5px;margin-bottom:10px;text-transform:uppercase}
+h1{font-size:20px;margin:0 0 4px}
+.muted{color:var(--muted)}
+.pill{display:inline-block;font-size:11px;padding:3px 10px;border-radius:14px;background:var(--surface2);color:var(--brand);font-weight:700}
+.pill.dip{background:var(--brand-soft);color:var(--brand)}
+.pill.sen{background:var(--abst-bg);color:#7d5a14}
+.st{display:inline-block;font-size:10.5px;padding:2px 9px;border-radius:12px;font-weight:800}
+.st.link{background:var(--favor-bg);color:#16623e}
+.st.pend{background:var(--abst-bg);color:#7d5a14}
+.st.desc{background:var(--surface2);color:var(--muted)}
+/* fila comparativa */
+.comp{display:grid;grid-template-columns:1fr 44px 1fr;gap:0;border:1px solid var(--line);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
+.col{padding:14px}
+.col.feed{background:var(--brand-soft)}
+.col.cong{background:#fff}
+.mid{display:flex;align-items:center;justify-content:center;background:var(--surface2);font-size:18px;color:var(--faint)}
+.col .lbl{font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.col .exp{font-size:11px;font-weight:700;color:var(--brand)}
+.edit{width:100%;border:1.5px solid transparent;background:transparent;border-radius:7px;padding:6px 8px;font-size:13.5px;font-family:inherit;color:var(--ink);line-height:1.4;resize:vertical;min-height:52px}
+.edit:hover{border-color:var(--line);background:#fff}
+.edit:focus{border-color:var(--brand);background:#fff;outline:none}
+.vacio{color:var(--faint);font-size:13px;font-style:italic;padding:10px 0}
+.buscador{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:9px 11px;font-size:13px;margin-top:8px;font-family:inherit}
+.resultados{margin-top:6px;max-height:200px;overflow-y:auto}
+.res{padding:8px 10px;border:1px solid var(--line);border-radius:7px;margin-bottom:5px;cursor:pointer;font-size:12.5px;line-height:1.4;background:#fff}
+.res:hover{background:var(--brand-soft);border-color:var(--brand)}
+.res .exp{color:var(--brand);font-weight:700;font-size:11px}
+.row{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
+.btn{border:none;border-radius:8px;padding:7px 13px;font-weight:700;font-size:12.5px;cursor:pointer}
+.btn.sec{background:var(--surface2);color:var(--muted)}
+.btn.ok{background:var(--favor);color:#fff}
+.btn.warn{background:var(--abst-bg);color:#7d5a14}
+.btn.sm{padding:5px 10px;font-size:11.5px}
+.filtros{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.chip{border:1px solid var(--line);background:#fff;color:var(--muted);padding:6px 13px;border-radius:16px;font-weight:600;font-size:12.5px;cursor:pointer}
+.chip.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.empty{text-align:center;color:var(--muted);padding:36px;font-size:14px}
+.login{max-width:380px;margin:70px auto;text-align:center}
+.login input{width:100%;border:1.5px solid var(--line);border-radius:var(--r-sm);padding:12px;font-size:14px;margin-bottom:10px;font-family:inherit}
+.login .primary{width:100%;border:none;background:var(--brand);color:#fff;border-radius:var(--r-sm);padding:13px;font-size:15px;font-weight:700;cursor:pointer}
+.msg{font-size:13px;margin-top:12px;min-height:18px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:10px;font-size:13.5px;opacity:0;transition:opacity .3s;z-index:50}
+.toast.show{opacity:1}
+.count{background:var(--contra);color:#fff;font-size:11px;font-weight:800;border-radius:10px;padding:1px 8px;margin-left:6px}
+.saved{color:var(--favor);font-size:11px;font-weight:700;opacity:0;transition:opacity .3s}
+.saved.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div id="login" class="login">
+ <div class="logo" style="font-size:34px">Pnyx</div>
+ <p class="muted" style="margin:4px 0 22px">Consola de administración</p>
+ <div class="card" style="text-align:left">
+  <input type="email" id="admEmail" placeholder="Email de administrador" autocomplete="email">
+  <input type="password" id="admPass" placeholder="Contraseña" autocomplete="current-password">
+  <button class="primary" onclick="adminLogin()">Entrar</button>
+  <div class="msg muted" id="loginMsg"></div>
+ </div>
+ <p class="muted" style="font-size:11.5px;margin-top:14px">Acceso restringido al equipo de Pnyx. Toda acción queda registrada.</p>
+</div>
+
+<div id="consola" style="display:none">
+ <div class="top">
+  <span class="logo">Pnyx</span>
+  <span class="sub">Consola de administración</span>
+  <span style="margin-left:auto;font-size:13px;color:var(--muted)" id="admWho"></span>
+  <button class="btn sec" onclick="adminLogout()">Salir</button>
+ </div>
+ <div class="wrap">
+  <div class="tabs">
+   <button class="tab on" data-tab="comp" onclick="tab('comp')">🔗 Leyes: feed ↔ Congreso<span class="count" id="cntPend" style="display:none">0</span></button>
+   <button class="tab" data-tab="feed" onclick="tab('feed')">🗳️ Feed de votación</button>
+   <button class="tab" data-tab="proximo" onclick="tab('proximo')">🎬 Expertos · Bancas · Usuarios</button>
+  </div>
+
+  <div id="tab-comp">
+   <div class="card">
+    <h1>Leyes — para votar y ya votadas</h1>
+    <p class="muted" style="margin:4px 0 0;font-size:13.5px">A la izquierda, la ley como aparece en el feed de Pnyx (título editable por IA). A la derecha, cómo la votó el Congreso. Podés editar ambos títulos, emparejar las que no linkearon, o marcar las que no están en el feed.</p>
+   </div>
+   <div class="filtros">
+    <span class="muted" style="font-size:12.5px;font-weight:700">Ver:</span>
+    <button class="chip on" data-f="pendiente" onclick="filtrar('pendiente')">Pendientes de linkeo</button>
+    <button class="chip" data-f="linkeada" onclick="filtrar('linkeada')">Linkeadas</button>
+    <button class="chip" data-f="descartada" onclick="filtrar('descartada')">Descartadas</button>
+    <button class="chip" data-f="todas" onclick="filtrar('todas')">Todas</button>
+   </div>
+   <div id="lista"><div class="empty">Cargando…</div></div>
+  </div>
+
+  <div id="tab-feed" style="display:none">
+   <div class="card">
+    <h1>Feed de votación</h1>
+    <p class="muted" style="margin:4px 0 0;font-size:13.5px">Las leyes que hoy están para votar en Pnyx. Editá el título editado por IA, o despublicá las que sean spam, duplicados o errores de carga. Por defecto, todas se publican.</p>
+   </div>
+   <div class="filtros">
+    <span class="muted" style="font-size:12.5px;font-weight:700">Ver:</span>
+    <button class="chip on" data-ff="pub" onclick="filtrarFeed('pub')">Publicadas</button>
+    <button class="chip" data-ff="desp" onclick="filtrarFeed('desp')">Despublicadas</button>
+    <button class="chip" data-ff="todas" onclick="filtrarFeed('todas')">Todas</button>
+    <input class="buscador" style="margin:0 0 0 auto;max-width:280px" id="feedBuscar" placeholder="Buscar por título o expediente…" oninput="renderFeed()">
+   </div>
+   <div id="feedLista"><div class="empty">Cargando…</div></div>
+  </div>
+
+  <div id="tab-proximo" style="display:none">
+   <div class="card"><div class="empty">Próximos módulos: carga de opiniones de expertos (link a YouTube), validación de bancas, gestión de curadores y controles sensibles (pisos, regla del 60%).<br>Se conectan a medida que existan sus tablas.</div></div>
+  </div>
+ </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var SUPABASE_URL='https://ihmbhbhwlntsjqdavxge.supabase.co';
+var SUPABASE_KEY='sb_publishable_ih-dOjPauQayOpzn7uL6vw_vIt96ZHR';
+var supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+var token=SUPABASE_KEY;
+var filtroActual='pendiente';
+var datos=[];
+var $=function(s){return document.querySelector(s);};
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(t){var el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(function(){el.classList.remove('show');},2400);}
+
+async function adminLogin(){
+ var email=$('#admEmail').value.trim(), pass=$('#admPass').value, msg=$('#loginMsg');
+ msg.style.color='var(--muted)';msg.textContent='Entrando…';
+ var res=await supabase.auth.signInWithPassword({email:email,password:pass});
+ if(res.error){msg.style.color='var(--contra)';msg.textContent='Error: '+res.error.message;return;}
+ token=res.data.session.access_token;
+ $('#admWho').textContent=email;
+ $('#login').style.display='none';$('#consola').style.display='block';
+ cargar();
+}
+async function adminLogout(){await supabase.auth.signOut();location.reload();}
+(async function(){
+ /* LOGIN DESACTIVADO TEMPORALMENTE (reponer antes de produccion) */
+ var {data:{session}}=await supabase.auth.getSession();
+ if(session){token=session.access_token;$('#admWho').textContent=session.user.email;}
+ else{$('#admWho').textContent='(sin login — modo desarrollo)';}
+ $('#login').style.display='none';$('#consola').style.display='block';cargar();
+})();
+
+function tab(t){
+ document.querySelectorAll('.tab').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-tab')===t);});
+ $('#tab-comp').style.display=(t==='comp')?'block':'none';
+ $('#tab-feed').style.display=(t==='feed')?'block':'none';
+ $('#tab-proximo').style.display=(t==='proximo')?'block':'none';
+ if(t==='feed'&&feedDatos.length===0)cargarFeed();
+}
+
+/* ===== FEED DE VOTACIÓN ===== */
+var feedDatos=[], feedFiltro='pub';
+function filtrarFeed(f){feedFiltro=f;document.querySelectorAll('.chip[data-ff]').forEach(function(c){c.classList.toggle('on',c.getAttribute('data-ff')===f);});renderFeed();}
+function cargarFeed(){
+ rpc('admin_feed_leyes',{}).then(function(filas){
+  feedDatos=Array.isArray(filas)?filas:[];renderFeed();
+ }).catch(function(e){$('#feedLista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
+}
+function renderFeed(){
+ var q=($('#feedBuscar')?$('#feedBuscar').value.trim().toLowerCase():'');
+ var lista=feedDatos.filter(function(d){
+  if(feedFiltro==='pub'&&!d.publicada)return false;
+  if(feedFiltro==='desp'&&d.publicada)return false;
+  if(q){var hay=((d.oracion_ia||'')+' '+(d.titulo||'')+' '+(d.expediente||'')).toLowerCase();if(hay.indexOf(q)<0)return false;}
+  return true;
+ });
+ if(lista.length===0){$('#feedLista').innerHTML='<div class="card"><div class="empty">No hay leyes en esta vista.</div></div>';return;}
+ var h='';
+ lista.forEach(function(d){
+  var cam=(d.camara||'').toLowerCase().indexOf('sen')>=0?'sen':'dip';
+  var ms=d.media_sancion?'<span class="st pend" style="margin-left:6px">media sanción</span>':'';
+  var pubBtn=d.publicada
+   ? '<button class="btn warn sm" onclick="togglePub(\''+d.bill_id+'\',false)">Despublicar</button>'
+   : '<button class="btn ok sm" onclick="togglePub(\''+d.bill_id+'\',true)">Publicar</button>';
+  var estado=d.publicada?'<span class="st link">✓ publicada</span>':'<span class="st desc">oculta</span>';
+  h+='<div class="card" id="feed-'+d.bill_id+'" style="padding:0">'
+   +'<div style="padding:11px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px">'
+   +estado+ms
+   +'<span class="pill '+cam+'" style="margin-left:8px">'+esc(d.camara)+'</span>'
+   +'<span class="exp" style="color:var(--brand);font-size:11.5px;font-weight:700;margin-left:6px">'+esc(d.expediente||d.bill_id)+'</span>'
+   +'<span style="font-size:11px;color:var(--muted);margin-left:6px">'+esc(d.fecha||'')+' · '+(d.puntaje_pnyx||0)+' pts</span>'
+   +'<span style="margin-left:auto"></span>'+pubBtn
+   +'</div>'
+   +'<div style="padding:14px">'
+   +'<div class="lbl" style="font-size:10px;font-weight:800;color:var(--muted);margin-bottom:5px">TÍTULO EDITADO POR IA (editable)</div>'
+   +'<textarea class="edit" style="min-height:46px" onblur="guardarFeedTitulo(this,\''+d.bill_id+'\')">'+esc(d.oracion_ia||'')+'</textarea>'
+   +'<div style="font-size:11px;color:var(--faint);margin-top:6px">Oficial: '+esc(d.titulo||'')+'</div>'
+   +'</div></div>';
+ });
+ $('#feedLista').innerHTML=h;
+}
+function togglePub(billId,pub){
+ rpc('admin_publicar',{p_bill_id:billId,p_pub:pub}).then(function(){
+  var d=feedDatos.find(function(x){return x.bill_id===billId;});if(d)d.publicada=pub;
+  toast(pub?'Ley publicada':'Ley despublicada');renderFeed();
+ });
+}
+function guardarFeedTitulo(ta,billId){
+ rpc('admin_editar_titulo_feed',{p_bill_id:billId,p_nuevo:ta.value.trim()}).then(function(){
+  var d=feedDatos.find(function(x){return x.bill_id===billId;});if(d)d.oracion_ia=ta.value.trim();
+  toast('Título guardado');
+ });
+}
+
+function filtrar(f){filtroActual=f;document.querySelectorAll('.chip').forEach(function(c){c.classList.toggle('on',c.getAttribute('data-f')===f);});render();}
+
+function rpc(fn,body){
+ return fetch(SUPABASE_URL+'/rest/v1/rpc/'+fn,{method:'POST',
+   headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+   body:JSON.stringify(body||{})}).then(function(r){return r.text();}).then(function(t){try{return JSON.parse(t);}catch(e){return t;}});
+}
+
+function cargar(){
+ rpc('admin_comparativa',{}).then(function(filas){
+  datos=Array.isArray(filas)?filas:[];
+  var pend=datos.filter(function(d){return d.estado==='pendiente';}).length;
+  if(pend>0){$('#cntPend').style.display='inline-block';$('#cntPend').textContent=pend;}
+  else{$('#cntPend').style.display='none';}
+  render();
+ }).catch(function(e){$('#lista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
+}
+
+function render(){
+ var lista=datos.filter(function(d){
+  if(filtroActual==='todas')return true;
+  if(filtroActual==='pendiente')return d.estado==='pendiente';
+  if(filtroActual==='linkeada')return d.estado==='linkeada';
+  if(filtroActual==='descartada')return d.estado==='descartada';
+  return true;
+ });
+ if(lista.length===0){$('#lista').innerHTML='<div class="card"><div class="empty">No hay leyes en esta vista.</div></div>';return;}
+ var h='';
+ lista.forEach(function(d){
+  var cam=(d.camara||'').toLowerCase().indexOf('sen')>=0?'sen':'dip';
+  var key=cam+'-'+d.acta_id;
+  var stTxt={linkeada:'✓ linkeada',pendiente:'sin linkear',descartada:'fuera del feed'}[d.estado];
+  var stCls={linkeada:'link',pendiente:'pend',descartada:'desc'}[d.estado];
+  // Columna FEED
+  var feedCol;
+  if(d.ley_bill_id){
+   feedCol='<div class="lbl">📋 En el feed de Pnyx</div>'
+    +'<div class="exp">'+esc(d.expediente_feed||d.ley_bill_id)+'</div>'
+    +'<textarea class="edit" data-k="feed:'+d.ley_bill_id+'" onblur="guardarFeed(this,\''+d.ley_bill_id+'\')">'+esc(d.oracion_feed||d.titulo_feed||'')+'</textarea>'
+    +'<span class="saved" id="sv-feed-'+key+'">guardado ✓</span>';
+  } else {
+   feedCol='<div class="lbl">📋 En el feed de Pnyx</div>'
+    +'<div class="vacio">Todavía sin emparejar. Buscá la ley:</div>'
+    +'<input class="buscador" placeholder="Buscar por título o expediente…" oninput="buscarLey(this,\''+cam+'\',\''+d.acta_id+'\')">'
+    +'<div class="resultados" id="res-'+key+'"></div>';
+  }
+  // Columna CONGRESO
+  var congCol='<div class="lbl">🏛️ Votada en el Congreso · '+esc(d.resultado||'')+'</div>'
+    +'<span class="pill '+cam+'">'+esc(d.camara)+'</span> <span class="muted" style="font-size:11px">acta '+esc(d.acta_id)+'</span>'
+    +'<textarea class="edit" style="margin-top:6px" data-k="cong:'+key+'" onblur="guardarVotada(this,\''+d.acta_id+'\',\''+esc(d.camara)+'\')">'+esc(d.titulo_votada||'')+'</textarea>'
+    +'<span class="saved" id="sv-cong-'+key+'">guardado ✓</span>';
+  // acciones
+  var acc='';
+  if(d.estado==='descartada'){acc='<button class="btn ok sm" onclick="rescatar(\''+d.acta_id+'\',\''+esc(d.camara)+'\')">Rescatar (volver a pendientes)</button>';}
+  else if(d.ley_bill_id){acc='<button class="btn sec sm" onclick="desvincular(\''+d.acta_id+'\',\''+esc(d.camara)+'\')">Desvincular</button>';}
+  else{acc='<button class="btn warn sm" onclick="descartar(\''+d.acta_id+'\',\''+esc(d.camara)+'\')">No está en el feed</button>';}
+
+  h+='<div class="card" id="card-'+key+'" style="padding:0">'
+   +'<div style="padding:11px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px">'
+   +'<span class="st '+stCls+'">'+stTxt+'</span>'
+   +'<span style="margin-left:auto"></span>'+acc
+   +'</div>'
+   +'<div class="comp" style="border:none;margin:0">'
+   +'<div class="col feed">'+feedCol+'</div>'
+   +'<div class="mid">↔</div>'
+   +'<div class="col cong">'+congCol+'</div>'
+   +'</div></div>';
+ });
+ $('#lista').innerHTML=h;
+}
+
+/* edición de títulos */
+function guardarFeed(ta,billId){
+ rpc('admin_editar_titulo_feed',{p_bill_id:billId,p_nuevo:ta.value.trim()}).then(function(){
+  var d=datos.find(function(x){return x.ley_bill_id===billId;});if(d)d.oracion_feed=ta.value.trim();
+  flashSaved('sv-feed-'+billId.replace(/[^a-zA-Z0-9]/g,''));toast('Título del feed guardado');
+ });
+}
+function guardarVotada(ta,acta,camara){
+ rpc('admin_editar_titulo_votada',{p_acta:acta,p_camara:camara,p_nuevo:ta.value.trim()}).then(function(){
+  toast('Título del Congreso guardado');
+ });
+}
+function flashSaved(id){var e=document.getElementById(id);if(e){e.classList.add('show');setTimeout(function(){e.classList.remove('show');},1500);}}
+
+/* buscador de leyes del feed */
+var buscarTimer=null;
+function buscarLey(input,cam,acta){
+ clearTimeout(buscarTimer);var q=input.value.trim();
+ var cont=document.getElementById('res-'+cam+'-'+acta);
+ if(q.length<3){cont.innerHTML='';return;}
+ buscarTimer=setTimeout(function(){
+  var camara=(cam==='sen')?'Senado':'Diputados';
+  var url=SUPABASE_URL+'/rest/v1/leyes?select=bill_id,titulo,expediente,oracion_ia&camara=eq.'+camara
+   +'&or=(titulo.ilike.*'+encodeURIComponent(q)+'*,expediente.ilike.*'+encodeURIComponent(q)+'*)&limit=8';
+  fetch(url,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token}})
+   .then(function(r){return r.json();})
+   .then(function(rows){
+    if(!Array.isArray(rows)||rows.length===0){cont.innerHTML='<div class="muted" style="font-size:12px;padding:6px">Sin resultados.</div>';return;}
+    var h='';rows.forEach(function(l){
+     var t=l.oracion_ia||l.titulo||'';
+     h+='<div class="res" onclick="linkear(\''+cam+'\',\''+acta+'\',\''+l.bill_id+'\')"><span class="exp">'+esc(l.expediente||l.bill_id)+'</span> — '+esc(t)+'</div>';
+    });cont.innerHTML=h;
+   });
+ },300);
+}
+function linkear(cam,acta,billId){
+ var camara=(cam==='sen')?'Senado':'Diputados';
+ rpc('linkear_manual',{p_acta:acta,p_camara:camara,p_bill_id:billId}).then(function(){
+  toast('✅ Emparejada con '+billId);cargar();
+ });
+}
+function desvincular(acta,camara){
+ rpc('admin_desvincular',{p_acta:acta,p_camara:camara}).then(function(){toast('Desvinculada');cargar();});
+}
+function descartar(acta,camara){
+ rpc('descartar_link',{p_acta:acta,p_camara:camara}).then(function(){toast('Marcada como fuera del feed');cargar();});
+}
+function rescatar(acta,camara){
+ rpc('admin_rescatar',{p_acta:acta,p_camara:camara}).then(function(){toast('Rescatada — vuelve a pendientes');cargar();});
+}
+</script>
+</body>
+</html>

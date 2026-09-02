@@ -1,0 +1,25 @@
+﻿# Datos temporales (viven en Supabase, no en git)
+*.json
+*.csv
+*.xls
+*.xlsx
+
+# HTML de debug/exploración
+acta_*.html
+senado_*.html
+senado_listado_debug.html
+
+# Temporales de Python
+__pycache__/
+*.pyc
+
+# Carpeta de archivos viejos
+_historico/
+
+# Secretos (por si acaso, nunca subir)
+*.env
+secrets.txt
+
+desktop.ini
+supabase/.temp/
+*_index*.ts
