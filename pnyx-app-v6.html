@@ -131,6 +131,7 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
       <div class="carousel" style="margin:24px 0"><div class="cphrase serif" id="cph"></div><div class="cauth" id="cau"></div><div class="cdots" id="cdots"></div></div>
       <div class="chiprow"><span class="tag">anonimato por diseño</span><span class="tag">una persona, un voto</span><span class="tag">código abierto</span></div>
       <button class="primary" data-act="goto" data-arg="oC">Empezar</button>
+      <button class="fullbtn" style="margin-top:10px" onclick="entrarComoInvitado()">Mirar sin cuenta</button>
     </div>
     <div class="ob" id="oC">
       <div style="text-align:center;margin-top:4px;font-size:40px">🌐</div>
@@ -280,6 +281,7 @@ async function doMagicLink(){
 /* Tras login: chequea si el usuario verificó su identidad.
    Verificado -> entra. No verificado -> pantalla de verificación. */
 async function continuarTrasLogin(){
+  modoInvitado=false;
   try{
     var {data:{session}}=await supabase.auth.getSession();
     if(!session){mostrarVerificacion();return;}
@@ -356,12 +358,35 @@ async function cargarVotadas(listo){
 
 /* Al cargar: verificar si hay sesión activa (vuelta del magic link) */
 (async function initAuth(){
-  /* LOGIN Y VERIFICACION DESACTIVADOS TEMPORALMENTE (reponer antes de produccion) */
   var {data:{session}}=await supabase.auth.getSession();
-  if(session&&session.user){usuarioActual=session.user;}
-  else{usuarioActual={id:'75c330d1-d369-4746-8e2b-2d12294aaad8',email:'prueba@pnyx.dev'};} // usuario fijo de desarrollo
-  enterApp();   // entra directo al feed, sin login ni Didit
+  if(session&&session.user){
+    usuarioActual=session.user;
+    continuarTrasLogin();   // chequea verificación de identidad y entra
+  } else {
+    usuarioActual=null;
+    mostrarOnboarding();    // pantalla de bienvenida + login; puede "mirar sin cuenta"
+  }
 })();
+
+var modoInvitado=false;
+function mostrarOnboarding(){
+  $('#onb').style.display='block';
+  $('#app').style.display='none';
+  ['o0','oC','oTyc','oRen','oVer'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='o0');});
+}
+/* Entrar a mirar sin cuenta: ve todo, pero al votar se le pide login */
+function entrarComoInvitado(){
+  modoInvitado=true;
+  usuarioActual=null;
+  enterApp();
+}
+/* Cuando un invitado intenta votar: lo mandamos a crear cuenta */
+function pedirLoginParaVotar(){
+  modoInvitado=false;
+  $('#app').style.display='none';
+  $('#onb').style.display='block';
+  ['o0','oC','oTyc','oRen','oVer'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='oC');});
+}
 
 var pending=[];
 var votadas={};
@@ -553,7 +578,9 @@ function renderCard(){var deck=$('#deck');
 function bindDrag(){var card=$('#card');if(!card)return;var sx=0,dx=0,drag=false;
  function dn(e){drag=true;sx=(e.touches?e.touches[0].clientX:e.clientX);card.style.transition='none';}
  function mv(e){if(!drag)return;var x=(e.touches?e.touches[0].clientX:e.clientX);dx=x-sx;card.style.transform='translateX('+dx+'px) rotate('+(dx/24)+'deg)';$('#ovlR').style.opacity=dx>0?Math.min(dx/90,1):0;$('#ovlL').style.opacity=dx<0?Math.min(-dx/90,1):0;}
- function up(){if(!drag)return;drag=false;card.style.transition='transform .25s';if(dx>92){card.style.transform='translateX(520px) rotate(28deg)';doVote('favor');}else if(dx<-92){card.style.transform='translateX(-520px) rotate(-28deg)';doVote('contra');}else{card.style.transform='';$('#ovlR').style.opacity=0;$('#ovlL').style.opacity=0;}dx=0;}
+ function up(){if(!drag)return;drag=false;card.style.transition='transform .25s';
+   if((dx>92||dx<-92)&&(modoInvitado||!usuarioActual)){card.style.transform='';$('#ovlR').style.opacity=0;$('#ovlL').style.opacity=0;dx=0;pedirLoginParaVotar();return;}
+   if(dx>92){card.style.transform='translateX(520px) rotate(28deg)';doVote('favor');}else if(dx<-92){card.style.transform='translateX(-520px) rotate(-28deg)';doVote('contra');}else{card.style.transform='';$('#ovlR').style.opacity=0;$('#ovlL').style.opacity=0;}dx=0;}
  card.addEventListener('mousedown',dn);window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
  card.addEventListener('touchstart',dn,{passive:true});card.addEventListener('touchmove',mv,{passive:true});card.addEventListener('touchend',up);}
 function guardarVoto(ley,choice){
@@ -601,7 +628,9 @@ function mostrarTermometro(ley,miVoto){
  });
 }
 function siguienteLey(){idx++;$('#actions').style.display='';renderCard();}
-function doVote(choice){if(idx>=pending.length)return;var ley=pending[idx];votes[ley.id]=choice;guardarVoto(ley,choice);setTimeout(function(){idx++;renderCard();},170);}
+function doVote(choice){if(idx>=pending.length)return;
+ if(modoInvitado||!usuarioActual){pedirLoginParaVotar();return;}
+ var ley=pending[idx];votes[ley.id]=choice;guardarVoto(ley,choice);setTimeout(function(){idx++;renderCard();},170);}
 function flyAndVote(choice){var c=$('#card');if(c){c.style.transition='transform .25s';if(choice==='favor')c.style.transform='translateX(520px) rotate(28deg)';else if(choice==='contra')c.style.transform='translateX(-520px) rotate(-28deg)';else c.style.opacity='0';}doVote(choice);}
 
 function openDetail(){if(idx>=pending.length)return;var b=pending[idx],d=$('#detail');
