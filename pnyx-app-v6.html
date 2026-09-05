@@ -939,10 +939,72 @@ function openStories(){stOrder=storiesData.map(function(_,i){return i;});for(var
 function renderStory(){if(stIdx>=stOrder.length){$('#stories').classList.remove('show');return;}var s=storiesData[stOrder[stIdx]],segs='';for(var i=0;i<stOrder.length;i++)segs+='<div class="s '+(i<stIdx?'done':(i===stIdx?'now':''))+'"><i></i></div>';var pr=s.n.split(' '),ini=pr[1][0]+pr[2][0];
  $('#stories').innerHTML='<div class="segs">'+segs+'</div><div style="display:flex;align-items:center;gap:10px;color:#fff;margin-bottom:10px"><div class="repav" style="background:rgba(255,255,255,.2);color:#fff">'+ini+'</div><div style="flex:1"><div style="font-weight:700;font-size:14px">'+s.n+'</div><div style="font-size:12px;opacity:.85">'+s.d+'</div></div><button data-act="closeStories" style="background:transparent;border:none;color:#fff;font-size:22px;line-height:1">×</button></div><div class="stvideo" data-act="storyNext"><div class="stplay">▶</div><div style="margin-top:14px;font-size:12px;opacity:.9">0:30</div><div style="position:absolute;bottom:18px;left:18px;right:18px;text-align:center"><div style="font-size:12px;opacity:.85;margin-bottom:4px">Explica su voto en</div><div class="serif" style="font-size:18px;font-weight:700">'+s.ley+'</div><div style="margin-top:8px">'+k(C[s.voto].t,C[s.voto].c)+'</div></div></div><p style="color:rgba(255,255,255,.6);font-size:11px;text-align:center;margin:10px 0 0">Tocá para el siguiente · orden aleatorio · sin me gusta · video ilustrativo</p>';}
 
-function renderBanc(){var reps=[{n:'Dip. L. Vega',d:'Córdoba',p:true},{n:'Dip. R. Sosa',d:'Santa Fe',p:true},{n:'Dip. J. Bravo',d:'Buenos Aires',p:true},{n:'Sen. M. Ríos',d:'Mendoza',p:false},{n:'Sen. C. Díaz',d:'Salta',p:false}];var yes=reps.filter(function(r){return r.p;}).length;
- var h='<div class="sech">TRANSPARENCIA · BANCAS QUE ESCUCHAN</div><p class="muted" style="font-size:13px;margin:0 0 14px">'+yes+' de '+reps.length+' participan. El sello lo pone cada legislador; su historial lo respalda o lo desmiente.</p>';
- reps.forEach(function(r){var pr=r.n.split(' '),ini=pr[1][0]+pr[2][0];h+='<div class="mem" style="border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:9px"><div class="repav" style="background:'+(r.p?'var(--favor-bg)':'var(--surface2)')+';color:'+(r.p?'var(--favor)':'var(--muted)')+'">'+ini+'</div><div style="flex:1"><div style="font-weight:700;font-size:14px">'+r.n+'</div><div class="muted" style="font-size:12px">'+r.d+'</div></div>'+(r.p?k('✅ Escucha','ok'):k('No participa','nt'))+'</div>';});
- $('#sc-banc').innerHTML=h+'<p class="muted" style="font-size:11px;text-align:center;margin:14px 4px 0">Legisladores y datos ilustrativos.</p>';}
+/* ===== BANCAS QUE ESCUCHAN (datos reales) ===== */
+var bancasCache=null, bancaCamara='diputados', bancaBusca='';
+function renderBanc(){
+ if(bancasCache===null){
+  $('#sc-banc').innerHTML='<div class="sech">TRANSPARENCIA · BANCAS QUE ESCUCHAN</div><p class="muted" style="font-size:13px">Cargando legisladores…</p>';
+  fetch(SUPABASE_URL+'/rest/v1/rpc/bancas_lista',{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},body:'{}'})
+   .then(function(r){return r.json();})
+   .then(function(filas){bancasCache=Array.isArray(filas)?filas:[];pintarBanc();})
+   .catch(function(){$('#sc-banc').innerHTML='<div class="sech">BANCAS QUE ESCUCHAN</div><p class="muted">No se pudieron cargar las bancas. Probá de nuevo.</p>';});
+  return;
+ }
+ pintarBanc();
+}
+function pintarBanc(){
+ var todas=bancasCache;
+ var totDip=todas.filter(function(b){return b.camara==='diputados';}).length;
+ var totSen=todas.filter(function(b){return b.camara==='senadores';}).length;
+ var conSello=todas.filter(function(b){return b.escucha;}).length;
+
+ var h='<div class="sech">TRANSPARENCIA · BANCAS QUE ESCUCHAN</div>';
+ h+='<p class="muted" style="font-size:12.5px;margin:0 0 12px">'+conSello+' de '+todas.length+' legisladores activaron el sello. El presentismo surge de las votaciones nominales del Congreso (fuente: comovoto.dev.ar).</p>';
+
+ // Solapas Diputados / Senadores
+ h+='<div style="display:flex;gap:8px;margin-bottom:12px">'
+  +'<button class="chip'+(bancaCamara==='diputados'?' on':'')+'" data-act="bancaCam" data-arg="diputados">Diputados ('+totDip+')</button>'
+  +'<button class="chip'+(bancaCamara==='senadores'?' on':'')+'" data-act="bancaCam" data-arg="senadores">Senadores ('+totSen+')</button></div>';
+
+ // Buscador
+ h+='<input id="bancaBuscar" style="width:100%;margin:0 0 12px;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;color:var(--ink);background:var(--surface);box-sizing:border-box" placeholder="Buscar por nombre…" value="'+escHtml(bancaBusca)+'" oninput="onBancaBusca(this.value)">';
+
+ // Filtrar por cámara + búsqueda
+ var q=bancaBusca.trim().toLowerCase();
+ var lista=todas.filter(function(b){
+  if(b.camara!==bancaCamara)return false;
+  if(q&&(b.nombre||'').toLowerCase().indexOf(q)<0)return false;
+  return true;
+ });
+
+ if(!lista.length){
+  h+='<p class="muted" style="text-align:center;font-size:12.5px;padding:20px 0">Sin resultados.</p>';
+  $('#sc-banc').innerHTML=h; return;
+ }
+
+ // Agrupar por provincia (alfabético); dentro, por nombre (ya viene ordenado por la RPC)
+ var provs={};
+ lista.forEach(function(b){var p=b.provincia||'Sin provincia';(provs[p]=provs[p]||[]).push(b);});
+ Object.keys(provs).sort(function(a,c){return a.localeCompare(c,'es');}).forEach(function(p){
+  h+='<div class="sech" style="margin:16px 0 8px;font-size:12px">'+escHtml(p.toUpperCase())+'</div>';
+  provs[p].forEach(function(b){h+=filaBanca(b);});
+ });
+
+ $('#sc-banc').innerHTML=h;
+ var inp=$('#bancaBuscar'); if(inp){inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}
+}
+function filaBanca(b){
+ var pr=(b.nombre||'').split(/[\s,]+/).filter(Boolean);
+ var ini=((pr[0]&&pr[0][0]||'')+(pr[1]&&pr[1][0]||'')).toUpperCase();
+ var pres=(b.presentismo!=null)?(Math.round(b.presentismo)+'% presente'):'presentismo s/d';
+ var sello=b.escucha?k('✅ Escucha','ok'):k('No participa','nt');
+ return '<div class="mem" style="display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;margin-bottom:8px">'
+  +'<div class="repav" style="background:'+(b.escucha?'var(--favor-bg)':'var(--surface2)')+';color:'+(b.escucha?'var(--favor)':'var(--muted)')+'">'+ini+'</div>'
+  +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13.5px">'+escHtml(b.nombre)+'</div>'
+  +'<div class="muted" style="font-size:11.5px">'+escHtml(b.bloque||'')+' · '+pres+'</div></div>'
+  +sello+'</div>';
+}
+function onBancaBusca(v){bancaBusca=v;pintarBanc();}
 
 /* PERFIL — hub: ciudadano + capa representante */
 function renderPerfil(){var n=Object.keys(votes).length;
@@ -1033,6 +1095,7 @@ document.addEventListener('click',function(e){var el=e.target.closest('[data-act
  else if(a==='storyNext'){stIdx++;renderStory();}
  else if(a==='closeStories')$('#stories').classList.remove('show');
  else if(a==='validarBanca')openBanca();
+ else if(a==='bancaCam'){bancaCamara=arg;bancaBusca='';pintarBanc();}
  else if(a==='closeBanca')$('#banca').classList.remove('show');
  else if(a==='cargo'){selCargo=arg;openBanca();}
  else if(a==='enviarBanca'){repState='pending';$('#banca').classList.remove('show');renderPerfil();}

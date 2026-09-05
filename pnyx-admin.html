@@ -99,6 +99,7 @@ h1{font-size:20px;margin:0 0 4px}
    <button class="tab on" data-tab="comp" onclick="tab('comp')">🔗 Leyes: feed ↔ Congreso<span class="count" id="cntPend" style="display:none">0</span></button>
    <button class="tab" data-tab="feed" onclick="tab('feed')">🗳️ Feed de votación</button>
    <button class="tab" data-tab="prensa" onclick="tab('prensa')">📰 Prensa<span class="count" id="cntPrensa" style="display:none">0</span></button>
+   <button class="tab" data-tab="bancas" onclick="tab('bancas')">🏛️ Bancas</button>
    <button class="tab" data-tab="proximo" onclick="tab('proximo')">🎬 Expertos · Bancas · Usuarios</button>
   </div>
 
@@ -138,6 +139,19 @@ h1{font-size:20px;margin:0 0 4px}
     <p class="muted" style="margin:4px 0 0;font-size:13.5px">El robot de prensa cruza los titulares del día con las leyes. Las de <b>confianza alta</b> entran solas al feed (con la estrella ⭐); desmarcá las que no correspondan. Las <b>sugerencias</b> no entran hasta que las asciendas. Lo que descartes no vuelve a aparecer.</p>
    </div>
    <div id="prensaLista"><div class="empty">Cargando…</div></div>
+  </div>
+
+  <div id="tab-bancas" style="display:none">
+   <div class="card">
+    <h1>Bancas que escuchan</h1>
+    <p class="muted" style="margin:4px 0 0;font-size:13.5px">Diputados y senadores nacionales actuales. <b>Validada</b>: confirmás que la banca es real. <b>Escucha</b>: activás el sello que ve la ciudadanía. El presentismo viene de las votaciones del Congreso (comovoto.dev.ar).</p>
+   </div>
+   <div class="filtros">
+    <button class="chip on" data-bc="diputados" onclick="filtrarBancas('diputados')">Diputados</button>
+    <button class="chip" data-bc="senadores" onclick="filtrarBancas('senadores')">Senadores</button>
+    <input class="buscador" style="margin:0 0 0 auto;max-width:280px" id="bancasBuscar" placeholder="Buscar por nombre…" oninput="renderBancasAdmin()">
+   </div>
+   <div id="bancasLista"><div class="empty">Cargando…</div></div>
   </div>
 
   <div id="tab-proximo" style="display:none">
@@ -183,9 +197,59 @@ function tab(t){
  $('#tab-comp').style.display=(t==='comp')?'block':'none';
  $('#tab-feed').style.display=(t==='feed')?'block':'none';
  $('#tab-prensa').style.display=(t==='prensa')?'block':'none';
+ $('#tab-bancas').style.display=(t==='bancas')?'block':'none';
  $('#tab-proximo').style.display=(t==='proximo')?'block':'none';
  if(t==='feed'&&feedDatos.length===0)cargarFeed();
  if(t==='prensa'&&prensaDatos.length===0)cargarPrensa();
+ if(t==='bancas'&&bancasDatos.length===0)cargarBancas();
+}
+
+/* ===== PANEL DE BANCAS ===== */
+var bancasDatos=[], bancasCam='diputados';
+function cargarBancas(){
+ rpc('admin_bancas_lista',{}).then(function(filas){
+  bancasDatos=Array.isArray(filas)?filas:[];renderBancasAdmin();
+ }).catch(function(e){$('#bancasLista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
+}
+function filtrarBancas(cam){
+ bancasCam=cam;
+ document.querySelectorAll('.chip[data-bc]').forEach(function(c){c.classList.toggle('on',c.getAttribute('data-bc')===cam);});
+ renderBancasAdmin();
+}
+function renderBancasAdmin(){
+ var q=($('#bancasBuscar')?$('#bancasBuscar').value.trim().toLowerCase():'');
+ var lista=bancasDatos.filter(function(b){
+  if(b.camara!==bancasCam)return false;
+  if(q&&(b.nombre||'').toLowerCase().indexOf(q)<0)return false;
+  return true;
+ });
+ if(!lista.length){$('#bancasLista').innerHTML='<div class="card"><div class="empty">Sin resultados.</div></div>';return;}
+ // Agrupar por provincia
+ var provs={};
+ lista.forEach(function(b){var p=b.provincia||'Sin provincia';(provs[p]=provs[p]||[]).push(b);});
+ var h='';
+ Object.keys(provs).sort(function(a,c){return a.localeCompare(c,'es');}).forEach(function(p){
+  h+='<div class="filtros" style="margin-top:14px"><span class="muted" style="font-size:12px;font-weight:700">'+esc(p.toUpperCase())+'</span></div>';
+  provs[p].forEach(function(b){h+=filaBancaAdmin(b);});
+ });
+ $('#bancasLista').innerHTML=h;
+}
+function filaBancaAdmin(b){
+ var pres=(b.presentismo!=null)?(Math.round(b.presentismo)+'%'):'s/d';
+ var tv=b.validada, te=b.escucha;
+ return '<div class="card" id="banca-'+b.id+'" style="display:flex;gap:12px;align-items:center;padding:11px 14px">'
+  +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:14px">'+esc(b.nombre)+'</div>'
+  +'<div class="muted" style="font-size:11.5px">'+esc(b.bloque||'')+' · '+pres+' presente</div></div>'
+  +'<button class="chip'+(tv?' on':'')+'" onclick="toggleBanca('+b.id+',\'validada\','+(!tv)+')">'+(tv?'✅ Validada':'Validar')+'</button>'
+  +'<button class="chip'+(te?' on':'')+'" onclick="toggleBanca('+b.id+',\'escucha\','+(!te)+')">'+(te?'👂 Escucha':'Sin sello')+'</button>'
+  +'</div>';
+}
+function toggleBanca(id,campo,valor){
+ rpc('admin_banca_toggle',{p_id:id,p_campo:campo,p_valor:valor}).then(function(){
+  var b=bancasDatos.find(function(x){return x.id===id;});
+  if(b)b[campo]=valor;
+  renderBancasAdmin();
+ }).catch(function(e){alert('Error: '+String(e));});
 }
 
 /* ===== PANEL DE PRENSA ===== */
