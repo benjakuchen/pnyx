@@ -386,9 +386,9 @@ function cargarLeyes(listo){
         estado:ms?'Media sancion - por tratarse':'En tramite',
         urgente:!!ms,
         ing:f.fecha||'',
-        autor:'',
+        autor:(f.autor||'').trim(),
         bloque:'',
-        ini:'-',
+        ini:iniAutor(f.autor),
         nat:{favor:0,contra:0,abst:0,n:0},
         sub:f.oracion_ia||f.titulo||'',
         tieneIA:!!f.oracion_ia,
@@ -409,6 +409,23 @@ function cargarLeyes(listo){
 var expCounts={};   // ley_bill_id -> cantidad de opiniones cargadas
 var expCache={};    // ley_bill_id -> filas ya bajadas (para no pedir dos veces)
 function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+// Iniciales para el avatar de "Propone" (toma la primera palabra con letras)
+function iniAutor(a){
+ a=(a||'').trim();
+ if(!a)return '·';
+ var p=a.split(/[\s,]+/).filter(Boolean);
+ if(!p.length)return '·';
+ var x=p[0][0]||'';
+ var y=(p.length>1?(p[1][0]||''):'');
+ return (x+y).toUpperCase();
+}
+// Línea "Propone": autor + bloque solo si existen; si no hay autor, texto neutro
+function proponeLinea(b){
+ var partes=[];
+ if(b.autor)partes.push(escHtml(b.autor));
+ if(b.bloque)partes.push(escHtml(b.bloque));
+ return partes.length?partes.join(' · '):'<span class="muted">Sin autor cargado</span>';
+}
 // Una sola consulta: cuántas opiniones tiene cada ley del feed (para saber si mostrar el botón)
 function cargarConteoExpertos(){
  var bills=pending.map(function(b){return b.billId;}).filter(Boolean);
@@ -518,7 +535,7 @@ var repState='none',selCargo='dipnac',cfg={escucha:true,ideo:true,foto:false},vi
 function renderCard(){var deck=$('#deck');
  if(idx>=pending.length){deck.innerHTML='<div class="card fade" style="align-items:center;text-align:center;gap:13px;min-height:300px;justify-content:center"><div style="font-size:42px">✅</div><div class="serif" style="font-weight:700;font-size:17px">Votaste todo lo que está en trámite</div><div class="muted" style="font-size:13px">Volvé más tarde. Mirá tus tendencias abajo.</div></div>';$('#actions').style.display='none';return;}
  $('#actions').style.display='block';var b=pending[idx];
- var tipsHtml=tipUnaVez('voto','Tu voto aca es tu opinion ciudadana. No reemplaza al Congreso: le muestra que piensa la gente.');if(b.urgente)tipsHtml+=tipUnaVez('urgente',GLOSA.urgente);deck.innerHTML=tipsHtml+'<div class="card swcard fade" id="card"><div class="ovl" id="ovlR" style="right:14px;border-color:var(--favor);color:var(--favor)">A FAVOR</div><div class="ovl" id="ovlL" style="left:14px;border-color:var(--contra);color:var(--contra)">EN CONTRA</div><div class="cat">'+k(b.tema,'ci')+'<span onclick="glosa(&quot;camara&quot;)">'+k(b.camara,'nt')+'</span>'+(b.urgente?'<span onclick="glosa(&quot;urgente&quot;)">'+k('⏰ Urgente','urg')+'</span>':k(b.estado,'nt'))+'</div>'+(b.tieneIA?'<h3 class="title">'+b.sub+'</h3><div>'+k('✨ título editado por IA','ia')+'</div><p class="muted" style="font-size:11px;margin:6px 0 0;line-height:1.4">Título oficial: '+b.n+'</p>':'<h3 class="title">'+b.n+'</h3>')+'<div class="prop"><div class="av">'+b.ini+'</div><div><div class="muted" style="font-size:11.5px">Propone</div><div style="font-size:13px;font-weight:700">'+b.autor+' · '+b.bloque+'</div></div></div></div>';
+ var tipsHtml=tipUnaVez('voto','Tu voto aca es tu opinion ciudadana. No reemplaza al Congreso: le muestra que piensa la gente.');if(b.urgente)tipsHtml+=tipUnaVez('urgente',GLOSA.urgente);deck.innerHTML=tipsHtml+'<div class="card swcard fade" id="card"><div class="ovl" id="ovlR" style="right:14px;border-color:var(--favor);color:var(--favor)">A FAVOR</div><div class="ovl" id="ovlL" style="left:14px;border-color:var(--contra);color:var(--contra)">EN CONTRA</div><div class="cat">'+k(b.tema,'ci')+'<span onclick="glosa(&quot;camara&quot;)">'+k(b.camara,'nt')+'</span>'+(b.urgente?'<span onclick="glosa(&quot;urgente&quot;)">'+k('⏰ Urgente','urg')+'</span>':k(b.estado,'nt'))+'</div>'+(b.tieneIA?'<h3 class="title">'+b.sub+'</h3><div>'+k('✨ título editado por IA','ia')+'</div><p class="muted" style="font-size:11px;margin:6px 0 0;line-height:1.4">Título oficial: '+b.n+'</p>':'<h3 class="title">'+b.n+'</h3>')+'<div class="prop"><div class="av">'+b.ini+'</div><div><div class="muted" style="font-size:11.5px">Propone</div><div style="font-size:13px;font-weight:700">'+proponeLinea(b)+'</div></div></div></div>';
  bindDrag();}
 function bindDrag(){var card=$('#card');if(!card)return;var sx=0,dx=0,drag=false;
  function dn(e){drag=true;sx=(e.touches?e.touches[0].clientX:e.clientX);card.style.transition='none';}
@@ -575,7 +592,7 @@ function doVote(choice){if(idx>=pending.length)return;var ley=pending[idx];votes
 function flyAndVote(choice){var c=$('#card');if(c){c.style.transition='transform .25s';if(choice==='favor')c.style.transform='translateX(520px) rotate(28deg)';else if(choice==='contra')c.style.transform='translateX(-520px) rotate(-28deg)';else c.style.opacity='0';}doVote(choice);}
 
 function openDetail(){if(idx>=pending.length)return;var b=pending[idx],d=$('#detail');
- d.innerHTML='<button class="back" data-act="closeDetail">← Volver</button><h3 class="title" style="font-size:20px">'+b.n+'</h3><p class="muted" style="font-size:12.5px;margin:4px 0 12px">'+b.camara+' · '+b.estado+'</p><div class="prop" style="margin:0 0 12px"><div class="av">'+b.ini+'</div><div><div class="muted" style="font-size:11.5px">Propone</div><div style="font-size:13px;font-weight:700">'+b.autor+' · '+b.bloque+'</div></div></div><div style="margin-bottom:6px">'+k('✨ resumen IA','ia')+'</div><p style="font-size:14px;line-height:1.55;margin:0 0 14px">'+b.resumen+'</p>'+expBtn(b)+'<button class="fullbtn" data-act="full">📜 Leer la ley completa</button><div class="note info" style="margin:12px 0 16px">🔁 Cuando el Congreso lo vote, vas a ver cómo votó cada bloque frente a tu postura.</div><div class="vrow"><button class="vbtn c" data-act="voteD" data-arg="contra"><span class="em">👎</span>En contra</button><button class="vbtn a" data-act="voteD" data-arg="abst"><span class="em">➖</span>Abstención<span class="gq" onclick="event.stopPropagation();glosa(&quot;abstencion&quot;)">i</span></button><button class="vbtn f" data-act="voteD" data-arg="favor"><span class="em">👍</span>A favor</button></div>';
+ d.innerHTML='<button class="back" data-act="closeDetail">← Volver</button><h3 class="title" style="font-size:20px">'+b.n+'</h3><p class="muted" style="font-size:12.5px;margin:4px 0 12px">'+b.camara+' · '+b.estado+'</p><div class="prop" style="margin:0 0 12px"><div class="av">'+b.ini+'</div><div><div class="muted" style="font-size:11.5px">Propone</div><div style="font-size:13px;font-weight:700">'+proponeLinea(b)+'</div></div></div><div style="margin-bottom:6px">'+k('✨ resumen IA','ia')+'</div><p style="font-size:14px;line-height:1.55;margin:0 0 14px">'+b.resumen+'</p>'+expBtn(b)+'<button class="fullbtn" data-act="full">📜 Leer la ley completa</button><div class="note info" style="margin:12px 0 16px">🔁 Cuando el Congreso lo vote, vas a ver cómo votó cada bloque frente a tu postura.</div><div class="vrow"><button class="vbtn c" data-act="voteD" data-arg="contra"><span class="em">👎</span>En contra</button><button class="vbtn a" data-act="voteD" data-arg="abst"><span class="em">➖</span>Abstención<span class="gq" onclick="event.stopPropagation();glosa(&quot;abstencion&quot;)">i</span></button><button class="vbtn f" data-act="voteD" data-arg="favor"><span class="em">👍</span>A favor</button></div>';
  d.classList.add('show');}
 function openFull(){if(idx>=pending.length)return;var b=pending[idx],f=$('#fulltext');
  var cab='<button class="back" data-act="closeFull">← Volver al resumen</button><h3 class="title" style="font-size:20px">'+b.n+'</h3><p class="muted" style="font-size:12px;margin:4px 0 12px">📜 Texto del proyecto · '+b.camara+'</p>';

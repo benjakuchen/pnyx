@@ -136,7 +136,8 @@ def main():
             # Subir directo a Supabase
             try:
                 sb.table("leyes").upsert(
-                    {"bill_id": p["bill_id"], "texto_oficial": texto},
+                    {"bill_id": p["bill_id"], "texto_oficial": texto,
+                     "autor": (p.get("autor") or None)},
                     on_conflict="bill_id"
                 ).execute()
                 ok += 1
