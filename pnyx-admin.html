@@ -98,6 +98,7 @@ h1{font-size:20px;margin:0 0 4px}
   <div class="tabs">
    <button class="tab on" data-tab="comp" onclick="tab('comp')">🔗 Leyes: feed ↔ Congreso<span class="count" id="cntPend" style="display:none">0</span></button>
    <button class="tab" data-tab="feed" onclick="tab('feed')">🗳️ Feed de votación</button>
+   <button class="tab" data-tab="prensa" onclick="tab('prensa')">📰 Prensa<span class="count" id="cntPrensa" style="display:none">0</span></button>
    <button class="tab" data-tab="proximo" onclick="tab('proximo')">🎬 Expertos · Bancas · Usuarios</button>
   </div>
 
@@ -129,6 +130,14 @@ h1{font-size:20px;margin:0 0 4px}
     <input class="buscador" style="margin:0 0 0 auto;max-width:280px" id="feedBuscar" placeholder="Buscar por título o expediente…" oninput="renderFeed()">
    </div>
    <div id="feedLista"><div class="empty">Cargando…</div></div>
+  </div>
+
+  <div id="tab-prensa" style="display:none">
+   <div class="card">
+    <h1>Prensa</h1>
+    <p class="muted" style="margin:4px 0 0;font-size:13.5px">El robot de prensa cruza los titulares del día con las leyes. Las de <b>confianza alta</b> entran solas al feed (con la estrella ⭐); desmarcá las que no correspondan. Las <b>sugerencias</b> no entran hasta que las asciendas. Lo que descartes no vuelve a aparecer.</p>
+   </div>
+   <div id="prensaLista"><div class="empty">Cargando…</div></div>
   </div>
 
   <div id="tab-proximo" style="display:none">
@@ -173,8 +182,57 @@ function tab(t){
  document.querySelectorAll('.tab').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-tab')===t);});
  $('#tab-comp').style.display=(t==='comp')?'block':'none';
  $('#tab-feed').style.display=(t==='feed')?'block':'none';
+ $('#tab-prensa').style.display=(t==='prensa')?'block':'none';
  $('#tab-proximo').style.display=(t==='proximo')?'block':'none';
  if(t==='feed'&&feedDatos.length===0)cargarFeed();
+ if(t==='prensa'&&prensaDatos.length===0)cargarPrensa();
+}
+
+/* ===== PANEL DE PRENSA ===== */
+var prensaDatos=[];
+function cargarPrensa(){
+ rpc('admin_prensa_lista',{}).then(function(filas){
+  prensaDatos=Array.isArray(filas)?filas:[];renderPrensa();
+ }).catch(function(e){$('#prensaLista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
+}
+function renderPrensa(){
+ var prio=prensaDatos.filter(function(d){return d.importante_prensa;});
+ var sug=prensaDatos.filter(function(d){return !d.importante_prensa && d.sugerida_prensa;});
+ var h='';
+ // Contador en la pestaña
+ var cnt=$('#cntPrensa'); if(cnt){ if(sug.length){cnt.style.display='';cnt.textContent=sug.length;} else cnt.style.display='none'; }
+
+ h+='<div class="filtros"><span class="muted" style="font-size:12.5px;font-weight:700">⭐ En el feed ('+prio.length+') — confianza alta, entraron solas</span></div>';
+ if(!prio.length){ h+='<div class="card"><div class="empty">Ninguna ley prioritaria por prensa ahora.</div></div>'; }
+ prio.forEach(function(d){ h+=filaPrensa(d,true); });
+
+ h+='<div class="filtros" style="margin-top:18px"><span class="muted" style="font-size:12.5px;font-weight:700">❓ Sugerencias ('+sug.length+') — no entran hasta que las asciendas</span></div>';
+ if(!sug.length){ h+='<div class="card"><div class="empty">No hay sugerencias pendientes.</div></div>'; }
+ sug.forEach(function(d){ h+=filaPrensa(d,false); });
+
+ $('#prensaLista').innerHTML=h;
+}
+function filaPrensa(d,esPrio){
+ var titulo=esc(d.oracion_ia||d.titulo||d.bill_id);
+ var meta=esc(d.bill_id)+(d.camara?(' · '+esc(d.camara)):'');
+ var botones;
+ if(esPrio){
+  botones='<button class="chip" onclick="accionPrensa(\''+d.bill_id+'\',\'desmarcar\')">✕ Sacar del feed</button>';
+ } else {
+  botones='<button class="chip on" onclick="accionPrensa(\''+d.bill_id+'\',\'ascender\')">⭐ Al feed</button>'
+        + '<button class="chip" onclick="accionPrensa(\''+d.bill_id+'\',\'descartar\')">✕ Descartar</button>';
+ }
+ return '<div class="card" id="prensa-'+d.bill_id+'" style="display:flex;gap:12px;align-items:flex-start;padding:12px 14px">'
+      + '<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:14px;line-height:1.35">'+titulo+'</div>'
+      + '<div class="muted" style="font-size:11.5px;margin-top:3px">'+meta+'</div></div>'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">'+botones+'</div></div>';
+}
+function accionPrensa(billId,accion){
+ rpc('admin_prensa_accion',{p_bill_id:billId,p_accion:accion}).then(function(){
+  // sacar la fila de la lista local y re-render
+  prensaDatos=prensaDatos.filter(function(x){return x.bill_id!==billId;});
+  renderPrensa();
+ }).catch(function(e){alert('Error: '+String(e));});
 }
 
 /* ===== FEED DE VOTACIÓN ===== */
