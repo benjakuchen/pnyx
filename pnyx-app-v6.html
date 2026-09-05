@@ -389,11 +389,13 @@ function cargarLeyes(listo){
         autor:(f.autor||'').trim(),
         bloque:'',
         ini:iniAutor(f.autor),
+        origen:f.origen||'',
+        tieneTexto:!!(f.texto_oficial && String(f.texto_oficial).length>200),
         nat:{favor:0,contra:0,abst:0,n:0},
         sub:f.oracion_ia||f.titulo||'',
         tieneIA:!!f.oracion_ia,
         resumen:f.resumen_ia||'Esta ley todavia no tiene resumen disponible.',
-        completa:''
+        completa:f.texto_oficial||''
       };
     });
     cargarConteoExpertos();
@@ -425,6 +427,17 @@ function proponeLinea(b){
  if(b.autor)partes.push(escHtml(b.autor));
  if(b.bloque)partes.push(escHtml(b.bloque));
  return partes.length?partes.join(' · '):'<span class="muted">Sin autor cargado</span>';
+}
+// Buscador oficial según la cámara de ORIGEN (donde vive el texto real)
+function buscadorCongreso(b){
+ var sitio=(String(b.origen).toLowerCase().indexOf('senado')>=0)?'senado.gob.ar':'hcdn.gob.ar';
+ var q=encodeURIComponent((b.n||'')+' site:'+sitio);
+ return 'https://www.google.com/search?q='+q;
+}
+// Botón de texto: si hay texto lo abre local; si no, manda al buscador oficial
+function textoBtn(b){
+ if(b.tieneTexto)return '<button class="fullbtn" data-act="full">📜 Leer la ley completa</button>';
+ return '<a class="fullbtn" href="'+buscadorCongreso(b)+'" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none">🔎 Buscar el texto en el Congreso ↗</a>';
 }
 // Una sola consulta: cuántas opiniones tiene cada ley del feed (para saber si mostrar el botón)
 function cargarConteoExpertos(){
@@ -592,7 +605,7 @@ function doVote(choice){if(idx>=pending.length)return;var ley=pending[idx];votes
 function flyAndVote(choice){var c=$('#card');if(c){c.style.transition='transform .25s';if(choice==='favor')c.style.transform='translateX(520px) rotate(28deg)';else if(choice==='contra')c.style.transform='translateX(-520px) rotate(-28deg)';else c.style.opacity='0';}doVote(choice);}
 
 function openDetail(){if(idx>=pending.length)return;var b=pending[idx],d=$('#detail');
- d.innerHTML='<button class="back" data-act="closeDetail">← Volver</button><h3 class="title" style="font-size:20px">'+b.n+'</h3><p class="muted" style="font-size:12.5px;margin:4px 0 12px">'+b.camara+' · '+b.estado+'</p><div class="prop" style="margin:0 0 12px"><div class="av">'+b.ini+'</div><div><div class="muted" style="font-size:11.5px">Propone</div><div style="font-size:13px;font-weight:700">'+proponeLinea(b)+'</div></div></div><div style="margin-bottom:6px">'+k('✨ resumen IA','ia')+'</div><p style="font-size:14px;line-height:1.55;margin:0 0 14px">'+b.resumen+'</p>'+expBtn(b)+'<button class="fullbtn" data-act="full">📜 Leer la ley completa</button><div class="note info" style="margin:12px 0 16px">🔁 Cuando el Congreso lo vote, vas a ver cómo votó cada bloque frente a tu postura.</div><div class="vrow"><button class="vbtn c" data-act="voteD" data-arg="contra"><span class="em">👎</span>En contra</button><button class="vbtn a" data-act="voteD" data-arg="abst"><span class="em">➖</span>Abstención<span class="gq" onclick="event.stopPropagation();glosa(&quot;abstencion&quot;)">i</span></button><button class="vbtn f" data-act="voteD" data-arg="favor"><span class="em">👍</span>A favor</button></div>';
+ d.innerHTML='<button class="back" data-act="closeDetail">← Volver</button><h3 class="title" style="font-size:20px">'+b.n+'</h3><p class="muted" style="font-size:12.5px;margin:4px 0 12px">'+b.camara+' · '+b.estado+'</p><div class="prop" style="margin:0 0 12px"><div class="av">'+b.ini+'</div><div><div class="muted" style="font-size:11.5px">Propone</div><div style="font-size:13px;font-weight:700">'+proponeLinea(b)+'</div></div></div><div style="margin-bottom:6px">'+k('✨ resumen IA','ia')+'</div><p style="font-size:14px;line-height:1.55;margin:0 0 14px">'+b.resumen+'</p>'+expBtn(b)+textoBtn(b)+'<div class="note info" style="margin:12px 0 16px">🔁 Cuando el Congreso lo vote, vas a ver cómo votó cada bloque frente a tu postura.</div><div class="vrow"><button class="vbtn c" data-act="voteD" data-arg="contra"><span class="em">👎</span>En contra</button><button class="vbtn a" data-act="voteD" data-arg="abst"><span class="em">➖</span>Abstención<span class="gq" onclick="event.stopPropagation();glosa(&quot;abstencion&quot;)">i</span></button><button class="vbtn f" data-act="voteD" data-arg="favor"><span class="em">👍</span>A favor</button></div>';
  d.classList.add('show');}
 function openFull(){if(idx>=pending.length)return;var b=pending[idx],f=$('#fulltext');
  var cab='<button class="back" data-act="closeFull">← Volver al resumen</button><h3 class="title" style="font-size:20px">'+b.n+'</h3><p class="muted" style="font-size:12px;margin:4px 0 12px">📜 Texto del proyecto · '+b.camara+'</p>';
