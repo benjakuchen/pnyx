@@ -22,6 +22,7 @@ body{background:var(--paper);font-family:var(--sans);color:var(--ink);display:fl
 @media(min-width:480px){.app{height:96vh;margin:2vh 0;border-radius:26px;box-shadow:0 18px 60px rgba(28,91,174,.18);border:1px solid var(--line)}body{align-items:center}}
 .serif{font-family:var(--serif)}.muted{color:var(--muted)}
 h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
+#onb{height:100%;display:flex;flex-direction:column;overflow:hidden}
 .ob{flex:1;display:none;flex-direction:column;padding:28px 24px;overflow-y:auto}.ob.show{display:flex}
 .logo{font-family:var(--serif);font-weight:700;color:var(--brand)}.logoBig{font-size:42px;letter-spacing:1px;text-align:center}
 .carousel{min-height:140px;display:flex;flex-direction:column;justify-content:center;text-align:center}
@@ -262,9 +263,9 @@ async function doPassword(modo){
   var res;
   if(modo==='up'){res=await supabase.auth.signUp({email:email,password:pass});}
   else{res=await supabase.auth.signInWithPassword({email:email,password:pass});}
-  if(res.error){msg.style.color='#c0392b';msg.textContent='Error: '+res.error.message;return;}
+  if(res.error){msg.style.color='#c0392b';msg.textContent='Error: '+res.error.message;msg.scrollIntoView({block:'center'});return;}
   if(res.data&&res.data.session){usuarioActual=res.data.session.user;continuarTrasLogin();}
-  else{msg.style.color='var(--favor)';msg.textContent='Cuenta creada. Ya podés entrar con tu email y contraseña.';}
+  else{msg.style.color='var(--favor)';msg.textContent='✅ Cuenta creada. Ahora tocá "Entrar" con el mismo email y contraseña.';msg.scrollIntoView({block:'center'});}
 }
 
 async function doMagicLink(){
@@ -297,7 +298,7 @@ async function continuarTrasLogin(){
 }
 
 function mostrarVerificacion(){
-  $('#onb').style.display='block';
+  $('#onb').style.display='flex';
   $('#app').style.display='none';
   ['o0','oC','oTyc','oRen','oVer'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='oVer');});
 }
@@ -372,7 +373,7 @@ async function cargarVotadas(listo){
 
 var modoInvitado=false;
 function mostrarOnboarding(){
-  $('#onb').style.display='block';
+  $('#onb').style.display='flex';
   $('#app').style.display='none';
   ['o0','oC','oTyc','oRen','oVer'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='o0');});
 }
@@ -386,7 +387,7 @@ function entrarComoInvitado(){
 function pedirLoginParaVotar(){
   modoInvitado=false;
   $('#app').style.display='none';
-  $('#onb').style.display='block';
+  $('#onb').style.display='flex';
   ['o0','oC','oTyc','oRen','oVer'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='oC');});
 }
 
