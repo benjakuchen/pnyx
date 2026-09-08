@@ -197,6 +197,7 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
       <div class="overlay" id="blocd"></div>
       <div class="overlay" id="banca"></div>
       <div class="overlay" id="histo"></div>
+      <div class="overlay" id="afin"></div>
       <div class="overlay" id="repstats"></div>
       <div id="stories"></div>
     </div>
@@ -1052,6 +1053,85 @@ function filaBanca(b){
 function onBancaBusca(v){bancaBusca=v;pintarBanc();}
 
 /* PERFIL — hub: ciudadano + capa representante */
+/* ===== AFINIDAD (motor dormido: se calcula en el dispositivo, se enciende al haber datos) ===== */
+var AFIN_UMBRAL=8;   // minimo de leyes coincidentes para mostrar afinidad confiable
+var afinCache=null;
+function afinResetCache(){afinCache=null;}
+// Devuelve promise con {coincidentes, ranking:[{nombre,camara,bloque,provincia,pct,n}]}
+function calcularAfinidad(){
+ var hist=histLeer();
+ if(!hist.length)return Promise.resolve({coincidentes:0,ranking:[]});
+ var mapaMio={};                 // billId -> voto del usuario (a_favor/en_contra/abstencion)
+ var mapaVoto={favor:'AFIRMATIVO',contra:'NEGATIVO',abst:'ABSTENCION'};
+ var bills=[];
+ hist.forEach(function(v){mapaMio[v.billId]=mapaVoto[v.voto]||null;bills.push(v.billId);});
+ return fetch(SUPABASE_URL+'/rest/v1/rpc/afinidad_votos_legisladores',{
+   method:'POST',
+   headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
+   body:JSON.stringify({p_bills:bills})
+ }).then(function(r){return r.json();}).then(function(filas){
+   filas=Array.isArray(filas)?filas:[];
+   // leyes coincidentes = leyes distintas donde YO voté y hay votación del Congreso
+   var leyesCoin={};
+   var acc={};   // legislador -> {nombre,camara,bloque,provincia, coincide, total}
+   filas.forEach(function(f){
+     var miVoto=mapaMio[f.ley_bill_id];
+     if(!miVoto)return;                // yo me abstuve sin valor claro, o no está
+     leyesCoin[f.ley_bill_id]=true;
+     var key=f.legislador_id;
+     if(!acc[key])acc[key]={nombre:f.legislador,camara:f.camara,bloque:f.bloque,provincia:f.provincia,coincide:0,total:0};
+     acc[key].total++;
+     if(f.voto===miVoto)acc[key].coincide++;
+   });
+   var ranking=Object.keys(acc).map(function(k){
+     var a=acc[k];
+     return {nombre:a.nombre,camara:a.camara,bloque:a.bloque,provincia:a.provincia,
+             n:a.total, pct:a.total?Math.round(100*a.coincide/a.total):0};
+   }).filter(function(x){return x.n>=3;})   // legislador con al menos 3 leyes en común
+     .sort(function(a,b){return b.pct-a.pct;});
+   return {coincidentes:Object.keys(leyesCoin).length, ranking:ranking};
+ }).catch(function(){return {coincidentes:0,ranking:[]};});
+}
+function tarjetaAfinidad(){
+ // tarjeta compacta en el perfil que abre la pantalla propia
+ return '<div class="card" style="margin-top:12px;display:flex;align-items:center;gap:12px;cursor:pointer" data-act="verAfinidad">'
+  +'<div style="font-size:22px">🧭</div>'
+  +'<div style="flex:1"><div style="font-weight:700;font-size:14px">¿Con quién coincidís?</div>'
+  +'<div class="muted" style="font-size:11.5px">Compará tus votos con los del Congreso</div></div>'
+  +'<div style="color:var(--muted);font-size:18px">›</div></div>';
+}
+function openAfinidad(){
+ var x=$('#afin');
+ x.innerHTML='<button class="back" data-act="closeAfin">← Volver al perfil</button>'
+  +'<h3 class="title" style="font-size:20px">¿Con quién coincidís?</h3>'
+  +'<p class="muted" style="font-size:13px;margin:8px 0 14px">Calculando en tu dispositivo…</p>';
+ x.classList.add('show');x.scrollTop=0;
+ calcularAfinidad().then(function(res){
+   var h='<button class="back" data-act="closeAfin">← Volver al perfil</button>'
+    +'<h3 class="title" style="font-size:20px">¿Con quién coincidís?</h3>';
+   if(res.coincidentes<AFIN_UMBRAL){
+     // ESTADO EN CONSTRUCCIÓN: motor dormido
+     var falta=AFIN_UMBRAL-res.coincidentes;
+     h+='<div class="note info" style="margin:10px 0 14px">🧭 Estamos juntando datos para calcular tu afinidad.</div>'
+      +'<p style="font-size:13.5px;line-height:1.55;margin:0 0 14px">La afinidad compara <b>las leyes que vos votaste</b> con <b>cómo las votó cada legislador en el Congreso</b>. Se calcula acá, en tu teléfono: nadie ve tus votos.</p>'
+      +'<div class="card" style="text-align:center;background:var(--surface2)"><div style="font-size:30px;font-weight:800;color:var(--brand)">'+res.coincidentes+' / '+AFIN_UMBRAL+'</div>'
+      +'<div class="muted" style="font-size:12.5px;margin-top:4px">leyes tuyas ya tratadas por el Congreso</div></div>'
+      +'<p class="muted" style="font-size:12.5px;margin:14px 0 0;line-height:1.5">Muchas leyes del feed todavía están en trámite. A medida que el Congreso las vote, esta comparación se va a ir completando sola. '
+      +(falta>0?('Faltan <b>'+falta+'</b> para mostrarte con quién coincidís.'):'')+'</p>';
+     x.innerHTML=h;return;
+   }
+   // ENCENDIDO: hay datos suficientes
+   h+='<p class="muted" style="font-size:12.5px;margin:8px 0 14px">Sobre '+res.coincidentes+' leyes que votaste y el Congreso también trató. Calculado en tu teléfono; tu voto sigue siendo secreto.</p>';
+   res.ranking.slice(0,20).forEach(function(r){
+     var col=r.pct>=66?'var(--favor)':(r.pct>=40?'var(--aus)':'var(--contra)');
+     h+='<div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)">'
+      +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13.5px">'+escHtml(r.nombre)+'</div>'
+      +'<div class="muted" style="font-size:11px">'+escHtml(r.bloque||'')+' · '+escHtml(r.provincia||'')+' · '+r.n+' leyes</div></div>'
+      +'<div style="font-weight:800;font-size:16px;color:'+col+'">'+r.pct+'%</div></div>';
+   });
+   x.innerHTML=h;
+ });
+}
 function bloqueHistorial(){
  var lista=histLeer();
  var n=lista.length;
@@ -1094,7 +1174,7 @@ function renderPerfil(){var n=Object.keys(votes).length;
  var emailMostrar=usuarioActual?usuarioActual.email:'—';
  var ini=usuarioActual?(usuarioActual.email.substring(0,2).toUpperCase()):'CV';
  var h='<div class="card" style="display:flex;flex-direction:row;align-items:center;gap:13px"><div class="av" style="width:50px;height:50px;font-size:17px">'+ini+'</div><div style="flex:1"><div style="font-weight:700;font-size:16px">Ciudadano verificado</div><div class="muted" style="font-size:12px">'+emailMostrar+'</div></div><button style="border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12px;padding:6px 12px;border-radius:20px;font-weight:600" data-act="logout">Salir</button></div>'
-  +'<div class="card" style="margin-top:12px"><div class="sech">📚 APRENDER</div><p class="muted" style="font-size:12.5px;margin:0 0 10px">Videos cortos que explican como funciona el Congreso: que es una camara, que pasa cuando una ley se aprueba, que hace tu voto aca.</p><div style="border:1px dashed var(--line);border-radius:var(--r-sm);padding:16px;text-align:center;color:var(--muted);font-size:12.5px">🎬 Proximamente<br>Los primeros videos estan en produccion.</div></div>'+'<div class="card" style="margin-top:12px"><div class="sech">TU ACTIVIDAD</div><div style="display:flex;justify-content:space-between"><span class="muted">Proyectos votados</span><b style="font-weight:700">'+n+'</b></div><div style="display:flex;justify-content:space-between;margin-top:6px"><span class="muted">Tu voto</span><span class="k ci">🔒 anónimo</span></div></div>'+bloqueHistorial();
+  +'<div class="card" style="margin-top:12px"><div class="sech">📚 APRENDER</div><p class="muted" style="font-size:12.5px;margin:0 0 10px">Videos cortos que explican como funciona el Congreso: que es una camara, que pasa cuando una ley se aprueba, que hace tu voto aca.</p><div style="border:1px dashed var(--line);border-radius:var(--r-sm);padding:16px;text-align:center;color:var(--muted);font-size:12.5px">🎬 Proximamente<br>Los primeros videos estan en produccion.</div></div>'+'<div class="card" style="margin-top:12px"><div class="sech">TU ACTIVIDAD</div><div style="display:flex;justify-content:space-between"><span class="muted">Proyectos votados</span><b style="font-weight:700">'+n+'</b></div><div style="display:flex;justify-content:space-between;margin-top:6px"><span class="muted">Tu voto</span><span class="k ci">🔒 anónimo</span></div></div>'+bloqueHistorial()+tarjetaAfinidad();
 
  if(repState==='none'){
   h+='<div class="card" style="margin-top:12px;gap:6px"><div style="font-weight:700;font-size:14px">🏛️ ¿Ocupás una banca?</div><p class="muted" style="font-size:12.5px;margin:0">Seguís siendo ciudadano y votás como todos. Validá tu banca para sumar la capa de representante: ver la señal de tu distrito y elegir qué mostrás.</p><button class="primary sm" style="margin-top:6px" data-act="validarBanca">Validar mi banca</button></div>';
@@ -1181,6 +1261,8 @@ document.addEventListener('click',function(e){var el=e.target.closest('[data-act
  else if(a==='bancaCam'){bancaCamara=arg;bancaBusca='';pintarBanc();}
  else if(a==='verHistorial')openHistorial();
  else if(a==='closeHisto')$('#histo').classList.remove('show');
+ else if(a==='verAfinidad')openAfinidad();
+ else if(a==='closeAfin')$('#afin').classList.remove('show');
  else if(a==='closeBanca')$('#banca').classList.remove('show');
  else if(a==='cargo'){selCargo=arg;openBanca();}
  else if(a==='enviarBanca'){repState='pending';$('#banca').classList.remove('show');renderPerfil();}
