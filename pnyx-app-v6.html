@@ -306,7 +306,7 @@ function mostrarVerificacion(){
 /* Llama a la Edge Function crear-sesion, que crea la sesión en Didit
    y devuelve la URL. Abre esa URL para que el usuario haga selfie + DNI. */
 async function iniciarVerificacionDidit(){
-  var msg=$('#verMsg');
+  var msg=$('#verMsgP')||$('#verMsg');
   msg.style.display='block';msg.style.color='var(--muted)';
   msg.textContent='Preparando la verificación…';
   try{
@@ -1171,10 +1171,31 @@ function borrarHistorial(){
  $('#histo').classList.remove('show');
  renderPerfil();
 }
+/* ===== VERIFICACIÓN DE IDENTIDAD (estado real desde identidad_verificada) ===== */
+var verifState=false;
+function chequearVerificacion(cb){
+ if(!usuarioActual){verifState=false;if(cb)cb();return;}
+ fetch(SUPABASE_URL+'/rest/v1/identidad_verificada?select=verificado&user_id=eq.'+usuarioActual.id,
+   {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}})
+  .then(function(r){return r.json();})
+  .then(function(filas){verifState=!!(Array.isArray(filas)&&filas[0]&&filas[0].verificado);if(cb)cb();})
+  .catch(function(){verifState=false;if(cb)cb();});
+}
+function bloqueVerificacion(){
+ if(verifState){
+  return '<div class="card" style="margin-top:12px;display:flex;align-items:center;gap:11px"><div style="font-size:22px">🪪</div><div style="flex:1"><div style="font-weight:700;font-size:13.5px">Identidad verificada</div><div class="muted" style="font-size:11.5px">Confirmada con RENAPER · tu identidad queda separada de tus votos</div></div><span class="k ok">✅</span></div>';
+ }
+ return '<div class="card" style="margin-top:12px;gap:6px"><div style="font-weight:700;font-size:14px">🪪 Verificá tu identidad</div><p class="muted" style="font-size:12.5px;margin:0">Para que cada persona vote una sola vez, confirmamos que sos una persona real con RENAPER (selfie + DNI). Tu identidad queda <b>separada de tus votos</b>: nadie puede saber cómo votaste.</p><button class="primary sm" style="margin-top:6px" onclick="iniciarVerificacionDidit()">Verificar mi identidad</button><div id="verMsgP" style="margin-top:10px;font-size:12.5px;color:var(--muted);display:none"></div></div>';
+}
 function renderPerfil(){var n=Object.keys(votes).length;
+ chequearVerificacion(function(){renderPerfilInterno(n);});
+}
+function renderPerfilInterno(n){
  var emailMostrar=usuarioActual?usuarioActual.email:'—';
  var ini=usuarioActual?(usuarioActual.email.substring(0,2).toUpperCase()):'CV';
- var h='<div class="card" style="display:flex;flex-direction:row;align-items:center;gap:13px"><div class="av" style="width:50px;height:50px;font-size:17px">'+ini+'</div><div style="flex:1"><div style="font-weight:700;font-size:16px">Ciudadano verificado</div><div class="muted" style="font-size:12px">'+emailMostrar+'</div></div><button style="border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12px;padding:6px 12px;border-radius:20px;font-weight:600" data-act="logout">Salir</button></div>'
+ var titulo=verifState?'Ciudadano verificado ✅':'Ciudadano';
+ var h='<div class="card" style="display:flex;flex-direction:row;align-items:center;gap:13px"><div class="av" style="width:50px;height:50px;font-size:17px">'+ini+'</div><div style="flex:1"><div style="font-weight:700;font-size:16px">'+titulo+'</div><div class="muted" style="font-size:12px">'+emailMostrar+'</div></div><button style="border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12px;padding:6px 12px;border-radius:20px;font-weight:600" data-act="logout">Salir</button></div>'
+  +bloqueVerificacion()
   +'<div class="card" style="margin-top:12px"><div class="sech">📚 APRENDER</div><p class="muted" style="font-size:12.5px;margin:0 0 10px">Videos cortos que explican como funciona el Congreso: que es una camara, que pasa cuando una ley se aprueba, que hace tu voto aca.</p><div style="border:1px dashed var(--line);border-radius:var(--r-sm);padding:16px;text-align:center;color:var(--muted);font-size:12.5px">🎬 Proximamente<br>Los primeros videos estan en produccion.</div></div>'+'<div class="card" style="margin-top:12px"><div class="sech">TU ACTIVIDAD</div><div style="display:flex;justify-content:space-between"><span class="muted">Proyectos votados</span><b style="font-weight:700">'+n+'</b></div><div style="display:flex;justify-content:space-between;margin-top:6px"><span class="muted">Tu voto</span><span class="k ci">🔒 anónimo</span></div></div>'+bloqueHistorial()+tarjetaAfinidad();
 
  if(repState==='none'){
