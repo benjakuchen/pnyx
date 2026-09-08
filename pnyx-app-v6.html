@@ -573,7 +573,7 @@ var repState='none',selCargo='dipnac',cfg={escucha:true,ideo:true,foto:false},vi
 function renderCard(){var deck=$('#deck');
  if(idx>=pending.length){deck.innerHTML='<div class="card fade" style="align-items:center;text-align:center;gap:13px;min-height:300px;justify-content:center"><div style="font-size:42px">✅</div><div class="serif" style="font-weight:700;font-size:17px">Votaste todo lo que está en trámite</div><div class="muted" style="font-size:13px">Volvé más tarde. Mirá tus tendencias abajo.</div></div>';$('#actions').style.display='none';return;}
  $('#actions').style.display='block';var b=pending[idx];
- var tipsHtml=tipUnaVez('voto','Tu voto aca es tu opinion ciudadana. No reemplaza al Congreso: le muestra que piensa la gente.');if(b.urgente)tipsHtml+=tipUnaVez('urgente',GLOSA.urgente);deck.innerHTML=tipsHtml+'<div class="card swcard fade" id="card"><div class="ovl" id="ovlR" style="right:14px;border-color:var(--favor);color:var(--favor)">A FAVOR</div><div class="ovl" id="ovlL" style="left:14px;border-color:var(--contra);color:var(--contra)">EN CONTRA</div><div class="cat">'+k(b.tema,'ci')+'<span onclick="glosa(&quot;camara&quot;)">'+k(b.camara,'nt')+'</span>'+(b.urgente?'<span onclick="glosa(&quot;urgente&quot;)">'+k('⏰ Urgente','urg')+'</span>':k(b.estado,'nt'))+'</div>'+(b.tieneIA?'<h3 class="title">'+b.sub+'</h3><div>'+k('✨ título editado por IA','ia')+'</div><p class="muted" style="font-size:11px;margin:6px 0 0;line-height:1.4">Título oficial: '+b.n+'</p>':'<h3 class="title">'+b.n+'</h3>')+'<div class="prop"><div class="av">'+b.ini+'</div><div><div class="muted" style="font-size:11.5px">Propone</div><div style="font-size:13px;font-weight:700">'+proponeLinea(b)+'</div></div></div></div>';
+ var tipsHtml=tipUnaVez('voto','Tu voto es <b>definitivo</b> y <b>anónimo</b>: queda sumado al total que ve el Congreso, pero nadie puede saber que fue tuyo. No reemplaza al Congreso: le muestra qué piensa la gente.');if(b.urgente)tipsHtml+=tipUnaVez('urgente',GLOSA.urgente);deck.innerHTML=tipsHtml+'<div class="card swcard fade" id="card"><div class="ovl" id="ovlR" style="right:14px;border-color:var(--favor);color:var(--favor)">A FAVOR</div><div class="ovl" id="ovlL" style="left:14px;border-color:var(--contra);color:var(--contra)">EN CONTRA</div><div class="cat">'+k(b.tema,'ci')+'<span onclick="glosa(&quot;camara&quot;)">'+k(b.camara,'nt')+'</span>'+(b.urgente?'<span onclick="glosa(&quot;urgente&quot;)">'+k('⏰ Urgente','urg')+'</span>':k(b.estado,'nt'))+'</div>'+(b.tieneIA?'<h3 class="title">'+b.sub+'</h3><div>'+k('✨ título editado por IA','ia')+'</div><p class="muted" style="font-size:11px;margin:6px 0 0;line-height:1.4">Título oficial: '+b.n+'</p>':'<h3 class="title">'+b.n+'</h3>')+'<div class="prop"><div class="av">'+b.ini+'</div><div><div class="muted" style="font-size:11.5px">Propone</div><div style="font-size:13px;font-weight:700">'+proponeLinea(b)+'</div></div></div></div>';
  bindDrag();}
 function bindDrag(){var card=$('#card');if(!card)return;var sx=0,dx=0,drag=false;
  function dn(e){drag=true;sx=(e.touches?e.touches[0].clientX:e.clientX);card.style.transition='none';}
@@ -583,6 +583,21 @@ function bindDrag(){var card=$('#card');if(!card)return;var sx=0,dx=0,drag=false
    if(dx>92){card.style.transform='translateX(520px) rotate(28deg)';doVote('favor');}else if(dx<-92){card.style.transform='translateX(-520px) rotate(-28deg)';doVote('contra');}else{card.style.transform='';$('#ovlR').style.opacity=0;$('#ovlL').style.opacity=0;}dx=0;}
  card.addEventListener('mousedown',dn);window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
  card.addEventListener('touchstart',dn,{passive:true});card.addEventListener('touchmove',mv,{passive:true});card.addEventListener('touchend',up);}
+/* ===== HISTÓRICO LOCAL DE VOTOS (solo en este dispositivo, nunca al servidor) ===== */
+var HIST_KEY='pnyx_historico_votos';
+function histLeer(){
+ try{var s=localStorage.getItem(HIST_KEY);return s?JSON.parse(s):[];}catch(e){return [];}
+}
+function histGuardar(ley,choice){
+ try{
+  var lista=histLeer();
+  // si ya está esa ley, no duplicar (el voto es definitivo)
+  if(lista.some(function(x){return x.billId===ley.billId;}))return;
+  lista.unshift({billId:ley.billId, titulo:(ley.sub||ley.n||''), voto:choice, fecha:Date.now()});
+  localStorage.setItem(HIST_KEY, JSON.stringify(lista));
+ }catch(e){/* si el navegador bloquea storage, el voto igual se emitió */}
+}
+
 function guardarVoto(ley,choice){
  if(!ley||!ley.billId)return;
  if(!usuarioActual){console.log('voto no guardado: sin sesión');return;}
@@ -594,7 +609,7 @@ function guardarVoto(ley,choice){
    body:JSON.stringify({p_usuario:usuarioActual.id,p_ley_bill_id:ley.billId,p_voto:voto})
  }).then(function(r){return r.json();})
  .then(function(resultado){
-   if(resultado==='OK'||resultado==='YA_VOTASTE'){votadas[ley.billId]=true;}
+   if(resultado==='OK'||resultado==='YA_VOTASTE'){votadas[ley.billId]=true;histGuardar(ley,choice);}
    console.log('emitir_voto:',resultado);
  }).catch(function(e){console.log('error al guardar voto:',e);});
 }
@@ -1036,11 +1051,38 @@ function filaBanca(b){
 function onBancaBusca(v){bancaBusca=v;pintarBanc();}
 
 /* PERFIL — hub: ciudadano + capa representante */
+function bloqueHistorial(){
+ var lista=histLeer();
+ var h='<div class="card" style="margin-top:12px"><div class="sech">📜 TU HISTORIAL DE VOTOS</div>';
+ if(!lista.length){
+  h+='<p class="muted" style="font-size:12.5px;margin:0">Todavía no votaste ninguna ley. Cuando lo hagas, vas a ver acá qué votaste.</p></div>';
+  return h;
+ }
+ h+='<p class="muted" style="font-size:11.5px;margin:0 0 10px">Guardado solo en este dispositivo, para vos. No viaja a ningún servidor: tu voto sigue siendo secreto.</p>';
+ var etq={favor:['👍 A favor','var(--favor)','var(--favor-bg)'],contra:['👎 En contra','var(--contra)','var(--contra-bg)'],abst:['➖ Abstención','var(--muted)','var(--surface2)']};
+ lista.forEach(function(v){
+  var e=etq[v.voto]||etq.abst;
+  var f=new Date(v.fecha);
+  var fecha=('0'+f.getDate()).slice(-2)+'/'+('0'+(f.getMonth()+1)).slice(-2)+'/'+f.getFullYear();
+  h+='<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)">'
+   +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;line-height:1.35">'+escHtml(v.titulo)+'</div>'
+   +'<div class="muted" style="font-size:11px;margin-top:2px">'+fecha+'</div></div>'
+   +'<span class="k" style="background:'+e[2]+';color:'+e[1]+';white-space:nowrap">'+e[0]+'</span></div>';
+ });
+ h+='<div style="text-align:right;margin-top:8px"><button style="border:none;background:none;color:var(--muted);font-size:11.5px;text-decoration:underline;cursor:pointer" onclick="borrarHistorial()">Borrar mi historial local</button></div>';
+ h+='</div>';
+ return h;
+}
+function borrarHistorial(){
+ if(!confirm('¿Borrar tu historial de este dispositivo? Tus votos ya emitidos no se tocan; solo se borra esta lista local.'))return;
+ try{localStorage.removeItem(HIST_KEY);}catch(e){}
+ renderPerfil();
+}
 function renderPerfil(){var n=Object.keys(votes).length;
  var emailMostrar=usuarioActual?usuarioActual.email:'—';
  var ini=usuarioActual?(usuarioActual.email.substring(0,2).toUpperCase()):'CV';
  var h='<div class="card" style="display:flex;flex-direction:row;align-items:center;gap:13px"><div class="av" style="width:50px;height:50px;font-size:17px">'+ini+'</div><div style="flex:1"><div style="font-weight:700;font-size:16px">Ciudadano verificado</div><div class="muted" style="font-size:12px">'+emailMostrar+'</div></div><button style="border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12px;padding:6px 12px;border-radius:20px;font-weight:600" data-act="logout">Salir</button></div>'
-  +'<div class="card" style="margin-top:12px"><div class="sech">📚 APRENDER</div><p class="muted" style="font-size:12.5px;margin:0 0 10px">Videos cortos que explican como funciona el Congreso: que es una camara, que pasa cuando una ley se aprueba, que hace tu voto aca.</p><div style="border:1px dashed var(--line);border-radius:var(--r-sm);padding:16px;text-align:center;color:var(--muted);font-size:12.5px">🎬 Proximamente<br>Los primeros videos estan en produccion.</div></div>'+'<div class="card" style="margin-top:12px"><div class="sech">TU ACTIVIDAD</div><div style="display:flex;justify-content:space-between"><span class="muted">Proyectos votados</span><b style="font-weight:700">'+n+'</b></div><div style="display:flex;justify-content:space-between;margin-top:6px"><span class="muted">Tu voto</span><span class="k ci">🔒 anónimo</span></div></div>';
+  +'<div class="card" style="margin-top:12px"><div class="sech">📚 APRENDER</div><p class="muted" style="font-size:12.5px;margin:0 0 10px">Videos cortos que explican como funciona el Congreso: que es una camara, que pasa cuando una ley se aprueba, que hace tu voto aca.</p><div style="border:1px dashed var(--line);border-radius:var(--r-sm);padding:16px;text-align:center;color:var(--muted);font-size:12.5px">🎬 Proximamente<br>Los primeros videos estan en produccion.</div></div>'+'<div class="card" style="margin-top:12px"><div class="sech">TU ACTIVIDAD</div><div style="display:flex;justify-content:space-between"><span class="muted">Proyectos votados</span><b style="font-weight:700">'+n+'</b></div><div style="display:flex;justify-content:space-between;margin-top:6px"><span class="muted">Tu voto</span><span class="k ci">🔒 anónimo</span></div></div>'+bloqueHistorial();
 
  if(repState==='none'){
   h+='<div class="card" style="margin-top:12px;gap:6px"><div style="font-weight:700;font-size:14px">🏛️ ¿Ocupás una banca?</div><p class="muted" style="font-size:12.5px;margin:0">Seguís siendo ciudadano y votás como todos. Validá tu banca para sumar la capa de representante: ver la señal de tu distrito y elegir qué mostrás.</p><button class="primary sm" style="margin-top:6px" data-act="validarBanca">Validar mi banca</button></div>';
