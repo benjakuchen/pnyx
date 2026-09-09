@@ -1173,13 +1173,17 @@ function borrarHistorial(){
 }
 /* ===== VERIFICACIÓN DE IDENTIDAD (estado real desde identidad_verificada) ===== */
 var verifState=false;
-function chequearVerificacion(cb){
+async function chequearVerificacion(cb){
  if(!usuarioActual){verifState=false;if(cb)cb();return;}
- fetch(SUPABASE_URL+'/rest/v1/identidad_verificada?select=verificado&user_id=eq.'+usuarioActual.id,
-   {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}})
-  .then(function(r){return r.json();})
-  .then(function(filas){verifState=!!(Array.isArray(filas)&&filas[0]&&filas[0].verificado);if(cb)cb();})
-  .catch(function(){verifState=false;if(cb)cb();});
+ try{
+  var {data:{session}}=await supabase.auth.getSession();
+  var token=(session&&session.access_token)?session.access_token:SUPABASE_KEY;
+  var r=await fetch(SUPABASE_URL+'/rest/v1/identidad_verificada?select=verificado&user_id=eq.'+usuarioActual.id,
+    {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token}});
+  var filas=await r.json();
+  verifState=!!(Array.isArray(filas)&&filas[0]&&filas[0].verificado);
+ }catch(e){verifState=false;}
+ if(cb)cb();
 }
 function bloqueVerificacion(){
  if(verifState){
