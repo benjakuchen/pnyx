@@ -100,6 +100,7 @@ h1{font-size:20px;margin:0 0 4px}
    <button class="tab" data-tab="feed" onclick="tab('feed')">🗳️ Feed de votación</button>
    <button class="tab" data-tab="prensa" onclick="tab('prensa')">📰 Prensa<span class="count" id="cntPrensa" style="display:none">0</span></button>
    <button class="tab" data-tab="bancas" onclick="tab('bancas')">🏛️ Bancas</button>
+   <button class="tab" data-tab="curaduria" onclick="tab('curaduria')">📋 Curaduría<span class="count" id="cntCura" style="display:none">0</span></button>
    <button class="tab" data-tab="proximo" onclick="tab('proximo')">🎬 Expertos · Bancas · Usuarios</button>
   </div>
 
@@ -154,6 +155,15 @@ h1{font-size:20px;margin:0 0 4px}
    <div id="bancasLista"><div class="empty">Cargando…</div></div>
   </div>
 
+  <div id="tab-curaduria" style="display:none">
+   <div class="card">
+    <h1>Curaduría del feed</h1>
+    <p class="muted" style="margin:4px 0 0;font-size:13.5px">Estas leyes NO se publican solas. Revisá de arriba hacia abajo (primero temas de peso, después las de prensa, después el resto) y decidí cuáles van al feed. Lo que publiques aparece en la app; lo que descartes no vuelve a la cola. Las de media sanción o en prensa ya se publicaron automáticamente.</p>
+   </div>
+   <div id="curaLista"><div class="empty">Cargando…</div></div>
+   <div id="curaMas" style="text-align:center;margin-top:12px"></div>
+  </div>
+
   <div id="tab-proximo" style="display:none">
    <div class="card"><div class="empty">Próximos módulos: carga de opiniones de expertos (link a YouTube), validación de bancas, gestión de curadores y controles sensibles (pisos, regla del 60%).<br>Se conectan a medida que existan sus tablas.</div></div>
   </div>
@@ -198,10 +208,58 @@ function tab(t){
  $('#tab-feed').style.display=(t==='feed')?'block':'none';
  $('#tab-prensa').style.display=(t==='prensa')?'block':'none';
  $('#tab-bancas').style.display=(t==='bancas')?'block':'none';
+ $('#tab-curaduria').style.display=(t==='curaduria')?'block':'none';
  $('#tab-proximo').style.display=(t==='proximo')?'block':'none';
  if(t==='feed'&&feedDatos.length===0)cargarFeed();
  if(t==='prensa'&&prensaDatos.length===0)cargarPrensa();
  if(t==='bancas'&&bancasDatos.length===0)cargarBancas();
+ if(t==='curaduria'&&curaDatos.length===0)cargarCuraduria();
+}
+
+/* ===== PANEL DE CURADURÍA ===== */
+var curaDatos=[], curaOffset=0, curaLimit=50;
+function cargarCuraduria(){
+ curaOffset=0; curaDatos=[];
+ rpc('admin_cola_curaduria_total',{}).then(function(tot){
+  var n=(typeof tot==='number')?tot:(tot&&tot[0]||0);
+  var c=$('#cntCura'); if(c){if(n>0){c.style.display='';c.textContent=n;}else c.style.display='none';}
+ }).catch(function(){});
+ traerMasCura();
+}
+function traerMasCura(){
+ rpc('admin_cola_curaduria',{p_limit:curaLimit,p_offset:curaOffset}).then(function(filas){
+  filas=Array.isArray(filas)?filas:[];
+  curaDatos=curaDatos.concat(filas);
+  curaOffset+=filas.length;
+  renderCuraduria(filas.length===curaLimit);
+ }).catch(function(e){$('#curaLista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
+}
+function renderCuraduria(hayMas){
+ if(!curaDatos.length){$('#curaLista').innerHTML='<div class="card"><div class="empty">No hay leyes pendientes de revisión. 🎉</div></div>';$('#curaMas').innerHTML='';return;}
+ var etqOrden={1:'⚖️ Tema de peso',2:'📰 En prensa',3:'· Otras'};
+ var h='';
+ curaDatos.forEach(function(d){
+  var titulo=esc(d.oracion_ia||d.titulo||d.bill_id);
+  var meta=esc(d.bill_id)+(d.camara?(' · '+esc(d.camara)):'')+(d.autor?(' · '+esc(d.autor)):'');
+  var etq=etqOrden[d.curaduria_orden]||'';
+  h+='<div class="card" id="cura-'+d.bill_id+'" style="padding:12px 14px">'
+   +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span class="muted" style="font-size:11px;font-weight:700">'+etq+'</span></div>'
+   +'<div style="font-weight:700;font-size:14px;line-height:1.35">'+titulo+'</div>'
+   +'<div class="muted" style="font-size:11.5px;margin-top:3px">'+meta+'</div>'
+   +'<div style="display:flex;gap:8px;margin-top:10px">'
+   +'<button class="chip on" onclick="accionCura(\''+d.bill_id+'\',\'publicar\')">✅ Publicar</button>'
+   +'<button class="chip" onclick="accionCura(\''+d.bill_id+'\',\'descartar\')">✕ Descartar</button>'
+   +'</div></div>';
+ });
+ $('#curaLista').innerHTML=h;
+ $('#curaMas').innerHTML=hayMas?'<button class="chip" onclick="traerMasCura()">Cargar más ↓</button>':'<span class="muted" style="font-size:12px">Fin de la cola.</span>';
+}
+function accionCura(billId,accion){
+ rpc('admin_curaduria_accion',{p_bill_id:billId,p_accion:accion}).then(function(){
+  curaDatos=curaDatos.filter(function(x){return x.bill_id!==billId;});
+  var c=$('#cntCura'); if(c&&c.textContent){var n=parseInt(c.textContent)-1;if(n>0)c.textContent=n;else c.style.display='none';}
+  renderCuraduria(true);
+ }).catch(function(e){alert('Error: '+String(e));});
 }
 
 /* ===== PANEL DE BANCAS ===== */
