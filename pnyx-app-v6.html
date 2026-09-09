@@ -1173,21 +1173,27 @@ function borrarHistorial(){
 }
 /* ===== VERIFICACIÓN DE IDENTIDAD (estado real desde identidad_verificada) ===== */
 var verifState=false;
+var verifMotivo=null;
 async function chequearVerificacion(cb){
- if(!usuarioActual){verifState=false;if(cb)cb();return;}
+ if(!usuarioActual){verifState=false;verifMotivo=null;if(cb)cb();return;}
  try{
   var {data:{session}}=await supabase.auth.getSession();
   var token=(session&&session.access_token)?session.access_token:SUPABASE_KEY;
-  var r=await fetch(SUPABASE_URL+'/rest/v1/identidad_verificada?select=verificado&user_id=eq.'+usuarioActual.id,
+  var r=await fetch(SUPABASE_URL+'/rest/v1/identidad_verificada?select=verificado,motivo_rechazo&user_id=eq.'+usuarioActual.id,
     {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token}});
   var filas=await r.json();
-  verifState=!!(Array.isArray(filas)&&filas[0]&&filas[0].verificado);
- }catch(e){verifState=false;}
+  var f=(Array.isArray(filas)&&filas[0])?filas[0]:null;
+  verifState=!!(f&&f.verificado);
+  verifMotivo=(f&&f.motivo_rechazo)?f.motivo_rechazo:null;
+ }catch(e){verifState=false;verifMotivo=null;}
  if(cb)cb();
 }
 function bloqueVerificacion(){
  if(verifState){
   return '<div class="card" style="margin-top:12px;display:flex;align-items:center;gap:11px"><div style="font-size:22px">🪪</div><div style="flex:1"><div style="font-weight:700;font-size:13.5px">Identidad verificada</div><div class="muted" style="font-size:11.5px">Confirmada con RENAPER · tu identidad queda separada de tus votos</div></div><span class="k ok">✅</span></div>';
+ }
+ if(verifMotivo==='documento_ya_usado'){
+  return '<div class="card" style="margin-top:12px;gap:6px"><div style="font-weight:700;font-size:14px">🚫 Documento ya registrado</div><p class="muted" style="font-size:12.5px;margin:0">Este documento ya está asociado a otra cuenta de Pnyx. Cada persona puede tener una sola cuenta verificada. Si perdiste el acceso a tu cuenta anterior, escribinos para recuperarla.</p></div>';
  }
  return '<div class="card" style="margin-top:12px;gap:6px"><div style="font-weight:700;font-size:14px">🪪 Verificá tu identidad</div><p class="muted" style="font-size:12.5px;margin:0">Para que cada persona vote una sola vez, confirmamos que sos una persona real con RENAPER (selfie + DNI). Tu identidad queda <b>separada de tus votos</b>: nadie puede saber cómo votaste.</p><button class="primary sm" style="margin-top:6px" onclick="iniciarVerificacionDidit()">Verificar mi identidad</button><div id="verMsgP" style="margin-top:10px;font-size:12.5px;color:var(--muted);display:none"></div></div>';
 }
