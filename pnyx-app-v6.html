@@ -52,7 +52,7 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
 .pill{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;padding:3px 10px;border-radius:20px;font-weight:700}
 .pill.brand{background:var(--brand-soft);color:var(--brand)}
 .main{flex:1;overflow-y:auto;position:relative}
-.pad{padding:16px 16px 22px;display:none}.pad.show{display:block}
+.pad{padding:16px 16px 22px;display:none;position:relative}.pad.show{display:block}
 .nav{display:flex;border-top:1px solid var(--line);flex-shrink:0;background:var(--surface)}
 .nav button{flex:1;border:none;background:transparent;padding:8px 1px 10px;font-size:10px;color:var(--faint);display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:600}
 .nav button.on{color:var(--brand)}.nav .em{font-size:19px}
@@ -74,7 +74,7 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
 .vbtn .em{font-size:20px}.vbtn.f{color:var(--favor)}.vbtn.c{color:var(--contra)}.vbtn.a{color:var(--abst)}
 .hint{font-size:11px;color:var(--faint);text-align:center;margin:9px 0 0}
 .bar{height:10px;border-radius:6px;overflow:hidden;display:flex;background:var(--surface2);margin:7px 0 5px}
-.overlay{position:absolute;inset:0;background:var(--surface);padding:16px;overflow:auto;display:none}.overlay.show{display:block}
+.overlay{position:absolute;inset:0;min-height:100%;background:var(--surface);padding:16px;overflow:auto;display:none;z-index:20}.overlay.show{display:block}
 #detail{z-index:5}#experts{z-index:6}#fulltext{z-index:7}#blocd{z-index:8}#banca{z-index:8}#repstats{z-index:8}
 .back{border:1px solid var(--line);background:var(--surface);color:var(--brand);font-size:15px;padding:9px 16px;margin-bottom:14px;font-weight:700;border-radius:22px;display:inline-flex;align-items:center;gap:6px}
 .expbtn{width:100%;border:1px solid var(--brand);background:var(--surface);color:var(--brand);border-radius:var(--r-sm);padding:11px;font-size:13.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:10px}
@@ -408,7 +408,7 @@ function cargarLeyes(listo){
         id:'L'+(f.id||i),
         leyDbId:f.id||null,
         billId:f.bill_id||null,
-        n:f.titulo||'(sin titulo)',
+        n:limpiarTitulo(f.titulo)||'(sin título)',
         tema:'',
         camara:camNombre,
         estado:ms?'Media sancion - por tratarse':'En tramite',
@@ -420,7 +420,7 @@ function cargarLeyes(listo){
         origen:f.origen||'',
         tieneTexto:!!(f.texto_oficial && String(f.texto_oficial).length>200),
         nat:{favor:0,contra:0,abst:0,n:0},
-        sub:f.oracion_ia||f.titulo||'',
+        sub:f.oracion_ia||limpiarTitulo(f.titulo)||'',
         tieneIA:!!f.oracion_ia,
         resumen:f.resumen_ia||'Esta ley todavia no tiene resumen disponible.',
         completa:f.texto_oficial||''
@@ -439,6 +439,49 @@ function cargarLeyes(listo){
 var expCounts={};   // ley_bill_id -> cantidad de opiniones cargadas
 var expCache={};    // ley_bill_id -> filas ya bajadas (para no pedir dos veces)
 function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+/* Limpia títulos crudos del CSV: saca prefijos burocráticos, referencias de
+   expediente, y pasa MAYÚSCULAS a tipo oración (respetando siglas y leyes). */
+function limpiarTitulo(t){
+ if(!t)return '';
+ var s=String(t).trim();
+ // sacar prefijos jerga al inicio
+ s=s.replace(/^PROYECTO DE LEY\s+(EN\s+REVISI[ÓO]N\s+)?(QUE\s+)?/i,'');
+ s=s.replace(/^(RÉGIMEN|REGIMEN)\.\s*/i,'');
+ // sacar referencias de expediente entre paréntesis: (REPRODUCCIÓN DEL EXPEDIENTE ...), (EXP ...)
+ s=s.replace(/\s*\((REPRODUCCI[ÓO]N|REPRODUCE|EXPEDIENTE|EXP\.?)[^)]*\)/gi,'');
+ // colapsar saltos de línea y espacios
+ s=s.replace(/\s+/g,' ').trim();
+ // pasar a tipo oración solo si viene casi todo en MAYÚSCULAS
+ var letras=s.replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ]/g,'');
+ var mays=s.replace(/[^A-ZÁÉÍÓÚÑ]/g,'');
+ if(letras.length && mays.length/letras.length>0.7){
+   s=aTipoOracion(s);
+ }
+ // primera letra mayúscula
+ s=s.charAt(0).toUpperCase()+s.slice(1);
+ return s;
+}
+function aTipoOracion(s){
+ // palabras que quedan en minúscula (salvo al inicio)
+ var minus={'de':1,'la':1,'el':1,'los':1,'las':1,'y':1,'o':1,'en':1,'a':1,'del':1,'al':1,'para':1,'por':1,'con':1,'sobre':1,'un':1,'una':1,'que':1,'su':1,'sus':1,'e':1,'u':1,'como':1,'entre':1,'sin':1};
+ // siglas conocidas que van en MAYÚSCULA
+ function esSiglaConocida(limpio){
+   return /^(ANSES|CONICET|AFIP|YPF|IVA|PEN|PYME|PYMES|IGJ|INTA|INTI|SENASA|PAMI|UVA|CABA|AABE|ARCA|BCRA|INDEC|ANMAT)$/i.test(limpio);
+ }
+ return s.split(' ').map(function(w,idx){
+   if(!w)return w;
+   var base=w.toLowerCase().replace(/[^a-záéíóúñ]/gi,'');
+   // 1) palabra de unión (no al inicio) -> minúscula
+   if(idx>0 && minus[base])return w.toLowerCase();
+   // 2) tiene números (leyes, artículos, fechas) -> tal cual
+   if(/\d/.test(w))return w;
+   // 3) sigla conocida -> mayúscula
+   if(esSiglaConocida(base))return w.toUpperCase();
+   // 4) resto -> Tipo Oración
+   var low=w.toLowerCase();
+   return low.charAt(0).toUpperCase()+low.slice(1);
+ }).join(' ');
+}
 // Iniciales para el avatar de "Propone" (toma la primera palabra con letras)
 function iniAutor(a){
  a=(a||'').trim();
@@ -495,7 +538,7 @@ var votedLoaded=false; // ya se bajó la lista?
 var votedVista='rec';  // 'rec' = recientes | 'hist' = históricas
 var histTexto='', histAnio=null, histAnios=[], histResultados=null, histBuscando=false;
 var VOTADAS_RECIENTES=15;  // cuántas se muestran en "Recientes"
-var votedTipo='LEY';   // filtro por tipo — por ahora solo leyes (null = todos)
+var votedTipo=null;    // filtro por tipo; null = todos los mostrables (LEY + ACUERDO)
 var votedTipos=[];     // [{tipo,cantidad}] para armar los filtros
 // etiquetas legibles + emoji por tipo
 var TIPO_LABEL={LEY:'📜 Leyes',ACUERDO:'🤝 Acuerdos',DECLARACION:'📣 Declaraciones',
@@ -829,7 +872,7 @@ function buscarHistoricas(){
    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
    body:JSON.stringify({p_texto:histTexto||'',p_anio:histAnio,p_tipo:votedTipo,p_limite:50})})
   .then(function(r){return r.json();})
-  .then(function(rows){histResultados=rows||[];histBuscando=false;
+  .then(function(rows){histResultados=(rows||[]).filter(esVotadaMostrable);histBuscando=false;
     // solo actualizo los resultados: NO re-renderizo todo, para no perder el foco del input
     var c=$('#histRes'); if(c)c.innerHTML=renderHistResultados();})
   .catch(function(){histBuscando=false;var c=$('#histRes');if(c)c.innerHTML='<p class="muted" style="font-size:13px">No se pudo buscar.</p>';});}
@@ -885,6 +928,12 @@ function openBloc(i){var l=voted[curLaw];if(!l||!l.blocOrden)return;
   });}
 
 /* ===== carga de datos reales ===== */
+/* En Votadas solo mostramos LEY y ACUERDO (las declaraciones, homenajes,
+   resoluciones e internos siguen en la base pero no se muestran). */
+function esVotadaMostrable(row){
+ var t=String(row&&row.tipo||'').toUpperCase();
+ return t==='LEY'||t==='ACUERDO';
+}
 function cargarVotadasLista(){
  fetch(SUPABASE_URL+'/rest/v1/rpc/votadas_lista',{method:'POST',
    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
@@ -892,7 +941,7 @@ function cargarVotadasLista(){
   .then(function(r){return r.json();})
   .then(function(rows){
     voted={};votedOrder=[];votedLabels={};
-    (rows||[]).forEach(function(row){
+    (rows||[]).filter(esVotadaMostrable).forEach(function(row){
       var key='v'+row.id;
       voted[key]={id:row.id,camara:row.camara,n:row.titulo,tipo:row.tipo,r:row.resultado,
         tot:[row.afirmativos,row.negativos,row.abstenciones,row.ausentes],
@@ -915,7 +964,7 @@ function cargarTipos(){
  fetch(SUPABASE_URL+'/rest/v1/rpc/votadas_tipos',{method:'POST',
    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},body:'{}'})
   .then(function(r){return r.json();})
-  .then(function(rows){votedTipos=(rows||[]).filter(function(t){return t.tipo!=='INTERNO';});renderVoted();})
+  .then(function(rows){votedTipos=(rows||[]).filter(function(t){return t.tipo==='LEY'||t.tipo==='ACUERDO';});renderVoted();})
   .catch(function(){});
 }
 

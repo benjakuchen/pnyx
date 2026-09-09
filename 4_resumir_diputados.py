@@ -83,46 +83,44 @@ def main():
         sys.exit(1)
 
     top_n = TOP_N
+    todas = False
     for a in sys.argv[1:]:
         if a.isdigit():
             top_n = int(a)
-
-    with open(ARCHIVO, encoding="utf-8") as f:
-        leyes = json.load(f)
-    with open(ESTADO, encoding="utf-8") as f:
-        estado = json.load(f)
-
-    # Leyes que tienen texto en Supabase pero NO resumen
-    def listo_para_resumir(p):
-        e = estado.get(p.get("bill_id"))
-        return e and e.get("tiene_texto") and not e.get("tiene_resumen")
-
-    objetivo = [p for p in leyes if listo_para_resumir(p)][:top_n]
-
-    if not objetivo:
-        print("No hay leyes de Diputados con texto pendientes de resumir.", file=sys.stderr)
-        print("(Quizas ya estan resumidas, o falta bajar texto con el Obrero 3.)", file=sys.stderr)
-        return
-
-    print("Leyes con texto sin resumen: resumiendo %d...\n" % len(objetivo), file=sys.stderr)
+        elif a.lower() in ("todas", "--todas", "all"):
+            todas = True
 
     sb = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+    # Objetivo: leyes PUBLICADAS de Diputados que tienen texto pero NO oracion.
+    # (Resumimos solo lo que Benjamín publicó desde la curaduría, para no gastar IA de más.)
+    q = (sb.table("leyes")
+         .select("bill_id,titulo,expediente,texto_oficial")
+         .eq("camara", "Diputados")
+         .eq("publicada", True)
+         .is_("oracion_ia", "null")
+         .not_.is_("texto_oficial", "null"))
+    res = q.execute()
+    objetivo = [p for p in (res.data or []) if p.get("texto_oficial") and len(p["texto_oficial"]) > 200]
+    if not todas:
+        objetivo = objetivo[:top_n]
+
+    if not objetivo:
+        print("No hay leyes de Diputados PUBLICADAS con texto pendientes de resumir.", file=sys.stderr)
+        print("(Publicá leyes desde la curaduría, y bajá su texto con el Obrero 3.)", file=sys.stderr)
+        return
+
+    print("Leyes publicadas con texto sin resumen: resumiendo %d...\n" % len(objetivo), file=sys.stderr)
+
     cliente = Anthropic(api_key=clave)
     hechos = 0
 
     for i, p in enumerate(objetivo, 1):
         bid = p["bill_id"]
-        # Bajar el texto de Supabase (vive en la nube, no en el archivo local)
-        try:
-            res = sb.table("leyes").select("texto_oficial").eq("bill_id", bid).single().execute()
-            texto = res.data.get("texto_oficial") if res.data else None
-        except Exception as e:
-            print("  [%d/%d] %s  (no pude traer el texto: %s)" % (i, len(objetivo), p.get("expediente"), e),
-                  file=sys.stderr)
-            continue
+        texto = p.get("texto_oficial")
 
         if not texto:
-            print("  [%d/%d] %s  (sin texto en Supabase, salteo)" % (i, len(objetivo), p.get("expediente")),
+            print("  [%d/%d] %s  (sin texto, salteo)" % (i, len(objetivo), p.get("expediente")),
                   file=sys.stderr)
             continue
 

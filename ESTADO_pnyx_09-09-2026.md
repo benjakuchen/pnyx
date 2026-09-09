@@ -13,6 +13,28 @@ En un chat nuevo, pedir leer el repo completo (.html, obreros .py, edge function
 
 ## HITOS DE ESTA SESIÓN (09/09/2026) — fue larga, muchos avances
 
+### 0. FLUJO DE LEYES revisado + PLAN DE CURADURÍA (decisiones tomadas, falta implementar)
+Cómo entra hoy una ley: obrero 2/5 baja del CSV de HCDN (proyectos tipo LEY del año en curso + revisiones del año anterior) → entra a tabla `leyes` con **publicada=true por DEFAULT** → la app muestra las publicada=true ordenadas por puntaje. O sea HOY se publica TODO automático, sin revisión. 969 leyes, 967 publicadas.
+Problemas detectados: (a) entra ruido (declaraciones, homenajes, capitales de la trufa, pedidos de informe) mezclado con leyes reales; (b) nada saca del feed las leyes ya SANCIONADAS (el CSV de proyectos no trae estado de trámite).
+
+DECISIONES DE BENJAMÍN para la curaduría (a implementar, es un mini-proyecto de varias piezas):
+1. **Nada se publica solo.** Cambiar el default a publicada=FALSE. Todo entra despublicado, Benjamín revisa (corrige título, busca expertos, saca lo que no es ley real) y recién ahí publica. Régimen mixto: el sistema propone/prioriza, Benjamín decide.
+2. **Filtrar "ley real"**: sacar declaraciones, resoluciones, homenajes, adhesiones, pedidos de informe, capitales/fiestas nacionales. Solo leyes (y acuerdos/tratados).
+3. **Empezar de cero**: despublicar las 969 actuales y curar desde un panel de revisión en la admin (feed queda vacío hasta publicar). Benjamín aceptó el costo.
+4. **Traer leyes VIEJAS (2024-2025) que sigan vivas**: definición alcanzable = las que tengan MEDIA SANCIÓN pendiente (en dataset de sanciones con PRIMERA_MEDIA_SANCION pero sin SANCION_DEFINITIVA) O que estén en prensa. NO traer las solo "formalmente vivas" sin movimiento (serían ruido dormido).
+5. **Permanencia**: el estado manda. Si se sancionó, sale del feed (aunque haya estado poco); no hay permanencia mínima. Una ley que el usuario votó ya no le aparece a ÉL (individual, ya funciona vía ya_voto); una ley sancionada sale para TODOS (global, es la Capa 1).
+ORDEN sugerido al retomar: (1) filtro de ley real → (2) panel de revisión en admin → (3) despublicar todo y curar → enganchar obrero 13 (salida) y traer viejas.
+PENDIENTE que Benjamín debía traer: el SQL que agrupa el ruido (declaraciones/homenajes/etc.) para dimensionar cuántas de las 969 son "ley real" vs ruido.
+
+### 0b. OBRERO 13 — Salida de leyes SANCIONADAS — LISTO, falta aplicar
+- Nuevo obrero 13_sanciones.py: baja el dataset oficial HCDN "Leyes Sancionadas" (JSON, no CSV; https://datos.hcdn.gob.ar/dataset/leyes-sancionadas). Trae PROYECTO_ID (= bill_id, cruce DIRECTO), CAMARA_SANCIONADORA, SANCION_DEFINITIVA, LEY (número), EXPEDIENTE_INICIAL, PRIMERA/SEGUNDA_MEDIA_SANCION. 1337 proyectos sancionados en el dataset.
+- Modos: --test (muestra columnas, no toca nada), --dry-run (cuenta sin escribir), normal (despublica + marca estado_tramite='sancionada').
+- DRY-RUN dio: solo **2 leyes** del feed ya sancionadas (HCDN282431, HCDN286131). Pocas porque el feed es mayormente del año en curso (aún en trámite).
+- El dataset de HCDN cubre TODAS las sancionadas del Congreso (toda ley pasa por Diputados). Fleco: leyes nacidas en Senado ya sancionadas podrían tener bill_id SENADO... y no cruzar por ID. Se descartó cruzar por expediente (formatos distintos: tabla '193/26' vs dataset '0020-S-2026'; mucho trabajo para ~0 casos). Para ese fleco → botón manual de despublicar en la admin (pendiente).
+- FALTA: correr sql_estado_tramite.sql (columna estado_tramite), luego `python 13_sanciones.py` para aplicar, luego obrero 9.
+
+
+
 ### 1. LOGIN REPUESTO con modo invitado — HECHO
 - Antes entraba directo al feed con un usuario fijo de desarrollo (eliminado).
 - Ahora: pantalla de bienvenida con "Empezar" (crear cuenta) y "Mirar sin cuenta".
@@ -44,7 +66,9 @@ En un chat nuevo, pedir leer el repo completo (.html, obreros .py, edge function
 - Afinidad "¿con quién coincidís?": motor en el dispositivo (cruza historial local con votos del Congreso vía RPC afinidad_votos_legisladores). Umbral 8 leyes coincidentes para mostrar; hoy solo 3 votaciones del Congreso están linkeadas a leyes del feed → muestra "en construcción" con contador. Se enciende solo cuando maduren los datos. (SQL sql_afinidad.sql.)
 
 ## PENDIENTES (prioridad)
-1. **Prueba completa del flujo** como usuario nuevo (incógnito): bienvenida → mirar sin cuenta → intentar votar → crear cuenta → verificar → votar → historial → afinidad. (El anti-duplicado ya quedó probado OK.)
+0. **⚠️ AUTOMATIZAR LA TUBERÍA DE OBREROS (crítico para lanzar)**: hoy los obreros corren SOLO cuando Benjamín los ejecuta a mano en su PC (`python pnyx_actualizar.py` + 10/12/13/14). NO hay nada automático. Para 15.000 usuarios el feed TIENE que actualizarse solo, a diario. Plan: GitHub Actions (gratis, el repo ya está ahí) que corra la tubería en horario fijo. Requiere: claves como secrets en GitHub, que los obreros funcionen sin archivos locales (estado_nube.json), dimensionar costo de IA por corrida, orden correcto (1→9, luego 10,12,13,14). La curaduría convive bien: los obreros llenan la COLA automáticamente, Benjamín publica desde la admin. HACERLO AL FINAL, cuando la tubería esté estable y probada a mano.
+1. **CURADURÍA DEL FEED** (el gran tema abierto, ver Hito 0): filtro de ley real → panel de revisión en admin (default despublicado) → despublicar las 969 y curar desde cero → aplicar obrero 13 (salida sancionadas) → traer viejas 2024-25 con media sanción/prensa. Es un mini-proyecto de varias sesiones.
+2. **Prueba completa del flujo** como usuario nuevo (incógnito): bienvenida → mirar sin cuenta → intentar votar → crear cuenta → verificar → votar → historial → afinidad. (El anti-duplicado ya quedó probado OK.)
 2. **App móvil / tiendas**: hoy es web app. Camino: PWA instalable (rápido) → luego Capacitor para App Store/Google Play (reusa el código, requiere cuenta dev Apple US$99/año, Google US$25). Va DESPUÉS de que la web funcione redonda con usuarios reales.
 3. **Recuperación de cuenta**: por email (Supabase ya lo tiene) + liberación manual del dni_hash desde la admin si alguien pierde acceso al email. Falta armar el módulo admin.
 4. **Estética "tipo oración"**: leyes/resúmenes/autores vienen TODO EN MAYÚSCULAS (del CSV de HCDN). Pasar a Tipo Oración. Logo "pnyx" en minúsculas. (Pedido pendiente, no hecho.)
@@ -81,6 +105,7 @@ Edge Functions: crear-sesion (manda callback), webhook-didit (lee id_verificatio
 - Cada verificación cuesta ~US$0.33. No re-verificar al pedo. Para probar sin gastar, se pueden cargar datos a mano (el JSON completo de la sesión queda en Didit → Sessions).
 
 ## OBREROS (tubería, PowerShell)
+(nuevo: 13_sanciones.py — salida de sancionadas, con --test/--dry-run)
 1-9 según maestro. 10_votadas.py (votaciones Congreso). 11_autores.py (backfill autores). **12_bancas.py** (carga tabla bancas + presentismo comovoto). 8_prensa.py con --test y --dry-run.
 pnyx_actualizar.py corre 1→8, re-corre 1, corre 9. (10, 11, 12 se corren aparte a mano.)
 Claves de entorno (se pierden al cerrar terminal): $env:SUPABASE_SERVICE_KEY (service_role), $env:ANTHROPIC_API_KEY.
