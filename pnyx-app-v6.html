@@ -315,7 +315,7 @@ async function iniciarVerificacionDidit(){
     var r=await fetch(SUPABASE_URL+'/functions/v1/crear-sesion',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
-      body:JSON.stringify({user_id:session.user.id,callback_url:window.location.href.split('#')[0]})
+      body:JSON.stringify({user_id:session.user.id,callback:window.location.href.split('#')[0].split('?')[0]})
     });
     var data=await r.json();
     if(data.url){
