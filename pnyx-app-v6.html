@@ -418,6 +418,7 @@ function cargarLeyes(listo){
         bloque:'',
         ini:iniAutor(f.autor),
         origen:f.origen||'',
+        expediente:f.expediente||'',
         tieneTexto:!!(f.texto_oficial && String(f.texto_oficial).length>200),
         nat:{favor:0,contra:0,abst:0,n:0},
         sub:f.oracion_ia||limpiarTitulo(f.titulo)||'',
@@ -501,8 +502,14 @@ function proponeLinea(b){
 }
 // Buscador oficial según la cámara de ORIGEN (donde vive el texto real)
 function buscadorCongreso(b){
- var sitio=(String(b.origen).toLowerCase().indexOf('senado')>=0)?'senado.gob.ar':'hcdn.gob.ar';
- var q=encodeURIComponent((b.n||'')+' site:'+sitio);
+ // Buscamos el título oficial + expediente en Google, SIN restringir a un sitio.
+ // Así Google encuentra el texto esté donde esté (ficha, Orden del Día, hcdn o senado),
+ // que es lo que funciona para las leyes "venidas en revisión".
+ var partes=[b.n||''];
+ if(b.expediente)partes.push(b.expediente);
+ else if(b.billId)partes.push(b.billId);
+ partes.push('proyecto de ley Congreso Argentina');
+ var q=encodeURIComponent(partes.join(' '));
  return 'https://www.google.com/search?q='+q;
 }
 // Botón de texto: si hay texto lo abre local; si no, manda al buscador oficial
