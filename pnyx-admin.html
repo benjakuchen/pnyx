@@ -101,6 +101,7 @@ h1{font-size:20px;margin:0 0 4px}
    <button class="tab" data-tab="prensa" onclick="tab('prensa')">📰 Prensa<span class="count" id="cntPrensa" style="display:none">0</span></button>
    <button class="tab" data-tab="bancas" onclick="tab('bancas')">🏛️ Bancas</button>
    <button class="tab" data-tab="curaduria" onclick="tab('curaduria')">📋 Curaduría<span class="count" id="cntCura" style="display:none">0</span></button>
+   <button class="tab" data-tab="solicitudes" onclick="tab('solicitudes')">🪑 Solicitudes<span class="count" id="cntSolic" style="display:none">0</span></button>
    <button class="tab" data-tab="proximo" onclick="tab('proximo')">🎬 Expertos · Bancas · Usuarios</button>
   </div>
 
@@ -164,6 +165,14 @@ h1{font-size:20px;margin:0 0 4px}
    <div id="curaMas" style="text-align:center;margin-top:12px"></div>
   </div>
 
+  <div id="tab-solicitudes" style="display:none">
+   <div class="card">
+    <h1>Solicitudes de banca</h1>
+    <p class="muted" style="margin:4px 0 0;font-size:13.5px">Personas que reclaman una banca, verificadas con Didit/RENAPER. Revisá sus datos y las fotos, confirmá contra fuentes públicas que es el legislador que dice ser, y aprobá o rechazá.</p>
+   </div>
+   <div id="solicLista"><div class="empty">Cargando…</div></div>
+  </div>
+
   <div id="tab-proximo" style="display:none">
    <div class="card"><div class="empty">Próximos módulos: carga de opiniones de expertos (link a YouTube), validación de bancas, gestión de curadores y controles sensibles (pisos, regla del 60%).<br>Se conectan a medida que existan sus tablas.</div></div>
   </div>
@@ -209,11 +218,70 @@ function tab(t){
  $('#tab-prensa').style.display=(t==='prensa')?'block':'none';
  $('#tab-bancas').style.display=(t==='bancas')?'block':'none';
  $('#tab-curaduria').style.display=(t==='curaduria')?'block':'none';
+ $('#tab-solicitudes').style.display=(t==='solicitudes')?'block':'none';
  $('#tab-proximo').style.display=(t==='proximo')?'block':'none';
  if(t==='feed'&&feedDatos.length===0)cargarFeed();
  if(t==='prensa'&&prensaDatos.length===0)cargarPrensa();
  if(t==='bancas'&&bancasDatos.length===0)cargarBancas();
  if(t==='curaduria'&&curaDatos.length===0)cargarCuraduria();
+ if(t==='solicitudes'&&solicDatos.length===0)cargarSolicitudes();
+}
+
+/* ===== PANEL DE SOLICITUDES DE BANCA ===== */
+var solicDatos=[];
+function cargarSolicitudes(){
+ rpc('admin_solicitudes_banca',{}).then(function(filas){
+  solicDatos=Array.isArray(filas)?filas:[];
+  var pend=solicDatos.filter(function(s){return s.estado==='pendiente';}).length;
+  var c=$('#cntSolic'); if(c){if(pend){c.style.display='';c.textContent=pend;}else c.style.display='none';}
+  renderSolicitudes();
+ }).catch(function(e){$('#solicLista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
+}
+async function verFoto(path){
+ if(!path){alert('Sin foto');return;}
+ try{
+  var d=await rpc('admin_foto_banca_url',{p_path:path});
+  var url=(typeof d==='string')?d:(d&&d[0]?d[0]:null);
+  if(url){window.open(url,'_blank');}
+  else alert('No se pudo abrir la foto');
+ }catch(e){alert('Error: '+String(e));}
+}
+function renderSolicitudes(){
+ if(!solicDatos.length){$('#solicLista').innerHTML='<div class="card"><div class="empty">No hay solicitudes de banca.</div></div>';return;}
+ var h='';
+ solicDatos.forEach(function(s){
+  var badge=s.estado==='pendiente'?'<span class="chip" style="background:var(--aus-bg,#fff3cd);color:#8a6d00">⏳ Pendiente</span>':(s.estado==='aprobada'?'<span class="chip on">✅ Aprobada</span>':'<span class="chip">✕ Rechazada</span>');
+  var fotos='';
+  if(s.foto_selfie_url)fotos+='<button class="chip" onclick="verFoto(\''+s.foto_selfie_url+'\')">🤳 Selfie</button>';
+  if(s.foto_dni_frente_url)fotos+='<button class="chip" onclick="verFoto(\''+s.foto_dni_frente_url+'\')">🪪 DNI frente</button>';
+  if(s.foto_dni_dorso_url)fotos+='<button class="chip" onclick="verFoto(\''+s.foto_dni_dorso_url+'\')">🪪 DNI dorso</button>';
+  h+='<div class="card" id="solic-'+s.id+'" style="padding:14px">'
+   +'<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;margin-bottom:8px"><div style="font-weight:800;font-size:15px">Solicita ser: '+esc(s.banca_nombre||'(banca '+s.banca_id+')')+'</div>'+badge+'</div>'
+   +'<div style="font-size:13px;line-height:1.7">'
+   +'<b>Verificado (RENAPER):</b> '+esc(s.nombre_completo||'—')+'<br>'
+   +'<b>DNI:</b> '+esc(s.dni||'—')+' · <b>Nac:</b> '+esc(s.fecha_nacimiento||'—')+' · <b>Género:</b> '+esc(s.genero||'—')+' · <b>Estado civil:</b> '+esc(s.estado_civil||'—')+'<br>'
+   +'<b>Domicilio:</b> '+esc(s.direccion||'—')+' · '+esc(s.ciudad||'')+' · '+esc(s.provincia||'')+' · CP '+esc(s.codigo_postal||'')+'<br>'
+   +'<b>Cuenta:</b> '+esc(s.email||s.user_id||'—')
+   +'</div>'
+   +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">'+fotos+'</div>';
+  if(s.estado==='pendiente'){
+   h+='<div style="display:flex;gap:8px;margin-top:12px">'
+    +'<button class="chip on" onclick="accionSolic('+s.id+',\'aprobar\')">✅ Aprobar y vincular</button>'
+    +'<button class="chip" onclick="accionSolic('+s.id+',\'rechazar\')">✕ Rechazar</button></div>';
+  }
+  h+='</div>';
+ });
+ $('#solicLista').innerHTML=h;
+}
+function accionSolic(id,accion){
+ if(accion==='aprobar' && !confirm('¿Aprobar esta banca? Se vinculará la cuenta con el legislador y se marcará la banca como validada.'))return;
+ rpc('admin_solicitud_banca_accion',{p_id:id,p_accion:accion}).then(function(){
+  var s=solicDatos.find(function(x){return x.id===id;});
+  if(s)s.estado=(accion==='aprobar')?'aprobada':'rechazada';
+  var pend=solicDatos.filter(function(x){return x.estado==='pendiente';}).length;
+  var c=$('#cntSolic'); if(c){if(pend){c.textContent=pend;}else c.style.display='none';}
+  renderSolicitudes();
+ }).catch(function(e){alert('Error: '+String(e));});
 }
 
 /* ===== PANEL DE CURADURÍA ===== */
