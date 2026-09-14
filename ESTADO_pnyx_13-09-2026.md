@@ -175,3 +175,13 @@ Claves de entorno (se pierden al cerrar terminal): $env:SUPABASE_SERVICE_KEY (se
 - Requiere: pip install pypdfium2. Claves SUPABASE_SERVICE_KEY + ANTHROPIC_API_KEY.
 - Costo: leer 15 imágenes cuesta más que resumir texto; por eso solo las publicadas.
 - PENDIENTE: la app debe mostrar bien estas leyes (tienen oracion/resumen pero texto_oficial vacío; el botón "leer completa" debería llevar al PDF en url_pdf_oficial). Revisar que la app maneje texto_escaneado con link al PDF.
+
+## PENDIENTE FEATURE: Videos de opinión de legisladores (diseño de Benjamín, a implementar)
+Los dip/sen con BANCA VALIDADA (validada=true, vía el flujo de solicitud de banca) pueden subir videos de opinión sobre los proyectos. Reglas:
+- Los videos los suben ELLOS a YouTube (su propio canal). En Pnyx cargan el link.
+- Por proyecto se muestran máximo 4 videos: 2 de Diputados + 2 de Senadores (los 2 PRIMEROS de cada cámara, por ORDEN DE LLEGADA).
+- Condición de balance: máximo 2 A FAVOR y 2 EN CONTRA.
+- Se muestran DEBAJO de la sección de Expertos (que ya existe con reproductor YouTube).
+- Tanto Expertos como la sección dip/sen aparecen SOLO si existen esos videos (condicional, como ya hace Expertos hoy).
+- Al admin le llegan como máximo 4 videos de dip por proyecto (orden de llegada); Benjamín en la admin los HABILITA o no (moderación, igual que prensa/curaduría).
+- Piezas a armar: tabla videos_legisladores (proyecto, legislador/banca, cámara, postura a_favor/en_contra, url_youtube, habilitado, orden_llegada) + panel admin para habilitar + sección en la app debajo de expertos (reusar el reproductor youtube-nocookie de ytId/expVideoHTML que ya existe). Solo legisladores con banca validada pueden subir (control por user_id vinculado a la banca).
