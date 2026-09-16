@@ -75,6 +75,10 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
 .hint{font-size:11px;color:var(--faint);text-align:center;margin:9px 0 0}
 .bar{height:10px;border-radius:6px;overflow:hidden;display:flex;background:var(--surface2);margin:7px 0 5px}
 .overlay{position:absolute;inset:0;min-height:100%;background:var(--surface);padding:16px;overflow:auto;display:none;z-index:20}.overlay.show{display:block}
+/* Overlays sueltos (afinidad, historial, banca, etc.): anclados a .app, cubren
+   toda el área entre el header y la nav, con scroll propio. Evita el bug de
+   que aparezcan "en la mitad" sin tapar la pantalla de atrás. */
+.ovfull{position:absolute;left:0;right:0;top:0;bottom:0;min-height:0;z-index:40}
 #detail{z-index:5}#experts{z-index:6}#fulltext{z-index:7}#blocd{z-index:8}#banca{z-index:8}#repstats{z-index:8}
 .back{border:1px solid var(--line);background:var(--surface);color:var(--brand);font-size:15px;padding:9px 16px;margin-bottom:14px;font-weight:700;border-radius:22px;display:inline-flex;align-items:center;gap:6px}
 .expbtn{width:100%;border:1px solid var(--brand);background:var(--surface);color:var(--brand);border-radius:var(--r-sm);padding:11px;font-size:13.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:10px}
@@ -152,15 +156,14 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
     <div class="ob" id="oRen">
       <button class="back" data-act="goto" data-arg="oTyc">← Volver</button>
       <div style="text-align:center;margin-top:14px;font-size:46px">🛡️</div>
-      <h2 class="serif" style="font-size:23px;text-align:center;margin:12px 0 6px">Creá tu cuenta</h2>
-      <p class="muted" style="text-align:center;margin:0 0 18px">Ingresá tu email. Te mandamos un link para entrar — sin contraseña.</p>
+      <h2 class="serif" style="font-size:23px;text-align:center;margin:12px 0 6px" id="loginTitulo">Creá tu cuenta</h2>
+      <p class="muted" style="text-align:center;margin:0 0 18px" id="loginSub">Con tu email y una contraseña. Después verificás tu identidad.</p>
       <div id="loginBody">
         <div class="fld"><label>Tu email</label><input type="email" id="emailInput" placeholder="nombre@ejemplo.com" autocomplete="email"></div>
-        <div class="fld"><label>Contraseña</label><input type="password" id="passInput" placeholder="Tu contraseña" autocomplete="current-password"></div>
-        <button class="primary sm" id="loginBtn" onclick="doPassword('in')">Entrar</button>
-        <button class="fullbtn" style="margin-top:10px" onclick="doPassword('up')">Crear cuenta nueva</button>
-        <div style="text-align:center;margin:14px 0 4px"><span class="muted" style="font-size:12px">— o —</span></div>
-        <button class="fullbtn" onclick="doMagicLink()">📬 Entrar con link por email (sin contraseña)</button>
+        <div class="fld"><label>Contraseña</label><input type="password" id="passInput" placeholder="Mínimo 6 caracteres" autocomplete="new-password"></div>
+        <div class="fld" id="pass2Wrap"><label>Repetir contraseña</label><input type="password" id="pass2Input" placeholder="Escribila de nuevo" autocomplete="new-password"></div>
+        <button class="primary sm" id="loginBtn" onclick="accionLogin()">Crear cuenta</button>
+        <div style="text-align:center;margin:14px 0 4px"><span class="muted" style="font-size:12.5px">¿Ya tenés cuenta? <a href="#" onclick="toggleLoginModo();return false" id="toggleLink" style="color:var(--brand);font-weight:700;text-decoration:none">Entrá acá</a></span></div>
         <div id="loginMsg" style="margin-top:14px;font-size:13px;text-align:center;color:var(--muted);display:none"></div>
       </div>
     </div>
@@ -195,14 +198,14 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
       <div id="sc-voted" class="pad"></div>
       <div id="sc-banc" class="pad"></div>
       <div id="sc-perfil" class="pad"></div>
-      <div class="overlay" id="blocd"></div>
-      <div class="overlay" id="banca"></div>
-      <div class="overlay" id="histo"></div>
-      <div class="overlay" id="afin"></div>
-      <div class="overlay" id="opinarLeg"></div>
-      <div class="overlay" id="repstats"></div>
-      <div id="stories"></div>
     </div>
+    <div class="overlay ovfull" id="blocd"></div>
+    <div class="overlay ovfull" id="banca"></div>
+    <div class="overlay ovfull" id="histo"></div>
+    <div class="overlay ovfull" id="afin"></div>
+    <div class="overlay ovfull" id="opinarLeg"></div>
+    <div class="overlay ovfull" id="repstats"></div>
+    <div id="stories"></div>
     <div class="nav">
       <button class="on" data-act="tab" data-arg="vote"><span class="em">🗳️</span>Votar</button>
       <button data-act="tab" data-arg="trend"><span class="em">📊</span>Tendencias</button>
@@ -254,7 +257,49 @@ var supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 var usuarioActual=null;
 
 /* AUTH */
-async function doPassword(modo){
+async function accionLogin(){
+  var email=$('#emailInput').value.trim();
+  var pass=$('#passInput').value;
+  var msg=$('#loginMsg');
+  function err(t){msg.style.display='block';msg.style.color='#c0392b';msg.textContent=t;}
+  function info(t){msg.style.display='block';msg.style.color='var(--muted)';msg.textContent=t;}
+  if(!email||!email.includes('@')){err('Ingresá un email válido.');return;}
+  if(!pass||pass.length<6){err('La contraseña necesita al menos 6 caracteres.');return;}
+
+  if(loginModoCrear){
+    var pass2=$('#pass2Input').value;
+    if(pass!==pass2){err('Las contraseñas no coinciden. Escribilas iguales.');return;}
+    info('Creando cuenta…');
+    var res=await supabase.auth.signUp({email:email,password:pass});
+    if(res.error){err('Error: '+res.error.message);return;}
+    if(res.data&&res.data.session){usuarioActual=res.data.session.user;continuarTrasLogin();}
+    else{
+      var r2=await supabase.auth.signInWithPassword({email:email,password:pass});
+      if(r2.data&&r2.data.session){usuarioActual=r2.data.session.user;continuarTrasLogin();}
+      else{info('✅ Cuenta creada. Revisá tu email si te pide confirmar, y volvé a entrar.');loginModoCrear=false;toggleLoginModo();}
+    }
+  } else {
+    info('Entrando…');
+    var resIn=await supabase.auth.signInWithPassword({email:email,password:pass});
+    if(resIn.error){err('Email o contraseña incorrectos.');return;}
+    if(resIn.data&&resIn.data.session){usuarioActual=resIn.data.session.user;continuarTrasLogin();}
+  }
+}
+var loginModoCrear=true;
+function toggleLoginModo(){
+  loginModoCrear=!loginModoCrear;
+  $('#loginTitulo').textContent=loginModoCrear?'Creá tu cuenta':'Entrá a tu cuenta';
+  $('#loginSub').textContent=loginModoCrear?'Con tu email y una contraseña. Después verificás tu identidad.':'Ingresá con tu email y contraseña.';
+  $('#loginBtn').textContent=loginModoCrear?'Crear cuenta':'Entrar';
+  $('#pass2Wrap').style.display=loginModoCrear?'block':'none';
+  var cont=$('#toggleLink')?$('#toggleLink').parentNode:null;
+  if(cont)cont.innerHTML=loginModoCrear
+    ? '¿Ya tenés cuenta? <a href="#" onclick="toggleLoginModo();return false" id="toggleLink" style="color:var(--brand);font-weight:700;text-decoration:none">Entrá acá</a>'
+    : '¿No tenés cuenta? <a href="#" onclick="toggleLoginModo();return false" id="toggleLink" style="color:var(--brand);font-weight:700;text-decoration:none">Creá una</a>';
+  var msg=$('#loginMsg'); if(msg)msg.style.display='none';
+}
+
+async function _doPassword_viejo(modo){
   var email=$('#emailInput').value.trim();
   var pass=$('#passInput').value;
   var msg=$('#loginMsg');
