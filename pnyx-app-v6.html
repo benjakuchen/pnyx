@@ -128,11 +128,11 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
 
   <div id="onb">
     <div class="ob show" id="o0">
-      <div style="text-align:center;margin-top:14px"><div class="logo logoBig">Pnyx</div><div class="muted" style="font-size:13px;margin-top:2px">la asamblea ciudadana</div></div>
+      <div style="text-align:center;margin-top:14px"><div class="logo logoBig">pnyx</div><div class="muted" style="font-size:13px;margin-top:2px">la asamblea ciudadana</div></div>
       <div class="carousel" style="margin:24px 0"><div class="cphrase serif" id="cph"></div><div class="cauth" id="cau"></div><div class="cdots" id="cdots"></div></div>
       <div class="chiprow"><span class="tag">anonimato por diseño</span><span class="tag">una persona, un voto</span><span class="tag">código abierto</span></div>
       <button class="primary" data-act="goto" data-arg="oC">Empezar</button>
-      <button class="fullbtn" style="margin-top:10px" onclick="entrarComoInvitado()">Mirar sin cuenta</button>
+      <button class="fullbtn" style="margin-top:10px" onclick="entrarComoDemo()">Ver un ejemplo (sin cuenta)</button>
     </div>
     <div class="ob" id="oC">
       <div style="text-align:center;margin-top:4px;font-size:40px">🌐</div>
@@ -168,7 +168,7 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
     <div class="ob" id="oVer">
       <div style="text-align:center;margin-top:14px;font-size:46px">🪪</div>
       <h2 class="serif" style="font-size:23px;text-align:center;margin:12px 0 6px">Verificá que sos vos</h2>
-      <p class="muted" style="text-align:center;margin:0 0 18px">Para que cada persona vote una sola vez, confirmamos tu identidad con RENAPER. Es rápido: una selfie y tu DNI.</p>
+      <p class="muted" style="text-align:center;margin:0 0 18px">Para que cada persona vote una sola vez, confirmamos tu identidad. Es rápido: una selfie y tu DNI.</p>
       <div class="note info" style="margin-bottom:14px">🔒 Tu identidad queda separada de tus votos. Verificamos que sos una persona real y única, pero <b>nadie puede saber cómo votaste</b>.</div>
       <button class="primary sm" onclick="iniciarVerificacionDidit()">Verificar mi identidad</button>
       <button class="fullbtn" style="margin-top:10px" onclick="saltearVerificacion()">Saltear por ahora (modo prueba)</button>
@@ -223,12 +223,12 @@ function k(t,cls){return '<span class="k '+cls+'">'+t+'</span>';}
 function seg(w,col){return w>0?'<div style="width:'+w+'%;background:'+col+'"></div>':'';}
 
 var phrases=[
- {t:'«El gobierno del pueblo, por el pueblo y para el pueblo.»',a:'— Abraham Lincoln, 1863'},
  {t:'Contamos con vos para mejorar la democracia.',a:''},
  {t:'Si no decidís vos, alguien decide por vos.',a:''},
  {t:'Una ley te cambia la vida, la leas o no.',a:''},
  {t:'La democracia no se mira: se hace.',a:''},
  {t:'Tu opinión, acá, llega a quien tiene que llegar.',a:''},
+ {t:'«El gobierno del pueblo, por el pueblo y para el pueblo.»',a:'— Abraham Lincoln, 1863'},
  {t:'El precio del pan, tu sueldo y el alquiler no son casualidad: son política.',a:'— libremente inspirado en Bertolt Brecht'},
  {t:'La democracia consiste en poner bajo control al poder político.',a:'— Karl Popper'},
  {t:'Una democracia vale lo que valen los ciudadanos que la sostienen.',a:'— inspirado en Alexis de Tocqueville'}
@@ -349,6 +349,7 @@ function enterApp(){
   $('#onb').style.display='none';
   $('#app').style.display='flex';
   chequearMiBanca();
+  chequearVerificacion(function(){});   // saber si está verificado (para poder votar)
   var d=$('#deck');
   if(d)d.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted)">Cargando leyes del Congreso...</div>';
   // Primero traer qué leyes ya votó este usuario, después cargar el feed filtrado
@@ -384,6 +385,105 @@ async function cargarVotadas(listo){
 })();
 
 var modoInvitado=false;
+var modoDemo=false;
+
+/* ===== MODO DEMO (experiencia de ejemplo, sin cuenta) =====
+   Leyes reales actuales + legisladores reales, pero todo mock: votar no cuenta,
+   afinidad simulada, "videos" con imagen de ejemplo. Cartel arriba avisa. */
+var LEYES_DEMO=[
+ {billId:'DEMO1', n:'Impide la venta libre de grandes extensiones de tierra rural a extranjeros y crea controles.',
+  sub:'Impide la venta libre de grandes extensiones de tierra rural a extranjeros y crea controles.', tieneIA:true,
+  camara:'Senado', estado:'Media sancion - por tratarse', urgente:true, autor:'Proyecto del Poder Ejecutivo', ini:'PE',
+  resumen:'Regula quiénes pueden comprar tierras rurales en el país y pone límites a la compra por parte de extranjeros. A favor: protege un recurso estratégico y la soberanía sobre la tierra. En discusión: puede desalentar inversiones y complicar operaciones legítimas.',
+  tieneTexto:false, escaneada:false, nat:{favor:0,contra:0,abst:0,n:0}},
+ {billId:'DEMO2', n:'Aprueba el plan de gastos y recursos del Estado para el año, con las prioridades del gobierno.',
+  sub:'Aprueba el plan de gastos y recursos del Estado para el año, con las prioridades del gobierno.', tieneIA:true,
+  camara:'Diputados', estado:'En tramite', urgente:false, autor:'Comisión de Presupuesto y Hacienda', ini:'PH',
+  resumen:'Define en qué gasta el Estado y de dónde saca los recursos durante el año. A favor: ordena las cuentas y da previsibilidad. En discusión: la oposición cuestiona las prioridades y los recortes en algunas áreas.',
+  tieneTexto:false, escaneada:false, nat:{favor:0,contra:0,abst:0,n:0}}
+];
+// Expertos mock por ley (imagen de "persona hablando" en vez de video real)
+var IMG_VIDEO_DEMO='https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&q=60';
+var EXPERTOS_DEMO={
+ DEMO1:[
+  {nombre:'Dra. economista agraria',afiliacion:'cercanía: liberal',postura:'en_contra'},
+  {nombre:'Lic. en soberanía alimentaria',afiliacion:'cercanía: nacional-popular',postura:'a_favor'}
+ ],
+ DEMO2:[
+  {nombre:'Economista ortodoxo',afiliacion:'cercanía: libertario',postura:'a_favor'},
+  {nombre:'Investigador CONICET',afiliacion:'cercanía: heterodoxo',postura:'en_contra'}
+ ]
+};
+// Videos de legisladores mock (nombres reales, imagen de ejemplo)
+var VIDEOSLEG_DEMO={
+ DEMO1:[
+  {legislador:'Martín Lousteau',camara:'diputados',postura:'a_favor'},
+  {legislador:'Victoria Tolosa Paz',camara:'diputados',postura:'en_contra'}
+ ],
+ DEMO2:[
+  {legislador:'Maximiliano Abad',camara:'senadores',postura:'a_favor'},
+  {legislador:'Martín Soria',camara:'senadores',postura:'en_contra'}
+ ]
+};
+// Afinidad simulada (legisladores reales + uno inventado, con % de ejemplo)
+var AFINIDAD_DEMO=[
+ {nombre:'Dip. Ejemplo Pérez (ficticio)',bloque:'Bloque de Ejemplo',provincia:'San Juan',pct:100,n:2},
+ {nombre:'Maximiliano Abad',bloque:'UCR',provincia:'Buenos Aires',pct:100,n:2},
+ {nombre:'Martín Lousteau',bloque:'UCR',provincia:'CABA',pct:50,n:2},
+ {nombre:'Victoria Tolosa Paz',bloque:'Unión por la Patria',provincia:'Buenos Aires',pct:50,n:2},
+ {nombre:'Martín Soria',bloque:'Unión por la Patria',provincia:'Río Negro',pct:0,n:2}
+];
+// Votadas del Congreso (mock) con proporciones por fuerza
+var VOTADAS_DEMO=[
+ {titulo:'Inviolabilidad de la propiedad privada — venta de tierras a extranjeros',
+  fecha:'06/08/2026', camara:'Senado', resultado:'APROBADO', afirmativos:37, negativos:33, abstenciones:0,
+  bloques:[
+   {bloque:'La Libertad Avanza',favor:6,contra:0},
+   {bloque:'PRO',favor:7,contra:0},
+   {bloque:'UCR',favor:11,contra:2},
+   {bloque:'Unión por la Patria',favor:0,contra:28},
+   {bloque:'Provincias Unidas',favor:8,contra:3}
+  ]},
+ {titulo:'Presupuesto 2026 — plan de gastos y recursos del Estado',
+  fecha:'—', camara:'Diputados', resultado:'EN COMISIÓN', afirmativos:null, negativos:null, abstenciones:null,
+  bloques:[]}
+];
+// Bancas de ejemplo (algunas con el sello "escucha")
+var BANCAS_DEMO=[
+ {nombre:'Dip. Ejemplo Pérez (ficticio)',camara:'diputados',provincia:'San Juan',bloque:'Bloque de Ejemplo',presentismo:94,escucha:true},
+ {nombre:'ABAD, Maximiliano',camara:'senadores',provincia:'Buenos Aires',bloque:'UCR',presentismo:86,escucha:true},
+ {nombre:'LOUSTEAU, Martín',camara:'diputados',provincia:'CABA',bloque:'UCR',presentismo:78,escucha:false},
+ {nombre:'TOLOSA PAZ, Victoria',camara:'diputados',provincia:'Buenos Aires',bloque:'Unión por la Patria',presentismo:91,escucha:false},
+ {nombre:'SORIA, Martín',camara:'senadores',provincia:'Río Negro',bloque:'Unión por la Patria',presentismo:83,escucha:true}
+];
+
+function entrarComoDemo(){
+  modoDemo=true; modoInvitado=false; usuarioActual=null;
+  $('#onb').style.display='none';
+  $('#app').style.display='flex';
+  // Cartel fijo arriba
+  var banner=$('#demoBanner');
+  if(!banner){
+    banner=document.createElement('div');
+    banner.id='demoBanner';
+    banner.style.cssText='position:sticky;top:0;z-index:30;background:#8a6d00;color:#fff;font-size:12px;font-weight:700;text-align:center;padding:7px 10px;line-height:1.3';
+    banner.innerHTML='🎭 MODO EJEMPLO — Probá cómo funciona Pnyx. Tus votos NO cuentan hasta que crees tu cuenta y verifiques tu identidad. <a href="#" onclick="salirDemoACrearCuenta();return false" style="color:#fff;text-decoration:underline">Crear cuenta →</a>';
+    var app=$('#app'); app.insertBefore(banner,app.firstChild);
+  }
+  banner.style.display='block';
+  // Cargar las leyes demo en el feed
+  pending=LEYES_DEMO.map(function(l){return Object.assign({id:l.billId},l);});
+  idx=0; votes={};
+  renderCard();
+}
+function salirDemoACrearCuenta(){
+  modoDemo=false;
+  var b=$('#demoBanner'); if(b)b.style.display='none';
+  $('#app').style.display='none';
+  $('#onb').style.display='flex';
+  ['o0','oC','oTyc','oRen','oVer'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='oC');});
+}
+
 function mostrarOnboarding(){
   $('#onb').style.display='flex';
   $('#app').style.display='none';
@@ -401,6 +501,16 @@ function pedirLoginParaVotar(){
   $('#app').style.display='none';
   $('#onb').style.display='flex';
   ['o0','oC','oTyc','oRen','oVer'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='oC');});
+}
+// Tiene cuenta pero NO verificó identidad: no puede votar todavía.
+function pedirVerificarParaVotar(){
+  var d=$('#detail');
+  d.innerHTML='<button class="back" data-act="closeDetail">← Volver</button>'
+   +'<h3 class="title" style="font-size:20px">Verificá tu identidad para votar</h3>'
+   +'<p class="muted" style="font-size:13.5px;margin:10px 0">Para que cada persona vote una sola vez, antes de votar necesitás verificar que sos una persona real (una selfie y tu documento). Tu identidad queda <b>separada de tus votos</b>: nadie puede saber cómo votaste.</p>'
+   +'<button class="primary sm" onclick="iniciarVerificacionDidit()">Verificar mi identidad</button>'
+   +'<div id="verMsgP" style="margin-top:10px;font-size:12.5px;color:var(--muted);display:none"></div>';
+  d.classList.add('show');d.scrollTop=0;
 }
 
 var pending=[];
@@ -650,7 +760,7 @@ function bindDrag(){var card=$('#card');if(!card)return;var sx=0,dx=0,drag=false
  function dn(e){drag=true;sx=(e.touches?e.touches[0].clientX:e.clientX);card.style.transition='none';}
  function mv(e){if(!drag)return;var x=(e.touches?e.touches[0].clientX:e.clientX);dx=x-sx;card.style.transform='translateX('+dx+'px) rotate('+(dx/24)+'deg)';$('#ovlR').style.opacity=dx>0?Math.min(dx/90,1):0;$('#ovlL').style.opacity=dx<0?Math.min(-dx/90,1):0;}
  function up(){if(!drag)return;drag=false;card.style.transition='transform .25s';
-   if((dx>92||dx<-92)&&(modoInvitado||!usuarioActual)){card.style.transform='';$('#ovlR').style.opacity=0;$('#ovlL').style.opacity=0;dx=0;pedirLoginParaVotar();return;}
+   if((dx>92||dx<-92)&&!modoDemo&&(modoInvitado||!usuarioActual||!verifState)){card.style.transform='';$('#ovlR').style.opacity=0;$('#ovlL').style.opacity=0;var goL=(modoInvitado||!usuarioActual);dx=0;if(goL)pedirLoginParaVotar();else pedirVerificarParaVotar();return;}
    if(dx>92){card.style.transform='translateX(520px) rotate(28deg)';doVote('favor');}else if(dx<-92){card.style.transform='translateX(-520px) rotate(-28deg)';doVote('contra');}else{card.style.transform='';$('#ovlR').style.opacity=0;$('#ovlL').style.opacity=0;}dx=0;}
  card.addEventListener('mousedown',dn);window.addEventListener('mousemove',mv);window.addEventListener('mouseup',up);
  card.addEventListener('touchstart',dn,{passive:true});card.addEventListener('touchmove',mv,{passive:true});card.addEventListener('touchend',up);}
@@ -715,7 +825,9 @@ function mostrarTermometro(ley,miVoto){
 }
 function siguienteLey(){idx++;$('#actions').style.display='';renderCard();}
 function doVote(choice){if(idx>=pending.length)return;
+ if(modoDemo){votes[pending[idx].id]=choice;setTimeout(function(){idx++;renderCard();},170);return;}
  if(modoInvitado||!usuarioActual){pedirLoginParaVotar();return;}
+ if(!verifState){pedirVerificarParaVotar();return;}
  var ley=pending[idx];votes[ley.id]=choice;guardarVoto(ley,choice);setTimeout(function(){idx++;renderCard();},170);}
 function flyAndVote(choice){var c=$('#card');if(c){c.style.transition='transform .25s';if(choice==='favor')c.style.transform='translateX(520px) rotate(28deg)';else if(choice==='contra')c.style.transform='translateX(-520px) rotate(-28deg)';else c.style.opacity='0';}doVote(choice);}
 
@@ -751,10 +863,16 @@ function opinarLegisladorBtn(b){
 function cargarVideosLeg(billId){
  var cont=document.getElementById('videosLeg-'+billId);
  if(!cont)return;
+ if(modoDemo){
+   var vs=(VIDEOSLEG_DEMO[billId]||[]).map(function(v){return {legislador:v.legislador,camara:v.camara,postura:v.postura,_demo:true};});
+   pintarVideosLeg(cont,vs);return;
+ }
  fetch(SUPABASE_URL+'/rest/v1/rpc/videos_publicos',{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({p_ley:billId})})
   .then(function(r){return r.json();})
-  .then(function(vs){
-    vs=Array.isArray(vs)?vs:[];
+  .then(function(vs){vs=Array.isArray(vs)?vs:[];pintarVideosLeg(cont,vs);})
+  .catch(function(){cont.innerHTML='';});
+}
+function pintarVideosLeg(cont,vs){
     if(!vs.length){cont.innerHTML='';return;}
     var fav=vs.filter(function(v){return v.postura==='a_favor';});
     var con=vs.filter(function(v){return v.postura==='en_contra';});
@@ -763,14 +881,12 @@ function cargarVideosLeg(billId){
       if(!arr.length)return '';
       var g='<div style="font-weight:700;font-size:13px;margin:8px 0 4px">'+titulo+'</div>';
       arr.forEach(function(v){
-        g+='<div style="margin-bottom:12px"><div style="font-weight:700;font-size:13px">'+escHtml(v.legislador||'')+'</div>'+expVideoHTML({youtube_url:v.url_youtube})+'</div>';
+        g+='<div style="margin-bottom:12px"><div style="font-weight:700;font-size:13px">'+escHtml(v.legislador||'')+'</div>'+expVideoHTML(v._demo?{_demo:true}:{youtube_url:v.url_youtube})+'</div>';
       });
       return g;
     }
     h+=grupo('👍 A favor',fav)+grupo('👎 En contra',con);
     cont.innerHTML=h;
-  })
-  .catch(function(){cont.innerHTML='';});
 }
 // Pantalla para cargar el video (link YouTube + postura)
 function abrirOpinarLeg(billId){
@@ -815,12 +931,16 @@ function enviarVideoLeg(){
   .catch(function(e){msg.style.color='#c0392b';msg.textContent='Error: '+String(e);});
 }
 function expBtn(b){
+ if(modoDemo){var d=EXPERTOS_DEMO[b.billId]||[];return d.length?'<button class="expbtn" data-act="experts">🎬 Ver opiniones de expertos ('+d.length+')</button>':'';}
  var n=(b&&b.billId)?(expCounts[b.billId]||0):0;
  if(!n)return '';
  return '<button class="expbtn" data-act="experts">🎬 Ver opiniones de expertos ('+n+')</button>';
 }
 // Reproductor embebido (16:9). Si el link no se puede parsear, cae a un link a YouTube.
 function expVideoHTML(e){
+ if(e && e._demo){
+   return '<div style="position:relative;width:100%;padding-top:56.25%;border-radius:10px;overflow:hidden;margin:8px 0 4px;background:#000"><img src="'+IMG_VIDEO_DEMO+'" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;opacity:.85"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center"><div style="width:54px;height:54px;border-radius:50%;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff">▶</div></div><div style="position:absolute;bottom:6px;left:8px;color:#fff;font-size:10px;background:rgba(0,0,0,.5);padding:2px 6px;border-radius:4px">video de ejemplo</div></div>';
+ }
  var vid=ytId(e.youtube_url);
  if(vid)return '<div style="position:relative;width:100%;padding-top:56.25%;border-radius:10px;overflow:hidden;margin:8px 0 4px;background:#000"><iframe src="https://www.youtube-nocookie.com/embed/'+vid+'" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0" loading="lazy" allow="accelerometer; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>';
  if(e.youtube_url)return '<a class="yt" href="'+escHtml(e.youtube_url)+'" target="_blank" rel="noopener" style="margin:8px 0 4px;display:inline-block">▶ Ver el video en YouTube</a>';
@@ -849,6 +969,10 @@ function openExperts(){
   c.innerHTML=expGrupo('👍 A FAVOR',fav)+expGrupo('👎 EN CONTRA',con)+expGrupo('➖ CON MATICES / ABSTENCIÓN',abs)+'<p class="muted" style="font-size:11px;text-align:center;margin:16px 4px 0">Los videos se reproducen desde YouTube.</p>';
  };
  if(expCache[b.billId]){pintar(expCache[b.billId]);return;}
+ if(modoDemo){
+   var dm=(EXPERTOS_DEMO[b.billId]||[]).map(function(e){return {nombre:e.nombre,afiliacion:e.afiliacion,postura:e.postura,_demo:true};});
+   pintar(dm);return;
+ }
  fetch(SUPABASE_URL+'/rest/v1/expertos?select=*&ley_bill_id=eq.'+encodeURIComponent(b.billId)+'&order=orden.asc,id.asc',
    {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}})
   .then(function(r){return r.json();})
@@ -887,6 +1011,31 @@ function chamber(l){var t=l.tot,total=t[0]+t[1]+t[2]+t[3]||1,ok=estadoDe(l.r)===
  return h+'</div></div>';}
 
 function renderVoted(){var el=$('#sc-voted');
+ if(modoDemo){
+   var h='<div class="sech">VOTADAS POR EL CONGRESO</div><div class="note info" style="margin:6px 0 12px">🎭 Ejemplo. Acá ves cómo votó cada fuerza política las leyes que el Congreso ya trató.</div>';
+   VOTADAS_DEMO.forEach(function(v){
+     var resCol=v.resultado==='APROBADO'?'var(--favor)':(v.resultado==='RECHAZADO'?'var(--contra)':'var(--muted)');
+     h+='<div class="card" style="margin-bottom:12px"><div style="font-weight:700;font-size:14px;line-height:1.35">'+escHtml(v.titulo)+'</div>'
+      +'<div class="muted" style="font-size:11.5px;margin:4px 0 8px">'+escHtml(v.camara)+' · '+escHtml(v.fecha)+' · <b style="color:'+resCol+'">'+escHtml(v.resultado)+'</b></div>';
+     if(v.afirmativos!=null){
+       var tot=v.afirmativos+v.negativos+(v.abstenciones||0);
+       var pf=Math.round(100*v.afirmativos/tot), pc=100-pf;
+       h+='<div style="display:flex;height:22px;border-radius:6px;overflow:hidden;font-size:11px;font-weight:700;color:#fff;margin-bottom:8px">'
+        +'<div style="width:'+pf+'%;background:var(--favor);display:flex;align-items:center;justify-content:center">'+v.afirmativos+' a favor</div>'
+        +'<div style="width:'+pc+'%;background:var(--contra);display:flex;align-items:center;justify-content:center">'+v.negativos+' en contra</div></div>';
+       h+='<div style="font-size:12px;font-weight:700;margin:6px 0 4px">Cómo votó cada fuerza:</div>';
+       v.bloques.forEach(function(b){
+         var t=b.favor+b.contra; var wf=t?Math.round(100*b.favor/t):0;
+         h+='<div style="margin-bottom:6px"><div style="font-size:11.5px;display:flex;justify-content:space-between"><span>'+escHtml(b.bloque)+'</span><span class="muted">'+b.favor+' a favor · '+b.contra+' en contra</span></div>'
+          +'<div style="display:flex;height:8px;border-radius:4px;overflow:hidden;margin-top:2px"><div style="width:'+wf+'%;background:var(--favor)"></div><div style="width:'+(100-wf)+'%;background:var(--contra)"></div></div></div>';
+       });
+     } else {
+       h+='<div class="muted" style="font-size:12.5px">Todavía no fue votada en el recinto (está en comisión).</div>';
+     }
+     h+='</div>';
+   });
+   el.innerHTML=h;return;
+ }
  if(!votedLoaded){el.innerHTML='<p class="muted" style="font-size:13px;padding:20px 0">Cargando votaciones del Congreso…</p>';cargarVotadasLista();return;}
 
  // pestañas: Recientes | Históricas
@@ -1136,6 +1285,7 @@ function renderStory(){if(stIdx>=stOrder.length){$('#stories').classList.remove(
 /* ===== BANCAS QUE ESCUCHAN (datos reales) ===== */
 var bancasCache=null, bancaCamara='diputados', bancaBusca='';
 function renderBanc(){
+ if(modoDemo){bancasCache=BANCAS_DEMO.map(function(b,i){return Object.assign({id:i+1},b);});pintarBanc();return;}
  if(bancasCache===null){
   $('#sc-banc').innerHTML='<div class="sech">TRANSPARENCIA · BANCAS QUE ESCUCHAN</div><p class="muted" style="font-size:13px">Cargando legisladores…</p>';
   fetch(SUPABASE_URL+'/rest/v1/rpc/bancas_lista',{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},body:'{}'})
@@ -1250,10 +1400,23 @@ function tarjetaAfinidad(){
 }
 function openAfinidad(){
  var x=$('#afin');
+ if(modoDemo){
+   var h='<button class="back" data-act="closeAfin">← Volver al perfil</button>'
+    +'<h3 class="title" style="font-size:20px">¿Con quién coincidís?</h3>'
+    +'<div class="note info" style="margin:8px 0 12px">🎭 Ejemplo con datos simulados. Cuando votes de verdad, esto se calcula en tu teléfono con las votaciones reales del Congreso.</div>';
+   AFINIDAD_DEMO.forEach(function(r){
+     var col=r.pct>=66?'var(--favor)':(r.pct>=40?'var(--aus)':'var(--contra)');
+     h+='<div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--line)">'
+      +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13.5px">'+escHtml(r.nombre)+'</div>'
+      +'<div class="muted" style="font-size:11px">'+escHtml(r.bloque||'')+' · '+escHtml(r.provincia||'')+' · '+r.n+' leyes</div></div>'
+      +'<div style="font-weight:800;font-size:16px;color:'+col+'">'+r.pct+'%</div></div>';
+   });
+   x.innerHTML=h;x.classList.add('show');x.scrollTop=0;var mm=$('.main');if(mm)mm.scrollTop=0;return;
+ }
  x.innerHTML='<button class="back" data-act="closeAfin">← Volver al perfil</button>'
   +'<h3 class="title" style="font-size:20px">¿Con quién coincidís?</h3>'
   +'<p class="muted" style="font-size:13px;margin:8px 0 14px">Calculando en tu dispositivo…</p>';
- x.classList.add('show');x.scrollTop=0;
+ x.classList.add('show');x.scrollTop=0;var mmA=$('.main');if(mmA)mmA.scrollTop=0;
  calcularAfinidad().then(function(res){
    var h='<button class="back" data-act="closeAfin">← Volver al perfil</button>'
     +'<h3 class="title" style="font-size:20px">¿Con quién coincidís?</h3>';
@@ -1310,7 +1473,7 @@ function openHistorial(){
    +'<span class="k" style="background:'+e[2]+';color:'+e[1]+';white-space:nowrap">'+e[0]+'</span></div>';
  });
  h+='<div style="text-align:center;margin-top:16px"><button style="border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12px;padding:8px 16px;border-radius:20px;cursor:pointer" onclick="borrarHistorial()">Borrar mi historial local</button></div>';
- x.innerHTML=h;x.classList.add('show');x.scrollTop=0;
+ x.innerHTML=h;x.classList.add('show');x.scrollTop=0;var mmH=$('.main');if(mmH)mmH.scrollTop=0;
 }
 function borrarHistorial(){
  if(!confirm('¿Borrar tu historial de este dispositivo? Tus votos ya emitidos no se tocan; solo se borra esta lista local.'))return;
@@ -1337,12 +1500,12 @@ async function chequearVerificacion(cb){
 }
 function bloqueVerificacion(){
  if(verifState){
-  return '<div class="card" style="margin-top:12px;display:flex;align-items:center;gap:11px"><div style="font-size:22px">🪪</div><div style="flex:1"><div style="font-weight:700;font-size:13.5px">Identidad verificada</div><div class="muted" style="font-size:11.5px">Confirmada con RENAPER · tu identidad queda separada de tus votos</div></div><span class="k ok">✅</span></div>';
+  return '<div class="card" style="margin-top:12px;display:flex;align-items:center;gap:11px"><div style="font-size:22px">🪪</div><div style="flex:1"><div style="font-weight:700;font-size:13.5px">Identidad verificada</div><div class="muted" style="font-size:11.5px">Identidad confirmada · tu identidad queda separada de tus votos</div></div><span class="k ok">✅</span></div>';
  }
  if(verifMotivo==='documento_ya_usado'){
   return '<div class="card" style="margin-top:12px;gap:6px"><div style="font-weight:700;font-size:14px">🚫 Documento ya registrado</div><p class="muted" style="font-size:12.5px;margin:0">Este documento ya está asociado a otra cuenta de Pnyx. Cada persona puede tener una sola cuenta verificada. Si perdiste el acceso a tu cuenta anterior, escribinos para recuperarla.</p></div>';
  }
- return '<div class="card" style="margin-top:12px;gap:6px"><div style="font-weight:700;font-size:14px">🪪 Verificá tu identidad</div><p class="muted" style="font-size:12.5px;margin:0">Para que cada persona vote una sola vez, confirmamos que sos una persona real con RENAPER (selfie + DNI). Tu identidad queda <b>separada de tus votos</b>: nadie puede saber cómo votaste.</p><button class="primary sm" style="margin-top:6px" onclick="iniciarVerificacionDidit()">Verificar mi identidad</button><div id="verMsgP" style="margin-top:10px;font-size:12.5px;color:var(--muted);display:none"></div></div>';
+ return '<div class="card" style="margin-top:12px;gap:6px"><div style="font-weight:700;font-size:14px">🪪 Verificá tu identidad</div><p class="muted" style="font-size:12.5px;margin:0">Para que cada persona vote una sola vez, confirmamos que sos una persona real (una selfie y tu documento). Tu identidad queda <b>separada de tus votos</b>: nadie puede saber cómo votaste.</p><button class="primary sm" style="margin-top:6px" onclick="iniciarVerificacionDidit()">Verificar mi identidad</button><div id="verMsgP" style="margin-top:10px;font-size:12.5px;color:var(--muted);display:none"></div></div>';
 }
 function renderPerfil(){var n=Object.keys(votes).length;
  chequearVerificacion(function(){renderPerfilInterno(n);});
@@ -1353,27 +1516,18 @@ function renderPerfilInterno(n){
  var titulo=verifState?'Ciudadano verificado ✅':'Ciudadano';
  var h='<div class="card" style="display:flex;flex-direction:row;align-items:center;gap:13px"><div class="av" style="width:50px;height:50px;font-size:17px">'+ini+'</div><div style="flex:1"><div style="font-weight:700;font-size:16px">'+titulo+'</div><div class="muted" style="font-size:12px">'+emailMostrar+'</div></div><button style="border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12px;padding:6px 12px;border-radius:20px;font-weight:600" data-act="logout">Salir</button></div>'
   +bloqueVerificacion()
-  +'<div class="card" style="margin-top:12px"><div class="sech">📚 APRENDER</div><p class="muted" style="font-size:12.5px;margin:0 0 10px">Videos cortos que explican como funciona el Congreso: que es una camara, que pasa cuando una ley se aprueba, que hace tu voto aca.</p><div style="border:1px dashed var(--line);border-radius:var(--r-sm);padding:16px;text-align:center;color:var(--muted);font-size:12.5px">🎬 Proximamente<br>Los primeros videos estan en produccion.</div></div>'+'<div class="card" style="margin-top:12px"><div class="sech">TU ACTIVIDAD</div><div style="display:flex;justify-content:space-between"><span class="muted">Proyectos votados</span><b style="font-weight:700">'+n+'</b></div><div style="display:flex;justify-content:space-between;margin-top:6px"><span class="muted">Tu voto</span><span class="k ci">🔒 anónimo</span></div></div>'+bloqueHistorial()+tarjetaAfinidad();
+  +'<div class="card" style="margin-top:12px"><div class="sech">TU ACTIVIDAD</div><div style="display:flex;justify-content:space-between"><span class="muted">Proyectos votados</span><b style="font-weight:700">'+n+'</b></div><div style="display:flex;justify-content:space-between;margin-top:6px"><span class="muted">Tu voto</span><span class="k ci">🔒 anónimo</span></div></div>'+bloqueHistorial()+tarjetaAfinidad();
 
  if(repState==='none'){
   h+='<div class="card" style="margin-top:12px;gap:6px"><div style="font-weight:700;font-size:14px">🏛️ ¿Ocupás una banca?</div><p class="muted" style="font-size:12.5px;margin:0">Seguís siendo ciudadano y votás como todos. Validá tu banca para sumar la capa de representante: ver la señal de tu distrito y elegir qué mostrás.</p><button class="primary sm" style="margin-top:6px" data-act="validarBanca">Validar mi banca</button></div>';
  } else if(repState==='pending'){
-  h+='<div class="card" style="margin-top:12px;text-align:center"><div style="font-size:34px">⏳</div><div style="font-weight:700;margin:8px 0 4px">Banca en validación (24 hs)</div><p class="muted" style="margin:0;font-size:12.5px">Verificamos tu cargo contra la nómina oficial. Mientras tanto seguís usando Pnyx como ciudadano.</p><button class="primary sm" style="margin-top:12px;background:var(--favor)" data-act="aprobarBanca">Simular validación aprobada (demo)</button></div>';
+  h+='<div class="card" style="margin-top:12px;text-align:center"><div style="font-size:34px">⏳</div><div style="font-weight:700;margin:8px 0 4px">Banca en validación</div><p class="muted" style="margin:0;font-size:12.5px">Un administrador está confirmando tu cargo. Mientras tanto seguís usando Pnyx como ciudadano.</p></div>';
  } else {
   var cargoTxt={dipnac:'Diputado nacional',sennac:'Senador nacional',dipprov:'Diputado provincial',senprov:'Senador provincial',concejal:'Concejal'}[selCargo];
-  h+='<div class="card" style="margin-top:12px;gap:8px"><div style="display:flex;align-items:center;gap:11px"><div class="repav" style="background:var(--brand-soft);color:var(--brand)">🏛️</div><div style="flex:1"><div style="font-weight:700;font-size:15px">Tu banca · '+cargoTxt+'</div><div class="muted" style="font-size:12px">Córdoba · validada ✅</div></div></div>'+(cfg.escucha?'<div>'+k('✅ Banca que escucha','ok')+'</div>':'')+'</div>';
-  h+='<div class="card" style="margin-top:12px"><div class="sech">¿QUÉ MOSTRÁS A LA CIUDADANÍA?</div>'
-   +'<div class="row"><div><div style="font-weight:700;font-size:13.5px">Sello «Banca que escucha»</div><div class="muted" style="font-size:11.5px">aparecés como banca que escucha</div></div><div class="sw'+(cfg.escucha?'':' off')+'" data-act="cfg" data-arg="escucha"></div></div>'
-   +'<div class="row"><div><div style="font-weight:700;font-size:13.5px">Ideología declarada</div><div class="muted" style="font-size:11.5px">tu etiqueta o la de tu frente</div></div><div class="sw'+(cfg.ideo?'':' off')+'" data-act="cfg" data-arg="ideo"></div></div>'
-   +'<div class="row" style="border-bottom:none"><div><div style="font-weight:700;font-size:13.5px">Foto y bio</div><div class="muted" style="font-size:11.5px">sos cargo público: tu cara puede figurar</div></div><div class="sw'+(cfg.foto?'':' off')+'" data-act="cfg" data-arg="foto"></div></div></div>';
-  h+='<button class="primary sm" style="margin-top:12px" data-act="repStats">📊 Estadísticas de mi distrito</button>';
+  h+='<div class="card" style="margin-top:12px;gap:8px"><div style="display:flex;align-items:center;gap:11px"><div class="repav" style="background:var(--brand-soft);color:var(--brand)">🏛️</div><div style="flex:1"><div style="font-weight:700;font-size:15px">Tu banca · '+cargoTxt+'</div><div class="muted" style="font-size:12px">validada ✅</div></div></div>'+(cfg.escucha?'<div>'+k('✅ Banca que escucha','ok')+'</div>':'')+'</div>';
+  // La señal por distrito SOLO para bancas validadas:
+  h+='<div class="card" style="margin-top:12px"><div style="font-weight:700;font-size:13.5px">📍 Señal de tu distrito</div><div class="muted" style="font-size:12px;margin-top:2px">Cómo opina la ciudadanía de tu distrito (además del total nacional).</div></div>';
  }
- h+='<div class="sech" style="margin:16px 2px 8px">QUÉ VES COMO CIUDADANO</div>'
-  +'<div class="card" style="margin-bottom:12px"><div style="font-weight:700;font-size:13.5px">🏛️ Tendencia nacional</div><div class="muted" style="font-size:12px;margin-top:2px">El total del país, agregado y anónimo.</div></div>';
- if(repState!=='validated'){
-  h+='<div class="card lockwrap" style="margin-bottom:12px"><div style="font-weight:700;font-size:13.5px">📍 Señal por distrito</div><div class="bar" style="margin-top:8px"><div style="width:50%;background:var(--aus)"></div></div><div class="muted">—</div><div class="lockover"><div style="font-size:26px">🔒</div><div class="muted" style="font-weight:700;font-size:12.5px">Se desbloquea al validar tu banca</div><div class="muted" style="font-size:11px">Como ciudadano ves el total nacional</div></div></div>';
- }
- h+='<div class="card" style="opacity:.65;display:flex;flex-direction:row;align-items:center;gap:11px"><div style="font-size:22px">👥</div><div><div style="font-weight:700;font-size:13.5px">Comunidad</div><div class="muted" style="font-size:11px">👁️ acá todo es público · en construcción</div></div></div>';
  $('#sc-perfil').innerHTML=h;}
 
 /* ===== SOLICITAR BANCA (real) ===== */
