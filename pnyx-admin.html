@@ -98,10 +98,10 @@ h1{font-size:20px;margin:0 0 4px}
   <div class="tabs">
    <button class="tab on" data-tab="comp" onclick="tab('comp')">🔗 Leyes: feed ↔ Congreso<span class="count" id="cntPend" style="display:none">0</span></button>
    <button class="tab" data-tab="feed" onclick="tab('feed')">🗳️ Feed de votación</button>
-   <button class="tab" data-tab="prensa" onclick="tab('prensa')">📰 Prensa<span class="count" id="cntPrensa" style="display:none">0</span></button>
-   <button class="tab" data-tab="bancas" onclick="tab('bancas')">🏛️ Bancas</button>
+   <button class="tab" data-tab="prensa" onclick="tab('prensa')">📰 Prensa (HOY)<span class="count" id="cntPrensa" style="display:none">0</span></button>
+   <button class="tab" data-tab="bancas" onclick="tab('bancas')">🏛️ Bancas<span class="count" id="cntBancasSol" style="display:none">0</span></button>
    <button class="tab" data-tab="curaduria" onclick="tab('curaduria')">📋 Curaduría<span class="count" id="cntCura" style="display:none">0</span></button>
-   <button class="tab" data-tab="solicitudes" onclick="tab('solicitudes')">🪑 Solicitudes<span class="count" id="cntSolic" style="display:none">0</span></button>
+   <button class="tab" data-tab="videos" onclick="tab('videos')">🎙️ Videos<span class="count" id="cntVideos" style="display:none">0</span></button>
    <button class="tab" data-tab="proximo" onclick="tab('proximo')">🎬 Expertos · Bancas · Usuarios</button>
   </div>
 
@@ -137,18 +137,21 @@ h1{font-size:20px;margin:0 0 4px}
 
   <div id="tab-prensa" style="display:none">
    <div class="card">
-    <h1>Prensa</h1>
-    <p class="muted" style="margin:4px 0 0;font-size:13.5px">El robot de prensa cruza los titulares del día con las leyes. Las de <b>confianza alta</b> entran solas al feed (con la estrella ⭐); desmarcá las que no correspondan. Las <b>sugerencias</b> no entran hasta que las asciendas. Lo que descartes no vuelve a aparecer.</p>
+    <h1>Sugerencias de prensa (HOY)</h1>
+    <p class="muted" style="margin:4px 0 0;font-size:13.5px">Leyes que aparecieron en los diarios de <b>hoy</b>. El robot cruza los titulares con las leyes. Las de <b>confianza alta</b> entran solas al feed (⭐); desmarcá las que no correspondan. Las <b>sugerencias</b> no entran hasta que las asciendas. Lo que descartes no vuelve a aparecer.</p>
    </div>
    <div id="prensaLista"><div class="empty">Cargando…</div></div>
   </div>
 
   <div id="tab-bancas" style="display:none">
    <div class="card">
-    <h1>Bancas que escuchan</h1>
-    <p class="muted" style="margin:4px 0 0;font-size:13.5px">Diputados y senadores nacionales actuales. <b>Validada</b>: confirmás que la banca es real. <b>Escucha</b>: activás el sello que ve la ciudadanía. El presentismo viene de las votaciones del Congreso (comovoto.dev.ar).</p>
+    <h1>Bancas</h1>
+    <p class="muted" style="margin:4px 0 0;font-size:13.5px">Arriba, las <b>solicitudes</b> de legisladores que verificaron su identidad con Didit/RENAPER: revisá sus datos y fotos, confirmá contra fuentes públicas y aprobá (queda validada y con el sello "escucha" activado). Abajo, la lista de todas las bancas.</p>
    </div>
-   <div class="filtros">
+   <div class="filtros" style="margin-top:10px"><span class="muted" style="font-size:12.5px;font-weight:700">🪑 SOLICITUDES</span></div>
+   <div id="solicLista"><div class="empty">Cargando…</div></div>
+   <div class="filtros" style="margin-top:20px">
+    <span class="muted" style="font-size:12.5px;font-weight:700;width:100%">🏛️ TODAS LAS BANCAS</span>
     <button class="chip on" data-bc="diputados" onclick="filtrarBancas('diputados')">Diputados</button>
     <button class="chip" data-bc="senadores" onclick="filtrarBancas('senadores')">Senadores</button>
     <input class="buscador" style="margin:0 0 0 auto;max-width:280px" id="bancasBuscar" placeholder="Buscar por nombre…" oninput="renderBancasAdmin()">
@@ -165,12 +168,12 @@ h1{font-size:20px;margin:0 0 4px}
    <div id="curaMas" style="text-align:center;margin-top:12px"></div>
   </div>
 
-  <div id="tab-solicitudes" style="display:none">
+  <div id="tab-videos" style="display:none">
    <div class="card">
-    <h1>Solicitudes de banca</h1>
-    <p class="muted" style="margin:4px 0 0;font-size:13.5px">Personas que reclaman una banca, verificadas con Didit/RENAPER. Revisá sus datos y las fotos, confirmá contra fuentes públicas que es el legislador que dice ser, y aprobá o rechazá.</p>
+    <h1>Videos de legisladores</h1>
+    <p class="muted" style="margin:4px 0 0;font-size:13.5px">Legisladores con banca validada opinando sobre proyectos. Mirá el video y aprobalo o rechazalo. Por proyecto se publican máximo 2 a favor y 2 en contra, por orden de llegada. Si el cupo está lleno, los demás quedan en cola.</p>
    </div>
-   <div id="solicLista"><div class="empty">Cargando…</div></div>
+   <div id="videosLista"><div class="empty">Cargando…</div></div>
   </div>
 
   <div id="tab-proximo" style="display:none">
@@ -218,13 +221,58 @@ function tab(t){
  $('#tab-prensa').style.display=(t==='prensa')?'block':'none';
  $('#tab-bancas').style.display=(t==='bancas')?'block':'none';
  $('#tab-curaduria').style.display=(t==='curaduria')?'block':'none';
- $('#tab-solicitudes').style.display=(t==='solicitudes')?'block':'none';
  $('#tab-proximo').style.display=(t==='proximo')?'block':'none';
  if(t==='feed'&&feedDatos.length===0)cargarFeed();
  if(t==='prensa'&&prensaDatos.length===0)cargarPrensa();
- if(t==='bancas'&&bancasDatos.length===0)cargarBancas();
+ if(t==='bancas'&&bancasDatos.length===0){cargarBancas();cargarSolicitudes();}
  if(t==='curaduria'&&curaDatos.length===0)cargarCuraduria();
- if(t==='solicitudes'&&solicDatos.length===0)cargarSolicitudes();
+ if(t==='videos'&&videosDatos.length===0)cargarVideosAdmin();
+}
+
+/* ===== PANEL DE VIDEOS DE LEGISLADORES ===== */
+var videosDatos=[];
+function ytIdAdmin(u){
+ if(!u)return null;
+ var m=String(u).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?[^#]*v=|embed\/|shorts\/|live\/))([A-Za-z0-9_-]{6,})/);
+ return m?m[1]:null;
+}
+function cargarVideosAdmin(){
+ rpc('admin_videos_lista',{}).then(function(filas){
+  videosDatos=Array.isArray(filas)?filas:[];
+  var pend=videosDatos.filter(function(v){return v.estado==='en_revision';}).length;
+  var c=$('#cntVideos'); if(c){if(pend){c.style.display='';c.textContent=pend;}else c.style.display='none';}
+  renderVideosAdmin();
+ }).catch(function(e){$('#videosLista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
+}
+function renderVideosAdmin(){
+ if(!videosDatos.length){$('#videosLista').innerHTML='<div class="card"><div class="empty">No hay videos de legisladores.</div></div>';return;}
+ var h='';
+ videosDatos.forEach(function(v){
+  var badge=v.estado==='en_revision'?'<span class="chip" style="background:#fff3cd;color:#8a6d00">⏳ En revisión</span>':(v.estado==='aprobado'?'<span class="chip on">✅ Publicado</span>':'<span class="chip">✕ Rechazado</span>');
+  var post=v.postura==='a_favor'?'<span class="chip on">👍 A favor</span>':'<span class="chip" style="background:var(--contra-bg,#fde);color:var(--contra,#c0392b)">👎 En contra</span>';
+  var vid=ytIdAdmin(v.url_youtube);
+  var player=vid?'<div style="position:relative;width:100%;max-width:420px;padding-top:56.25%;border-radius:10px;overflow:hidden;margin:8px 0;background:#000"><iframe src="https://www.youtube-nocookie.com/embed/'+vid+'" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0" loading="lazy" allowfullscreen></iframe></div>':'<a href="'+esc(v.url_youtube)+'" target="_blank">▶ Ver en YouTube</a>';
+  h+='<div class="card" id="video-'+v.id+'" style="padding:14px">'
+   +'<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px"><div style="font-weight:800;font-size:14px">'+esc(v.legislador||'(sin nombre)')+'</div>'+badge+'</div>'
+   +'<div class="muted" style="font-size:11.5px;margin-bottom:6px">'+esc(v.camara||'')+' · proyecto '+esc(v.ley_bill_id)+' · '+post+'</div>'
+   +player;
+  if(v.estado==='en_revision'){
+   h+='<div style="display:flex;gap:8px;margin-top:10px"><button class="chip on" onclick="accionVideo('+v.id+',\'aprobar\')">✅ Aprobar y publicar</button><button class="chip" onclick="accionVideo('+v.id+',\'rechazar\')">✕ Rechazar</button></div>';
+  }
+  h+='</div>';
+ });
+ $('#videosLista').innerHTML=h;
+}
+function accionVideo(id,accion){
+ rpc('admin_video_accion',{p_id:id,p_accion:accion}).then(function(res){
+  var r=(typeof res==='string')?res:(res&&res[0]?res[0]:'');
+  if(r==='CUPO_LLENO'){alert('Ya hay 2 videos aprobados de esa postura para este proyecto. Rechazá o esperá a que se libere uno.');return;}
+  var v=videosDatos.find(function(x){return x.id===id;});
+  if(v)v.estado=(accion==='aprobar')?'aprobado':'rechazado';
+  var pend=videosDatos.filter(function(x){return x.estado==='en_revision';}).length;
+  var c=$('#cntVideos'); if(c){if(pend){c.textContent=pend;}else c.style.display='none';}
+  renderVideosAdmin();
+ }).catch(function(e){alert('Error: '+String(e));});
 }
 
 /* ===== PANEL DE SOLICITUDES DE BANCA ===== */
@@ -233,7 +281,7 @@ function cargarSolicitudes(){
  rpc('admin_solicitudes_banca',{}).then(function(filas){
   solicDatos=Array.isArray(filas)?filas:[];
   var pend=solicDatos.filter(function(s){return s.estado==='pendiente';}).length;
-  var c=$('#cntSolic'); if(c){if(pend){c.style.display='';c.textContent=pend;}else c.style.display='none';}
+  var c=$('#cntBancasSol'); if(c){if(pend){c.style.display='';c.textContent=pend;}else c.style.display='none';}
   renderSolicitudes();
  }).catch(function(e){$('#solicLista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
 }
@@ -279,7 +327,7 @@ function accionSolic(id,accion){
   var s=solicDatos.find(function(x){return x.id===id;});
   if(s)s.estado=(accion==='aprobar')?'aprobada':'rechazada';
   var pend=solicDatos.filter(function(x){return x.estado==='pendiente';}).length;
-  var c=$('#cntSolic'); if(c){if(pend){c.textContent=pend;}else c.style.display='none';}
+  var c=$('#cntBancasSol'); if(c){if(pend){c.textContent=pend;}else c.style.display='none';}
   renderSolicitudes();
  }).catch(function(e){alert('Error: '+String(e));});
 }

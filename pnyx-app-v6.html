@@ -199,6 +199,7 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
       <div class="overlay" id="banca"></div>
       <div class="overlay" id="histo"></div>
       <div class="overlay" id="afin"></div>
+      <div class="overlay" id="opinarLeg"></div>
       <div class="overlay" id="repstats"></div>
       <div id="stories"></div>
     </div>
@@ -334,9 +335,20 @@ async function iniciarVerificacionDidit(){
 /* Desarrollo: saltear verificación y entrar igual */
 function saltearVerificacion(){enterApp();}
 
+var miBanca=null;   // si el usuario logueado es legislador con banca validada, acá van sus datos
+function chequearMiBanca(){
+ miBanca=null;
+ if(!usuarioActual)return;
+ fetch(SUPABASE_URL+'/rest/v1/bancas?select=id,nombre,camara&user_id=eq.'+usuarioActual.id+'&validada=eq.true&limit=1',
+   {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}})
+  .then(function(r){return r.json();})
+  .then(function(f){if(Array.isArray(f)&&f[0])miBanca=f[0];})
+  .catch(function(){});
+}
 function enterApp(){
   $('#onb').style.display='none';
   $('#app').style.display='flex';
+  chequearMiBanca();
   var d=$('#deck');
   if(d)d.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted)">Cargando leyes del Congreso...</div>';
   // Primero traer qué leyes ya votó este usuario, después cargar el feed filtrado
@@ -708,8 +720,8 @@ function doVote(choice){if(idx>=pending.length)return;
 function flyAndVote(choice){var c=$('#card');if(c){c.style.transition='transform .25s';if(choice==='favor')c.style.transform='translateX(520px) rotate(28deg)';else if(choice==='contra')c.style.transform='translateX(-520px) rotate(-28deg)';else c.style.opacity='0';}doVote(choice);}
 
 function openDetail(){if(idx>=pending.length)return;var b=pending[idx],d=$('#detail');
- d.innerHTML='<button class="back" data-act="closeDetail">← Volver</button><h3 class="title" style="font-size:20px">'+b.n+'</h3><p class="muted" style="font-size:12.5px;margin:4px 0 12px">'+b.camara+' · '+b.estado+'</p><div class="prop" style="margin:0 0 12px"><div class="av">'+b.ini+'</div><div><div class="muted" style="font-size:11.5px">Propone</div><div style="font-size:13px;font-weight:700">'+proponeLinea(b)+'</div></div></div><div style="margin-bottom:6px">'+k('✨ resumen IA','ia')+'</div><p style="font-size:14px;line-height:1.55;margin:0 0 14px">'+b.resumen+'</p>'+expBtn(b)+textoBtn(b)+'<div class="note info" style="margin:12px 0 16px">🔁 Cuando el Congreso lo vote, vas a ver cómo votó cada bloque frente a tu postura.</div><div class="vrow"><button class="vbtn c" data-act="voteD" data-arg="contra"><span class="em">👎</span>En contra</button><button class="vbtn a" data-act="voteD" data-arg="abst"><span class="em">➖</span>Abstención<span class="gq" onclick="event.stopPropagation();glosa(&quot;abstencion&quot;)">i</span></button><button class="vbtn f" data-act="voteD" data-arg="favor"><span class="em">👍</span>A favor</button></div>';
- d.classList.add('show');}
+ d.innerHTML='<button class="back" data-act="closeDetail">← Volver</button><h3 class="title" style="font-size:20px">'+b.n+'</h3><p class="muted" style="font-size:12.5px;margin:4px 0 12px">'+b.camara+' · '+b.estado+'</p><div class="prop" style="margin:0 0 12px"><div class="av">'+b.ini+'</div><div><div class="muted" style="font-size:11.5px">Propone</div><div style="font-size:13px;font-weight:700">'+proponeLinea(b)+'</div></div></div><div style="margin-bottom:6px">'+k('✨ resumen IA','ia')+'</div><p style="font-size:14px;line-height:1.55;margin:0 0 14px">'+b.resumen+'</p>'+expBtn(b)+opinarLegisladorBtn(b)+textoBtn(b)+'<div id="videosLeg-'+b.billId+'"></div><div class="note info" style="margin:12px 0 16px">🔁 Cuando el Congreso lo vote, vas a ver cómo votó cada bloque frente a tu postura.</div><div class="vrow"><button class="vbtn c" data-act="voteD" data-arg="contra"><span class="em">👎</span>En contra</button><button class="vbtn a" data-act="voteD" data-arg="abst"><span class="em">➖</span>Abstención<span class="gq" onclick="event.stopPropagation();glosa(&quot;abstencion&quot;)">i</span></button><button class="vbtn f" data-act="voteD" data-arg="favor"><span class="em">👍</span>A favor</button></div>';
+ d.classList.add('show');cargarVideosLeg(b.billId);}
 function openFull(){if(idx>=pending.length)return;var b=pending[idx],f=$('#fulltext');
  var cab='<button class="back" data-act="closeFull">← Volver al resumen</button><h3 class="title" style="font-size:20px">'+b.n+'</h3><p class="muted" style="font-size:12px;margin:4px 0 12px">📜 Texto del proyecto · '+b.camara+'</p>';
  f.innerHTML=cab+'<div class="artic" id="artcuerpo"><span class="muted">Cargando texto oficial…</span></div>';
@@ -729,6 +741,79 @@ function openFull(){if(idx>=pending.length)return;var b=pending[idx],f=$('#fullt
   .catch(function(){cuerpo().innerHTML='<span class="muted">No se pudo cargar el texto ahora. Probá de nuevo.</span>';});
 }
 // Botón del detalle: solo aparece si la ley tiene ≥1 opinión cargada
+/* ===== VIDEOS DE LEGISLADORES ===== */
+// Botón "Opinar como legislador" — solo si el usuario tiene banca validada.
+function opinarLegisladorBtn(b){
+ if(!miBanca||!b||!b.billId)return '';
+ return '<button class="expbtn" style="background:var(--brand-soft);color:var(--brand)" onclick="abrirOpinarLeg(\''+b.billId+'\')">🎙️ Opinar como legislador nacional</button>';
+}
+// Al abrir el detalle, cargar los videos de legisladores APROBADOS de esa ley.
+function cargarVideosLeg(billId){
+ var cont=document.getElementById('videosLeg-'+billId);
+ if(!cont)return;
+ fetch(SUPABASE_URL+'/rest/v1/rpc/videos_publicos',{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({p_ley:billId})})
+  .then(function(r){return r.json();})
+  .then(function(vs){
+    vs=Array.isArray(vs)?vs:[];
+    if(!vs.length){cont.innerHTML='';return;}
+    var fav=vs.filter(function(v){return v.postura==='a_favor';});
+    var con=vs.filter(function(v){return v.postura==='en_contra';});
+    var h='<div class="sech" style="margin-top:16px">🎙️ QUÉ DICEN LOS LEGISLADORES</div>';
+    function grupo(titulo,arr){
+      if(!arr.length)return '';
+      var g='<div style="font-weight:700;font-size:13px;margin:8px 0 4px">'+titulo+'</div>';
+      arr.forEach(function(v){
+        g+='<div style="margin-bottom:12px"><div style="font-weight:700;font-size:13px">'+escHtml(v.legislador||'')+'</div>'+expVideoHTML({youtube_url:v.url_youtube})+'</div>';
+      });
+      return g;
+    }
+    h+=grupo('👍 A favor',fav)+grupo('👎 En contra',con);
+    cont.innerHTML=h;
+  })
+  .catch(function(){cont.innerHTML='';});
+}
+// Pantalla para cargar el video (link YouTube + postura)
+function abrirOpinarLeg(billId){
+ opinarLegLey=billId;
+ var x=$('#opinarLeg');
+ // primero ver si ya cargó uno
+ fetch(SUPABASE_URL+'/rest/v1/rpc/mi_video_legislador',{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({p_user_id:usuarioActual.id,p_ley:billId})})
+  .then(function(r){return r.json();})
+  .then(function(f){
+    var ya=(Array.isArray(f)&&f[0])?f[0]:null;
+    var h='<button class="back" data-act="closeOpinar">← Volver</button><h3 class="title" style="font-size:19px">Opinar como legislador</h3>';
+    if(ya){
+      var est=ya.estado==='aprobado'?'✅ Aprobado y publicado':(ya.estado==='rechazado'?'✕ No aprobado':'⏳ En revisión');
+      h+='<div class="note info" style="margin:12px 0">Ya cargaste tu video para este proyecto ('+(ya.postura==='a_favor'?'a favor':'en contra')+').<br>Estado: <b>'+est+'</b><br>No se puede modificar una vez cargado.</div>';
+    } else {
+      h+='<p class="muted" style="font-size:12.5px;margin:6px 0 12px">Subí tu video a tu canal de YouTube y pegá el link acá. Un administrador lo revisa antes de publicarlo. Se aceptan máximo <b>2 a favor y 2 en contra</b> por proyecto, por orden de llegada. Si el cupo está lleno, tu video queda en cola por si se libera.</p>'
+       +'<div style="display:flex;gap:8px;margin-bottom:12px"><button id="posFav" class="chip" onclick="setPostura(\'a_favor\')">👍 A favor</button><button id="posCon" class="chip" onclick="setPostura(\'en_contra\')">👎 En contra</button></div>'
+       +'<input id="urlVideoLeg" style="width:100%;margin:0 0 12px;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;box-sizing:border-box" placeholder="https://youtube.com/...">'
+       +'<button class="primary sm" onclick="enviarVideoLeg()">Enviar a revisión</button>'
+       +'<div id="opinarMsg" style="margin-top:10px;font-size:12.5px;color:var(--muted);display:none"></div>';
+    }
+    x.innerHTML=h;x.classList.add('show');x.scrollTop=0;
+  });
+}
+var opinarLegLey=null, opinarPostura=null;
+function setPostura(p){opinarPostura=p;$('#posFav').classList.toggle('on',p==='a_favor');$('#posCon').classList.toggle('on',p==='en_contra');}
+function enviarVideoLeg(){
+ var msg=$('#opinarMsg'); msg.style.display='block';msg.style.color='var(--muted)';
+ var url=($('#urlVideoLeg').value||'').trim();
+ if(!opinarPostura){msg.style.color='#c0392b';msg.textContent='Elegí a favor o en contra.';return;}
+ if(!ytId(url)){msg.style.color='#c0392b';msg.textContent='Pegá un link de YouTube válido.';return;}
+ msg.textContent='Enviando…';
+ fetch(SUPABASE_URL+'/rest/v1/rpc/cargar_video_legislador',{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({p_user_id:usuarioActual.id,p_ley:opinarLegLey,p_postura:opinarPostura,p_url:url})})
+  .then(function(r){return r.json();})
+  .then(function(res){
+    if(res==='EN_REVISION'){msg.style.color='var(--favor)';msg.textContent='✅ Enviado. Tu video está en revisión.';}
+    else if(res==='EN_COLA'){msg.style.color='var(--favor)';msg.textContent='✅ Enviado. Ya hay 2 videos aprobados de esa postura, el tuyo queda en cola por si se libera un lugar.';}
+    else if(res==='YA_CARGADO'){msg.style.color='#c0392b';msg.textContent='Ya cargaste un video para este proyecto.';}
+    else if(res==='SIN_BANCA'){msg.style.color='#c0392b';msg.textContent='Tu banca no está validada.';}
+    else{msg.style.color='#c0392b';msg.textContent='No se pudo enviar. Probá de nuevo.';}
+  })
+  .catch(function(e){msg.style.color='#c0392b';msg.textContent='Error: '+String(e);});
+}
 function expBtn(b){
  var n=(b&&b.billId)?(expCounts[b.billId]||0):0;
  if(!n)return '';
@@ -1398,6 +1483,7 @@ document.addEventListener('click',function(e){var el=e.target.closest('[data-act
  else if(a==='bancaCam'){bancaCamara=arg;bancaBusca='';pintarBanc();}
  else if(a==='verHistorial')openHistorial();
  else if(a==='closeHisto')$('#histo').classList.remove('show');
+ else if(a==='closeOpinar')$('#opinarLeg').classList.remove('show');
  else if(a==='verAfinidad')openAfinidad();
  else if(a==='closeAfin')$('#afin').classList.remove('show');
  else if(a==='closeBanca')$('#banca').classList.remove('show');
