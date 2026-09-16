@@ -510,7 +510,7 @@ function pedirVerificarParaVotar(){
    +'<p class="muted" style="font-size:13.5px;margin:10px 0">Para que cada persona vote una sola vez, antes de votar necesitás verificar que sos una persona real (una selfie y tu documento). Tu identidad queda <b>separada de tus votos</b>: nadie puede saber cómo votaste.</p>'
    +'<button class="primary sm" onclick="iniciarVerificacionDidit()">Verificar mi identidad</button>'
    +'<div id="verMsgP" style="margin-top:10px;font-size:12.5px;color:var(--muted);display:none"></div>';
-  d.classList.add('show');d.scrollTop=0;
+  abrirOverlay(d);
 }
 
 var pending=[];
@@ -563,6 +563,16 @@ function cargarLeyes(listo){
 /* ===== EXPERTOS: opiniones reales desde Supabase (tabla expertos, lectura pública) ===== */
 var expCounts={};   // ley_bill_id -> cantidad de opiniones cargadas
 var expCache={};    // ley_bill_id -> filas ya bajadas (para no pedir dos veces)
+/* Abre cualquier overlay de forma uniforme: lo muestra, resetea su scroll
+   Y el del contenedor .main (esto último es lo que evita el bug de que el
+   overlay aparezca "en la mitad" cuando la pantalla de atrás estaba scrolleada). */
+function abrirOverlay(el){
+  if(typeof el==='string')el=document.getElementById(el)||$('#'+el);
+  if(!el)return;
+  el.classList.add('show');
+  el.scrollTop=0;
+  var mm=$('.main'); if(mm)mm.scrollTop=0;
+}
 function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 /* Limpia títulos crudos del CSV: saca prefijos burocráticos, referencias de
    expediente, y pasa MAYÚSCULAS a tipo oración (respetando siglas y leyes). */
@@ -833,11 +843,11 @@ function flyAndVote(choice){var c=$('#card');if(c){c.style.transition='transform
 
 function openDetail(){if(idx>=pending.length)return;var b=pending[idx],d=$('#detail');
  d.innerHTML='<button class="back" data-act="closeDetail">← Volver</button><h3 class="title" style="font-size:20px">'+b.n+'</h3><p class="muted" style="font-size:12.5px;margin:4px 0 12px">'+b.camara+' · '+b.estado+'</p><div class="prop" style="margin:0 0 12px"><div class="av">'+b.ini+'</div><div><div class="muted" style="font-size:11.5px">Propone</div><div style="font-size:13px;font-weight:700">'+proponeLinea(b)+'</div></div></div><div style="margin-bottom:6px">'+k('✨ resumen IA','ia')+'</div><p style="font-size:14px;line-height:1.55;margin:0 0 14px">'+b.resumen+'</p>'+expBtn(b)+opinarLegisladorBtn(b)+textoBtn(b)+'<div id="videosLeg-'+b.billId+'"></div><div class="note info" style="margin:12px 0 16px">🔁 Cuando el Congreso lo vote, vas a ver cómo votó cada bloque frente a tu postura.</div><div class="vrow"><button class="vbtn c" data-act="voteD" data-arg="contra"><span class="em">👎</span>En contra</button><button class="vbtn a" data-act="voteD" data-arg="abst"><span class="em">➖</span>Abstención<span class="gq" onclick="event.stopPropagation();glosa(&quot;abstencion&quot;)">i</span></button><button class="vbtn f" data-act="voteD" data-arg="favor"><span class="em">👍</span>A favor</button></div>';
- d.classList.add('show');cargarVideosLeg(b.billId);}
+ abrirOverlay(d);cargarVideosLeg(b.billId);}
 function openFull(){if(idx>=pending.length)return;var b=pending[idx],f=$('#fulltext');
  var cab='<button class="back" data-act="closeFull">← Volver al resumen</button><h3 class="title" style="font-size:20px">'+b.n+'</h3><p class="muted" style="font-size:12px;margin:4px 0 12px">📜 Texto del proyecto · '+b.camara+'</p>';
  f.innerHTML=cab+'<div class="artic" id="artcuerpo"><span class="muted">Cargando texto oficial…</span></div>';
- f.classList.add('show');
+ abrirOverlay(f);
  var cuerpo=function(){return document.getElementById('artcuerpo');};
  // Si ya lo trajimos antes, no volver a pedirlo
  if(b.completa){cuerpo().textContent=b.completa;return;}
@@ -908,7 +918,7 @@ function abrirOpinarLeg(billId){
        +'<button class="primary sm" onclick="enviarVideoLeg()">Enviar a revisión</button>'
        +'<div id="opinarMsg" style="margin-top:10px;font-size:12.5px;color:var(--muted);display:none"></div>';
     }
-    x.innerHTML=h;x.classList.add('show');x.scrollTop=0;
+    x.innerHTML=h;abrirOverlay(x);
   });
 }
 var opinarLegLey=null, opinarPostura=null;
@@ -958,7 +968,7 @@ function openExperts(){
  if(idx>=pending.length)return;
  var b=pending[idx],x=$('#experts');
  x.innerHTML='<button class="back" data-act="closeExperts">← Volver al proyecto</button><h3 class="title" style="font-size:19px">Qué dicen los expertos</h3><p class="muted" style="font-size:12.5px;margin:5px 0 4px">Cada voz declara su afiliación o cercanía. Nadie se cataloga como apolítico.</p><div id="expcuerpo"><span class="muted" style="font-size:12.5px">Cargando opiniones…</span></div>';
- x.classList.add('show');x.scrollTop=0;
+ abrirOverlay(x);
  var pintar=function(filas){
   var c=document.getElementById('expcuerpo');
   if(!c)return;
@@ -1152,7 +1162,7 @@ function openBloc(i){var l=voted[curLaw];if(!l||!l.blocOrden)return;
  var h='<button class="back" data-act="closeBloc">← Volver a la votación</button><h3 class="title" style="font-size:19px">'+nombreCompleto+'</h3><p class="muted" style="font-size:12.5px;margin:4px 0 0">'+l.camara+' · '+l.n+'</p>';
  h+='<div class="bar" style="margin-top:12px">'+seg(arr[0]/tot*100,'var(--favor)')+seg(arr[2]/tot*100,'var(--abst)')+seg(arr[1]/tot*100,'var(--contra)')+seg(arr[3]/tot*100,'var(--aus)')+'</div><p class="muted" style="font-size:12px;margin:0 0 12px">'+arr[0]+' a favor · '+arr[1]+' en contra · '+arr[2]+' abst. · '+arr[3]+' aus.</p>';
  h+='<div class="sech">CÓMO VOTÓ CADA UNO</div><div id="blocMembers"><p class="muted" style="font-size:12px">Cargando nombres…</p></div>';
- bd.innerHTML=h;bd.classList.add('show');bd.scrollTop=0;
+ bd.innerHTML=h;abrirOverlay(bd);
  // lazy load de los nombres reales de este bloque en esta votacion
  fetch(SUPABASE_URL+'/rest/v1/rpc/votada_nombres',{method:'POST',
    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
@@ -1411,12 +1421,12 @@ function openAfinidad(){
       +'<div class="muted" style="font-size:11px">'+escHtml(r.bloque||'')+' · '+escHtml(r.provincia||'')+' · '+r.n+' leyes</div></div>'
       +'<div style="font-weight:800;font-size:16px;color:'+col+'">'+r.pct+'%</div></div>';
    });
-   x.innerHTML=h;x.classList.add('show');x.scrollTop=0;var mm=$('.main');if(mm)mm.scrollTop=0;return;
+   x.innerHTML=h;abrirOverlay(x);return;
  }
  x.innerHTML='<button class="back" data-act="closeAfin">← Volver al perfil</button>'
   +'<h3 class="title" style="font-size:20px">¿Con quién coincidís?</h3>'
   +'<p class="muted" style="font-size:13px;margin:8px 0 14px">Calculando en tu dispositivo…</p>';
- x.classList.add('show');x.scrollTop=0;var mmA=$('.main');if(mmA)mmA.scrollTop=0;
+ abrirOverlay(x);
  calcularAfinidad().then(function(res){
    var h='<button class="back" data-act="closeAfin">← Volver al perfil</button>'
     +'<h3 class="title" style="font-size:20px">¿Con quién coincidís?</h3>';
@@ -1459,7 +1469,7 @@ function openHistorial(){
   +'<h3 class="title" style="font-size:20px">Tu historial de votos</h3>';
  if(!lista.length){
   h+='<p class="muted" style="font-size:13px;margin:8px 0">Todavía no votaste ninguna ley. Cuando lo hagas, vas a ver acá qué votaste.</p>';
-  x.innerHTML=h;x.classList.add('show');x.scrollTop=0;return;
+  x.innerHTML=h;abrirOverlay(x);return;
  }
  h+='<p class="muted" style="font-size:12px;margin:6px 0 14px">Guardado solo en este dispositivo, para vos. No viaja a ningún servidor: tu voto sigue siendo secreto.</p>';
  var etq={favor:['👍 A favor','var(--favor)','var(--favor-bg)'],contra:['👎 En contra','var(--contra)','var(--contra-bg)'],abst:['➖ Abstención','var(--muted)','var(--surface2)']};
@@ -1473,7 +1483,7 @@ function openHistorial(){
    +'<span class="k" style="background:'+e[2]+';color:'+e[1]+';white-space:nowrap">'+e[0]+'</span></div>';
  });
  h+='<div style="text-align:center;margin-top:16px"><button style="border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12px;padding:8px 16px;border-radius:20px;cursor:pointer" onclick="borrarHistorial()">Borrar mi historial local</button></div>';
- x.innerHTML=h;x.classList.add('show');x.scrollTop=0;var mmH=$('.main');if(mmH)mmH.scrollTop=0;
+ x.innerHTML=h;abrirOverlay(x);
 }
 function borrarHistorial(){
  if(!confirm('¿Borrar tu historial de este dispositivo? Tus votos ya emitidos no se tocan; solo se borra esta lista local.'))return;
@@ -1537,12 +1547,12 @@ function openBanca(){
  if(!verifState){
   b.innerHTML='<button class="back" data-act="closeBanca">← Volver</button><h3 class="title" style="font-size:20px">Validar mi banca</h3>'
    +'<div class="note info" style="margin:12px 0">Para reclamar una banca primero tenés que verificar tu identidad como ciudadano. Volvé al perfil y tocá "Verificar mi identidad".</div>';
-  b.classList.add('show');b.scrollTop=0;return;
+  abrirOverlay(b);return;
  }
  b.innerHTML='<button class="back" data-act="closeBanca">← Volver</button><h3 class="title" style="font-size:20px">¿Cuál es tu banca?</h3>'
   +'<p class="muted" style="font-size:12.5px;margin:4px 0 12px">Buscá y elegí el cargo que ocupás. Después vas a verificar tu identidad con tu DNI, y un administrador confirma que sos vos.</p>'
   +'<div id="bancaSolCont"><span class="muted" style="font-size:12.5px">Cargando lista…</span></div>';
- b.classList.add('show');b.scrollTop=0;
+ abrirOverlay(b);
  if(bancasParaElegir){pintarBancaSol();return;}
  fetch(SUPABASE_URL+'/rest/v1/rpc/bancas_lista',{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},body:'{}'})
   .then(function(r){return r.json();})
@@ -1594,7 +1604,7 @@ function openRepStats(){var r=$('#repstats');
  [['glaciares','Ley de Glaciares'],['laboral','Reforma Laboral'],['penal','Régimen Penal Juvenil']].forEach(function(l){var done=vidDone[l[0]];
   h+='<div class="mem"><div class="repav" style="background:var(--surface2);color:var(--muted)">🎬</div><div style="flex:1"><div style="font-weight:700;font-size:13.5px">'+l[1]+'</div><div class="muted" style="font-size:11px">'+(done?'video subido':'sin explicar')+'</div></div>'+(done?k('✅ subido','ok'):'<button class="cgo" data-act="subirVid" data-arg="'+l[0]+'">＋ Subir video</button>')+'</div>';});
  h+='<p class="muted" style="font-size:11px;margin:14px 4px 0">Números del distrito ilustrativos.</p>';
- r.innerHTML=h;r.classList.add('show');r.scrollTop=0;}
+ r.innerHTML=h;abrirOverlay(r);}
 
 /* buscador de historicas: escucha el input con debounce */
 var histTimer=null;
