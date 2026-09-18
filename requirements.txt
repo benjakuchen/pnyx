@@ -1,0 +1,7 @@
+supabase
+requests
+pypdf
+anthropic
+feedparser
+pypdfium2
+pillow

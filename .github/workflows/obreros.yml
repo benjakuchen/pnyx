@@ -1,0 +1,37 @@
+name: Actualizar leyes (obreros Pnyx)
+
+# Cuándo corre:
+#  - schedule: todos los días a las 07:00 UTC = 04:00 en Argentina (UTC-3)
+#  - workflow_dispatch: botón para correrlo a mano cuando quieras
+on:
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+# Evita que dos corridas se pisen si una tarda de más
+concurrency:
+  group: obreros
+  cancel-in-progress: false
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Traer el código del repo
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Correr la tubería (maestro)
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python pnyx_actualizar.py

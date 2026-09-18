@@ -3,9 +3,10 @@
 """
 Pnyx · Maestro — corre toda la tuberia en orden
 ------------------------------------------------
-Ejecuta los 9 obreros en secuencia. Cada uno actualiza Supabase (la fuente
-de verdad). Si un obrero falla, avisa y sigue con el resto (salvo el 1,
-que es requisito de los demas).
+Ejecuta todos los obreros en secuencia (menos el 16 linkeo, que todavia no
+esta probado). Cada uno actualiza Supabase (la fuente de verdad). Si un
+obrero falla, avisa y sigue con el resto (salvo el 1, que es requisito de
+los demas).
 
 Uso:
   python pnyx_actualizar.py            (corrida normal, sin resumir de mas)
@@ -23,16 +24,22 @@ FULL = "--full" in sys.argv
 
 # (script, argumentos, es_critico)
 PASOS = [
-    ("1_consultar_supabase.py", [], True),
-    ("2_bajar_diputados.py", [], False),
-    ("3_texto_diputados.py", (["--todos"] if FULL else []), False),
-    ("4_resumir_diputados.py", (["50"] if FULL else []), False),
-    ("5_bajar_senado.py", [], False),
-    ("6_texto_senado.py", (["--todos"] if FULL else []), False),
-    ("7_resumir_senado.py", (["50"] if FULL else []), False),
-    ("8_prensa.py", [], False),
-    ("1_consultar_supabase.py", [], True),   # refrescar estado antes de puntuar
-    ("9_mezclar_ordenar.py", [], False),
+    ("1_consultar_supabase.py", [], True),                              # estado + existentes.json
+    ("2_bajar_diputados.py", [], False),                               # lista Diputados
+    ("3_texto_diputados.py", (["--todos"] if FULL else []), False),    # texto Diputados -> Supabase
+    ("5_bajar_senado.py", [], False),                                  # lista Senado
+    ("6_texto_senado.py", (["--todos"] if FULL else []), False),       # texto Senado -> Supabase
+    ("15_ocr.py", [], False),                                          # OCR de escaneados sin texto (ambas camaras)
+    ("4_resumir_diputados.py", (["50"] if FULL else []), False),       # resumen Diputados (incluye lo recien OCReado)
+    ("7_resumir_senado.py", (["50"] if FULL else []), False),          # resumen Senado
+    ("8_prensa.py", [], False),                                        # flags de prensa
+    ("10_votadas.py", [], False),                                      # votaciones por bloque
+    ("11_autores.py", [], False),                                      # autores / firmantes
+    ("12_bancas.py", [], False),                                       # lista de legisladores
+    ("13_sanciones.py", [], False),                                    # media sancion / sancion
+    ("1_consultar_supabase.py", [], True),                             # refrescar estado
+    ("14_curaduria.py", [], False),                                    # clasificar auto / cola / ruido
+    ("9_mezclar_ordenar.py", [], False),                              # puntuar y ordenar (ultimo)
 ]
 
 
