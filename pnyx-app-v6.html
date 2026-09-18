@@ -164,6 +164,7 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
         <div class="fld" id="pass2Wrap"><label>Repetir contraseña</label><input type="password" id="pass2Input" placeholder="Escribila de nuevo" autocomplete="new-password"></div>
         <button class="primary sm" id="loginBtn" onclick="accionLogin()">Crear cuenta</button>
         <div style="text-align:center;margin:14px 0 4px"><span class="muted" style="font-size:12.5px">¿Ya tenés cuenta? <a href="#" onclick="toggleLoginModo();return false" id="toggleLink" style="color:var(--brand);font-weight:700;text-decoration:none">Entrá acá</a></span></div>
+        <div id="forgotWrap" style="text-align:center;margin:2px 0 4px;display:none"><a href="#" onclick="pedirReset();return false" style="color:var(--muted);font-size:12.5px;text-decoration:underline">¿Olvidaste tu contraseña?</a></div>
         <div id="loginMsg" style="margin-top:14px;font-size:13px;text-align:center;color:var(--muted);display:none"></div>
       </div>
     </div>
@@ -174,8 +175,28 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
       <p class="muted" style="text-align:center;margin:0 0 18px">Para que cada persona vote una sola vez, confirmamos tu identidad. Es rápido: una selfie y tu DNI.</p>
       <div class="note info" style="margin-bottom:14px">🔒 Tu identidad queda separada de tus votos. Verificamos que sos una persona real y única, pero <b>nadie puede saber cómo votaste</b>.</div>
       <button class="primary sm" onclick="iniciarVerificacionDidit()">Verificar mi identidad</button>
-      <button class="fullbtn" style="margin-top:10px" onclick="saltearVerificacion()">Saltear por ahora (modo prueba)</button>
       <div id="verMsg" style="margin-top:14px;font-size:13px;text-align:center;color:var(--muted);display:none"></div>
+    </div>
+
+    <div class="ob" id="oConfirm">
+      <div style="text-align:center;margin-top:14px;font-size:46px">📬</div>
+      <h2 class="serif" style="font-size:23px;text-align:center;margin:12px 0 6px">Revisá tu correo</h2>
+      <p class="muted" style="text-align:center;margin:0 0 6px">Te mandamos un mail a <b id="confirmEmail">tu correo</b> para confirmar que es tuyo.</p>
+      <p class="muted" style="text-align:center;margin:0 0 18px;font-size:13px">Abrilo y tocá el link. Vas a volver acá para verificar tu identidad. Si no lo ves, mirá en spam o correo no deseado.</p>
+      <div class="note info" style="margin-bottom:14px">Confirmar tu mail sirve para que, si alguna vez te olvidás la contraseña, puedas recuperar tu cuenta.</div>
+      <button class="fullbtn" onclick="reenviarConfirmacion()">Reenviar el correo</button>
+      <div style="text-align:center;margin-top:14px"><a href="#" onclick="volverAlLogin();return false" style="color:var(--muted);font-size:12.5px;text-decoration:underline">Usé otro email · volver</a></div>
+      <div id="confirmMsg" style="margin-top:12px;font-size:13px;text-align:center;color:var(--muted);display:none"></div>
+    </div>
+
+    <div class="ob" id="oReset">
+      <div style="text-align:center;margin-top:14px;font-size:46px">🔑</div>
+      <h2 class="serif" style="font-size:23px;text-align:center;margin:12px 0 6px">Poné tu contraseña nueva</h2>
+      <p class="muted" style="text-align:center;margin:0 0 18px">Elegí una contraseña nueva para tu cuenta. Con esta vas a entrar de ahora en más.</p>
+      <div class="fld"><label>Contraseña nueva</label><input type="password" id="reset1" placeholder="Mínimo 6 caracteres" autocomplete="new-password"></div>
+      <div class="fld"><label>Repetir contraseña</label><input type="password" id="reset2" placeholder="Escribila de nuevo" autocomplete="new-password"></div>
+      <button class="primary sm" onclick="guardarPasswordNueva()">Guardar y entrar</button>
+      <div id="resetMsg" style="margin-top:14px;font-size:13px;text-align:center;color:var(--muted);display:none"></div>
     </div>
   </div>
 
@@ -248,13 +269,16 @@ $('#countryList').innerHTML=countries.map(function(c){
 }).join('');
 
 var c1=false,c2=false;
-function showScreen(id){['o0','oC','oTyc','oRen'].forEach(function(s){$('#'+s).classList.toggle('show',s===id);});$('#onb').scrollTop=0;}
+function showScreen(id){['o0','oC','oTyc','oRen','oVer','oConfirm','oReset'].forEach(function(s){$('#'+s).classList.toggle('show',s===id);});$('#onb').scrollTop=0;}
 
 /* SUPABASE */
 var SUPABASE_URL='https://ihmbhbhwlntsjqdavxge.supabase.co';
 var SUPABASE_KEY='sb_publishable_ih-dOjPauQayOpzn7uL6vw_vIt96ZHR';
 var supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 var usuarioActual=null;
+/* URL de esta app, sin # ni ?, adonde vuelven los links de confirmar mail y recuperar contraseña */
+var APP_URL=window.location.href.split('#')[0].split('?')[0];
+var ultimoEmailCreado='';
 
 /* AUTH */
 async function accionLogin(){
@@ -270,18 +294,26 @@ async function accionLogin(){
     var pass2=$('#pass2Input').value;
     if(pass!==pass2){err('Las contraseñas no coinciden. Escribilas iguales.');return;}
     info('Creando cuenta…');
-    var res=await supabase.auth.signUp({email:email,password:pass});
+    var res=await supabase.auth.signUp({email:email,password:pass,options:{emailRedirectTo:APP_URL}});
     if(res.error){err('Error: '+res.error.message);return;}
-    if(res.data&&res.data.session){usuarioActual=res.data.session.user;continuarTrasLogin();}
-    else{
-      var r2=await supabase.auth.signInWithPassword({email:email,password:pass});
-      if(r2.data&&r2.data.session){usuarioActual=r2.data.session.user;continuarTrasLogin();}
-      else{info('✅ Cuenta creada. Revisá tu email si te pide confirmar, y volvé a entrar.');loginModoCrear=false;toggleLoginModo();}
+    if(res.data&&res.data.session){
+      // Supabase no exige confirmar el mail: entra directo a verificar identidad
+      usuarioActual=res.data.session.user;continuarTrasLogin();
+    } else {
+      // Supabase mandó un mail de confirmación: hay que confirmarlo antes de seguir
+      ultimoEmailCreado=email;
+      mostrarConfirmEmail(email);
     }
   } else {
     info('Entrando…');
     var resIn=await supabase.auth.signInWithPassword({email:email,password:pass});
-    if(resIn.error){err('Email o contraseña incorrectos.');return;}
+    if(resIn.error){
+      var m=(resIn.error.message||'').toLowerCase();
+      if(m.indexOf('not confirmed')>=0||m.indexOf('confirm')>=0){
+        ultimoEmailCreado=email; mostrarConfirmEmail(email); return;
+      }
+      err('Email o contraseña incorrectos.');return;
+    }
     if(resIn.data&&resIn.data.session){usuarioActual=resIn.data.session.user;continuarTrasLogin();}
   }
 }
@@ -292,6 +324,7 @@ function toggleLoginModo(){
   $('#loginSub').textContent=loginModoCrear?'Con tu email y una contraseña. Después verificás tu identidad.':'Ingresá con tu email y contraseña.';
   $('#loginBtn').textContent=loginModoCrear?'Crear cuenta':'Entrar';
   $('#pass2Wrap').style.display=loginModoCrear?'block':'none';
+  var fw=$('#forgotWrap'); if(fw)fw.style.display=loginModoCrear?'none':'block';
   var cont=$('#toggleLink')?$('#toggleLink').parentNode:null;
   if(cont)cont.innerHTML=loginModoCrear
     ? '¿Ya tenés cuenta? <a href="#" onclick="toggleLoginModo();return false" id="toggleLink" style="color:var(--brand);font-weight:700;text-decoration:none">Entrá acá</a>'
@@ -327,6 +360,72 @@ async function doMagicLink(){
   btn.style.display='none';
 }
 
+/* ===== CONFIRMACIÓN DE MAIL AL CREAR CUENTA ===== */
+function mostrarConfirmEmail(email){
+  $('#onb').style.display='flex';
+  $('#app').style.display='none';
+  var ce=$('#confirmEmail'); if(ce)ce.textContent=email||'tu correo';
+  ['o0','oC','oTyc','oRen','oVer','oConfirm','oReset'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='oConfirm');});
+}
+async function reenviarConfirmacion(){
+  var msg=$('#confirmMsg');
+  msg.style.display='block';msg.style.color='var(--muted)';msg.textContent='Reenviando…';
+  if(!ultimoEmailCreado){msg.style.color='#c0392b';msg.textContent='No sé a qué email reenviar. Volvé y creá la cuenta de nuevo.';return;}
+  try{
+    var res=await supabase.auth.resend({type:'signup',email:ultimoEmailCreado,options:{emailRedirectTo:APP_URL}});
+    if(res.error){msg.style.color='#c0392b';msg.textContent='Error: '+res.error.message;return;}
+    msg.style.color='var(--favor)';msg.textContent='✅ Te reenviamos el correo. Revisá tu bandeja (y el spam).';
+  }catch(e){msg.style.color='#c0392b';msg.textContent='Error al reenviar: '+String(e);}
+}
+function volverAlLogin(){
+  loginModoCrear=false;
+  $('#onb').style.display='flex';$('#app').style.display='none';
+  ['o0','oC','oTyc','oRen','oVer','oConfirm','oReset'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='oRen');});
+  toggleLoginModo(); // deja el formulario en modo "Entrar"
+}
+
+/* ===== RECUPERACIÓN DE CONTRASEÑA ===== */
+/* Paso 1: el usuario tocó "¿Olvidaste tu contraseña?" -> le pedimos el email y mandamos el correo */
+async function pedirReset(){
+  var email=$('#emailInput').value.trim();
+  var msg=$('#loginMsg');
+  function err(t){msg.style.display='block';msg.style.color='#c0392b';msg.textContent=t;}
+  function info(t){msg.style.display='block';msg.style.color='var(--muted)';msg.textContent=t;}
+  if(!email||!email.includes('@')){err('Escribí tu email arriba y volvé a tocar "¿Olvidaste tu contraseña?".');return;}
+  info('Enviando el correo de recuperación…');
+  try{
+    var res=await supabase.auth.resetPasswordForEmail(email,{redirectTo:APP_URL});
+    if(res.error){err('Error: '+res.error.message);return;}
+    msg.style.color='var(--favor)';
+    msg.innerHTML='📬 Si ese email tiene una cuenta, te llegó un correo para poner una contraseña nueva. Revisá tu bandeja (y el spam).';
+  }catch(e){err('Error al enviar: '+String(e));}
+}
+/* Paso 2: el usuario volvió del link de recuperación -> pantalla para escribir la contraseña nueva */
+function mostrarResetPassword(){
+  $('#onb').style.display='flex';
+  $('#app').style.display='none';
+  ['o0','oC','oTyc','oRen','oVer','oConfirm','oReset'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='oReset');});
+}
+async function guardarPasswordNueva(){
+  var p1=$('#reset1').value, p2=$('#reset2').value;
+  var msg=$('#resetMsg');
+  function err(t){msg.style.display='block';msg.style.color='#c0392b';msg.textContent=t;}
+  function info(t){msg.style.display='block';msg.style.color='var(--muted)';msg.textContent=t;}
+  if(!p1||p1.length<6){err('La contraseña necesita al menos 6 caracteres.');return;}
+  if(p1!==p2){err('Las contraseñas no coinciden. Escribilas iguales.');return;}
+  info('Guardando…');
+  try{
+    var res=await supabase.auth.updateUser({password:p1});
+    if(res.error){err('Error: '+res.error.message);return;}
+    // limpiar el token de recuperación de la URL
+    if(window.history&&window.history.replaceState){window.history.replaceState(null,'',APP_URL);}
+    msg.style.color='var(--favor)';msg.textContent='✅ Contraseña actualizada.';
+    var {data:{session}}=await supabase.auth.getSession();
+    if(session&&session.user){usuarioActual=session.user;continuarTrasLogin();}
+    else{volverAlLogin();}
+  }catch(e){err('Error al guardar: '+String(e));}
+}
+
 /* Tras login: chequea si el usuario verificó su identidad.
    Verificado -> entra. No verificado -> pantalla de verificación. */
 async function continuarTrasLogin(){
@@ -346,7 +445,7 @@ async function continuarTrasLogin(){
 function mostrarVerificacion(){
   $('#onb').style.display='flex';
   $('#app').style.display='none';
-  ['o0','oC','oTyc','oRen','oVer'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='oVer');});
+  ['o0','oC','oTyc','oRen','oVer','oConfirm','oReset'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='oVer');});
 }
 
 /* Llama a la Edge Function crear-sesion, que crea la sesión en Didit
@@ -376,9 +475,6 @@ async function iniciarVerificacionDidit(){
     msg.textContent='Error al conectar: '+String(e);
   }
 }
-
-/* Desarrollo: saltear verificación y entrar igual */
-function saltearVerificacion(){enterApp();}
 
 var miBanca=null;   // si el usuario logueado es legislador con banca validada, acá van sus datos
 function chequearMiBanca(){
@@ -417,11 +513,31 @@ async function cargarVotadas(listo){
   listo();
 }
 
-/* Al cargar: verificar si hay sesión activa (vuelta del magic link) */
+/* Si el usuario vuelve de un link de recuperación de contraseña, Supabase
+   dispara este evento: mostramos la pantalla para poner la clave nueva. */
+supabase.auth.onAuthStateChange(function(event,session){
+  if(event==='PASSWORD_RECOVERY'){
+    if(session&&session.user)usuarioActual=session.user;
+    mostrarResetPassword();
+  }
+});
+
+/* Al cargar: ver de dónde viene el usuario */
 (async function initAuth(){
+  var hash=window.location.hash||'';
+  // ¿Volvió del link de recuperación de contraseña?
+  if(hash.indexOf('type=recovery')>=0){
+    var {data:{session:s1}}=await supabase.auth.getSession();
+    if(s1&&s1.user)usuarioActual=s1.user;
+    mostrarResetPassword();
+    return;
+  }
   var {data:{session}}=await supabase.auth.getSession();
   if(session&&session.user){
     usuarioActual=session.user;
+    // Si volvió de confirmar el mail, la URL trae type=signup: al entrar cae
+    // igual en continuarTrasLogin, que lo manda a verificar identidad.
+    if(window.history&&window.history.replaceState&&hash){window.history.replaceState(null,'',APP_URL);}
     continuarTrasLogin();   // chequea verificación de identidad y entra
   } else {
     usuarioActual=null;
@@ -526,13 +642,13 @@ function salirDemoACrearCuenta(){
   var b=$('#demoBanner'); if(b)b.style.display='none';
   $('#app').style.display='none';
   $('#onb').style.display='flex';
-  ['o0','oC','oTyc','oRen','oVer'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='oC');});
+  ['o0','oC','oTyc','oRen','oVer','oConfirm','oReset'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='oC');});
 }
 
 function mostrarOnboarding(){
   $('#onb').style.display='flex';
   $('#app').style.display='none';
-  ['o0','oC','oTyc','oRen','oVer'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='o0');});
+  ['o0','oC','oTyc','oRen','oVer','oConfirm','oReset'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='o0');});
 }
 /* Entrar a mirar sin cuenta: ve todo, pero al votar se le pide login */
 function entrarComoInvitado(){
@@ -545,7 +661,7 @@ function pedirLoginParaVotar(){
   modoInvitado=false;
   $('#app').style.display='none';
   $('#onb').style.display='flex';
-  ['o0','oC','oTyc','oRen','oVer'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='oC');});
+  ['o0','oC','oTyc','oRen','oVer','oConfirm','oReset'].forEach(function(s){var el=$('#'+s);if(el)el.classList.toggle('show',s==='oC');});
 }
 // Tiene cuenta pero NO verificó identidad: no puede votar todavía.
 function pedirVerificarParaVotar(){
