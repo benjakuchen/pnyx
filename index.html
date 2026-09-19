@@ -1232,11 +1232,11 @@ function renderVoted(){var el=$('#sc-voted');
   +'<button class="chip'+(votedVista==='hist'?' on':'')+'" data-act="votedVista" data-arg="hist">🔎 Históricas</button></div>';
 
  if(votedVista==='hist'){ el.innerHTML=tabs+renderHistoricas(); return; }
- if(votedVista==='ult'){ el.innerHTML=tabs+renderListaCamaras(ultimas,'En los últimos 15 días. Ordenadas por fecha.','Todavía no hay leyes votadas en los últimos 15 días.'); return; }
+ if(votedVista==='ult'){ el.innerHTML=tabs+renderListaCamaras(ultimas,'Leyes votadas en el último mes. Ordenadas por fecha.','Todavía no hay leyes votadas en el último mes.'); return; }
  // default: destacadas
  el.innerHTML=tabs
-  +'<div class="note info" style="margin:2px 0 10px">⭐ Leyes votadas con más repercusión en los medios (últimos 6 meses).</div>'
-  +renderListaCamaras(destacadas,'','Todavía no hay leyes destacadas. Mirá "Últimas votadas" o "Históricas".');}
+  +'<div class="note info" style="margin:2px 0 10px">⭐ Leyes votadas con más repercusión. Seleccionadas por Pnyx.</div>'
+  +renderListaCamaras(destacadas,'','Todavía no hay destacadas. Mirá "Últimas votadas" o "Históricas".');}
 
 /* Lista de votaciones separada por cámara: Senado arriba, Diputados abajo. */
 function renderListaCamaras(filas,subtitulo,vacio){

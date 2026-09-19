@@ -108,6 +108,7 @@ h1{font-size:20px;margin:0 0 4px}
    <button class="tab" data-tab="prensa" onclick="tab('prensa')">📰 Prensa (HOY)<span class="count" id="cntPrensa" style="display:none">0</span></button>
    <button class="tab" data-tab="bancas" onclick="tab('bancas')">🏛️ Bancas<span class="count" id="cntBancasSol" style="display:none">0</span></button>
    <button class="tab" data-tab="curaduria" onclick="tab('curaduria')">📋 Curaduría<span class="count" id="cntCura" style="display:none">0</span></button>
+   <button class="tab" data-tab="votadas" onclick="tab('votadas')">⚖️ Votadas: destacadas<span class="count" id="cntDest" style="display:none">0</span></button>
    <button class="tab" data-tab="videos" onclick="tab('videos')">🎙️ Videos<span class="count" id="cntVideos" style="display:none">0</span></button>
    <button class="tab" data-tab="proximo" onclick="tab('proximo')">🎬 Expertos · Bancas · Usuarios</button>
   </div>
@@ -175,6 +176,14 @@ h1{font-size:20px;margin:0 0 4px}
    <div id="curaMas" style="text-align:center;margin-top:12px"></div>
   </div>
 
+  <div id="tab-votadas" style="display:none">
+   <div class="card">
+    <h1>Votadas: destacadas</h1>
+    <p class="muted" style="margin:4px 0 0;font-size:13.5px">Elegí qué leyes ya votadas por el Congreso aparecen en <b>Destacadas</b> (la vista principal de "Votadas" en la app). Las destacadas quedan ahí hasta que las saques. 📰 = tuvo prensa (sugerida). ⏰ = lleva más de 1 mes destacada (quizás conviene sacarla). Las demás ya salen solas en "Últimas" (1 mes) o "Históricas".</p>
+   </div>
+   <div id="votadasLista"><div class="empty">Cargando…</div></div>
+  </div>
+
   <div id="tab-videos" style="display:none">
    <div class="card">
     <h1>Videos de legisladores</h1>
@@ -228,12 +237,58 @@ function tab(t){
  $('#tab-prensa').style.display=(t==='prensa')?'block':'none';
  $('#tab-bancas').style.display=(t==='bancas')?'block':'none';
  $('#tab-curaduria').style.display=(t==='curaduria')?'block':'none';
+ $('#tab-votadas').style.display=(t==='votadas')?'block':'none';
  $('#tab-proximo').style.display=(t==='proximo')?'block':'none';
  if(t==='feed'&&feedDatos.length===0)cargarFeed();
  if(t==='prensa'&&prensaDatos.length===0)cargarPrensa();
  if(t==='bancas'&&bancasDatos.length===0){cargarBancas();cargarSolicitudes();}
  if(t==='curaduria'&&curaDatos.length===0)cargarCuraduria();
+ if(t==='votadas'&&votadasCura.length===0)cargarVotadasCura();
  if(t==='videos'&&videosDatos.length===0)cargarVideosAdmin();
+}
+
+/* ===== CURADURIA DE VOTADAS (destacadas) ===== */
+var votadasCura=[];
+function cargarVotadasCura(){
+ rpc('admin_votadas_curaduria',{}).then(function(filas){
+  votadasCura=Array.isArray(filas)?filas:[];
+  var nd=votadasCura.filter(function(v){return v.destacada;}).length;
+  var c=$('#cntDest'); if(c){if(nd){c.style.display='';c.textContent=nd;}else c.style.display='none';}
+  renderVotadasCura();
+ }).catch(function(e){$('#votadasLista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
+}
+function renderVotadasCura(){
+ if(!votadasCura.length){$('#votadasLista').innerHTML='<div class="card"><div class="empty">No hay leyes votadas para curar.</div></div>';return;}
+ var h='';
+ ['Senado','Diputados'].forEach(function(cam){
+  var fs=votadasCura.filter(function(v){return v.camara===cam;});
+  if(!fs.length)return;
+  h+='<div style="font-size:12px;font-weight:700;color:var(--muted);margin:14px 0 4px;letter-spacing:.04em">'+cam.toUpperCase()+'</div>';
+  fs.forEach(function(v){
+   var f=v.votada_en?new Date(v.votada_en).toLocaleDateString('es-AR'):'';
+   var marcas=(v.prensa?'<span class="chip" style="background:#e8f0ff;color:#1b52c0;margin-left:4px">📰 prensa</span>':'')
+     +(v.sugerir_sacar?'<span class="chip" style="background:#fff3cd;color:#8a6d00;margin-left:4px">⏰ +1 mes</span>':'');
+   var btn=v.destacada
+     ? '<button class="btn warn sm" onclick="toggleDestacada('+v.id+',false)">Sacar de destacadas</button>'
+     : '<button class="btn on sm" onclick="toggleDestacada('+v.id+',true)">⭐ Destacar</button>';
+   h+='<div class="card" style="margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;justify-content:space-between">'
+     +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13.5px;line-height:1.35">'+esc(v.titulo)+'</div>'
+     +'<div class="muted" style="font-size:11.5px;margin-top:3px">'+f
+     +(v.destacada?' · <b style="color:var(--brand)">EN DESTACADAS</b>'+(v.dias_destacada?' ('+v.dias_destacada+' días)':''):'')
+     +marcas+'</div></div>'+btn+'</div>';
+  });
+ });
+ $('#votadasLista').innerHTML=h;
+}
+function toggleDestacada(id,val){
+ rpc('admin_votada_destacar',{p_id:id,p_valor:val}).then(function(){
+  var v=votadasCura.find(function(x){return x.id===id;});
+  if(v){v.destacada=val; if(val){v.destacada_desde=new Date().toISOString();v.dias_destacada=0;v.sugerir_sacar=false;}else{v.destacada_desde=null;v.dias_destacada=0;v.sugerir_sacar=false;}}
+  toast(val?'Marcada como destacada':'Sacada de destacadas');
+  renderVotadasCura();
+  var nd=votadasCura.filter(function(x){return x.destacada;}).length;
+  var c=$('#cntDest'); if(c){if(nd){c.style.display='';c.textContent=nd;}else c.style.display='none';}
+ }).catch(function(e){toast('Error: '+String(e));});
 }
 
 /* ===== PANEL DE VIDEOS DE LEGISLADORES ===== */
