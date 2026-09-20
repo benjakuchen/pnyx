@@ -1270,6 +1270,12 @@ function renderDetalleVotada(key){
  var l=voted[key];if(!l)return '';
  var h='<h3 class="title" style="font-size:20px;margin-top:6px">'+escHtml(l.n)+'</h3><div style="margin:6px 0 8px">'+k((estadoDe(l.r)==='Aprobada'?'✅ ':'')+estadoDe(l.r),estadoDe(l.r)==='Aprobada'?'ok':'con')+(l.fecha?' <span class="muted" style="font-size:11.5px">· '+l.camara+' · '+l.fecha+'</span>':'')+'</div>';
  if(!l.cargado){h+='<p class="muted" style="font-size:12.5px">Cargando el detalle…</p>';cargarDetalleVotada(key);return h;}
+ // Resumen de la ley + documento oficial (solo si está linkeada a una ley del feed)
+ if(l.ley){
+   if(l.ley.resumen_ia){h+='<div class="card" style="margin:0 0 10px;gap:6px"><div style="font-weight:700;font-size:13px">📄 De qué trata</div><p style="font-size:13.5px;line-height:1.45;margin:0">'+escHtml(l.ley.resumen_ia)+'</p></div>';}
+   else if(l.ley.oracion_ia){h+='<div class="card" style="margin:0 0 10px"><p style="font-size:13.5px;line-height:1.45;margin:0">'+escHtml(l.ley.oracion_ia)+'</p></div>';}
+   if(l.ley.url_pdf_oficial){h+='<a class="fullbtn" href="'+escHtml(l.ley.url_pdf_oficial)+'" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none;margin-bottom:12px">📄 Ver el documento oficial ↗</a>';}
+ }
  if(l.ley_bill_id){
    if(l.cruce===undefined){h+='<div id="cruce-'+l.id+'" class="note info" style="margin:0 0 12px">🔗 Comparando tu comunidad con el Congreso…</div>';cargarCruce(l);}
    else if(l.cruce){h+=l.cruce;}
@@ -1475,6 +1481,15 @@ function cargarDetalleVotada(key){
     if(curLaw===key)renderVoted();
   })
   .catch(function(){l.cargado=true;if(curLaw===key)renderVoted();});
+ // Si está linkeada a una ley del feed, traer su resumen y su documento oficial.
+ if(l.ley_bill_id && l.ley===undefined){
+   l.ley=null; // marca "pedido en curso"
+   fetch(SUPABASE_URL+'/rest/v1/leyes?select=oracion_ia,resumen_ia,url_pdf_oficial&bill_id=eq.'+encodeURIComponent(l.ley_bill_id),
+     {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}})
+    .then(function(r){return r.json();})
+    .then(function(f){ l.ley=(Array.isArray(f)&&f[0])?f[0]:null; if(curLaw===key)renderVoted(); })
+    .catch(function(){ l.ley=null; });
+ }
 }
 
 var storiesData=[{n:'Dip. R. Sosa',d:'Santa Fe',ley:'Ley de Glaciares',voto:'favor'},{n:'Sen. M. Ríos',d:'Mendoza',ley:'Reforma Laboral',voto:'contra'},{n:'Dip. L. Vega',d:'Córdoba',ley:'Régimen Penal Juvenil',voto:'favor'},{n:'Dip. J. Bravo',d:'Buenos Aires',ley:'Reforma Laboral',voto:'favor'},{n:'Sen. C. Díaz',d:'Salta',ley:'Ley de Glaciares',voto:'contra'}];
