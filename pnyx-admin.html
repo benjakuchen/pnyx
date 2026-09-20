@@ -102,16 +102,9 @@ h1{font-size:20px;margin:0 0 4px}
   <button class="btn sec" onclick="adminLogout()">Salir</button>
  </div>
  <div class="wrap">
-  <div class="tabs">
-   <button class="tab on" data-tab="comp" onclick="tab('comp')">🔗 Leyes: feed ↔ Congreso<span class="count" id="cntPend" style="display:none">0</span></button>
-   <button class="tab" data-tab="feed" onclick="tab('feed')">🗳️ Feed de votación</button>
-   <button class="tab" data-tab="prensa" onclick="tab('prensa')">📰 Prensa (HOY)<span class="count" id="cntPrensa" style="display:none">0</span></button>
-   <button class="tab" data-tab="bancas" onclick="tab('bancas')">🏛️ Bancas<span class="count" id="cntBancasSol" style="display:none">0</span></button>
-   <button class="tab" data-tab="curaduria" onclick="tab('curaduria')">📋 Curaduría<span class="count" id="cntCura" style="display:none">0</span></button>
-   <button class="tab" data-tab="votadas" onclick="tab('votadas')">⚖️ Votadas: destacadas<span class="count" id="cntDest" style="display:none">0</span></button>
-   <button class="tab" data-tab="videos" onclick="tab('videos')">🎙️ Videos<span class="count" id="cntVideos" style="display:none">0</span></button>
-   <button class="tab" data-tab="proximo" onclick="tab('proximo')">🎬 Expertos · Bancas · Usuarios</button>
-  </div>
+  <!-- Nivel 1: grupos. Nivel 2: sub-pestañas (se arman por JS). -->
+  <div class="tabs" id="grupos"></div>
+  <div class="tabs" id="subtabs" style="margin-top:6px"></div>
 
   <div id="tab-comp">
    <div class="card">
@@ -151,15 +144,20 @@ h1{font-size:20px;margin:0 0 4px}
    <div id="prensaLista"><div class="empty">Cargando…</div></div>
   </div>
 
-  <div id="tab-bancas" style="display:none">
+  <div id="tab-bancasVal" style="display:none">
    <div class="card">
-    <h1>Bancas</h1>
-    <p class="muted" style="margin:4px 0 0;font-size:13.5px">Arriba, las <b>solicitudes</b> de legisladores que verificaron su identidad con Didit/RENAPER: revisá sus datos y fotos, confirmá contra fuentes públicas y aprobá (queda validada y con el sello "escucha" activado). Abajo, la lista de todas las bancas.</p>
+    <h1>Validaciones de banca</h1>
+    <p class="muted" style="margin:4px 0 0;font-size:13.5px">Solicitudes de legisladores que verificaron su identidad con Didit/RENAPER: revisá sus datos y fotos, confirmá contra fuentes públicas y aprobá (queda validada y con el sello "escucha" activado).</p>
    </div>
-   <div class="filtros" style="margin-top:10px"><span class="muted" style="font-size:12.5px;font-weight:700">🪑 SOLICITUDES</span></div>
    <div id="solicLista"><div class="empty">Cargando…</div></div>
-   <div class="filtros" style="margin-top:20px">
-    <span class="muted" style="font-size:12.5px;font-weight:700;width:100%">🏛️ TODAS LAS BANCAS</span>
+  </div>
+
+  <div id="tab-bancasLeg" style="display:none">
+   <div class="card">
+    <h1>Legisladores</h1>
+    <p class="muted" style="margin:4px 0 0;font-size:13.5px">La lista completa de bancas: diputados y senadores, con su bloque, provincia, presentismo y estado del sello "escucha".</p>
+   </div>
+   <div class="filtros" style="margin-top:10px">
     <button class="chip on" data-bc="diputados" onclick="filtrarBancas('diputados')">Diputados</button>
     <button class="chip" data-bc="senadores" onclick="filtrarBancas('senadores')">Senadores</button>
     <input class="buscador" style="margin:0 0 0 auto;max-width:280px" id="bancasBuscar" placeholder="Buscar por nombre…" oninput="renderBancasAdmin()">
@@ -219,7 +217,7 @@ async function adminLogin(){
  token=res.data.session.access_token;
  $('#admWho').textContent=email;
  $('#login').style.display='none';$('#consola').style.display='block';
- cargar();
+ initNav(); cargar();
 }
 async function adminLogout(){await supabase.auth.signOut();location.reload();}
 (async function(){
@@ -227,25 +225,76 @@ async function adminLogout(){await supabase.auth.signOut();location.reload();}
  var {data:{session}}=await supabase.auth.getSession();
  if(session){token=session.access_token;$('#admWho').textContent=session.user.email;}
  else{$('#admWho').textContent='(sin login — modo desarrollo)';}
- $('#login').style.display='none';$('#consola').style.display='block';cargar();
+ $('#login').style.display='none';$('#consola').style.display='block';initNav();cargar();
 })();
+// Arranca la navegación: dibuja los grupos y abre el primero (Feed de votar → Curaduría).
+function initNav(){ pintarGrupos(); irGrupo('feedvotar'); }
 
-function tab(t){
- document.querySelectorAll('.tab').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-tab')===t);});
- $('#tab-comp').style.display=(t==='comp')?'block':'none';
- $('#tab-feed').style.display=(t==='feed')?'block':'none';
- $('#tab-prensa').style.display=(t==='prensa')?'block':'none';
- $('#tab-bancas').style.display=(t==='bancas')?'block':'none';
- $('#tab-curaduria').style.display=(t==='curaduria')?'block':'none';
- $('#tab-votadas').style.display=(t==='votadas')?'block':'none';
- $('#tab-proximo').style.display=(t==='proximo')?'block':'none';
- if(t==='feed'&&feedDatos.length===0)cargarFeed();
- if(t==='prensa'&&prensaDatos.length===0)cargarPrensa();
- if(t==='bancas'&&bancasDatos.length===0){cargarBancas();cargarSolicitudes();}
- if(t==='curaduria'&&curaDatos.length===0)cargarCuraduria();
- if(t==='votadas'&&votadasCura.length===0)cargarVotadasCura();
- if(t==='videos'&&videosDatos.length===0)cargarVideosAdmin();
+/* ===== NAVEGACIÓN EN 2 NIVELES: grupos + sub-pestañas ===== */
+// panel = el id del <div id="tab-XXX">. label = texto del botón. cnt = id del contador (opcional).
+var GRUPOS=[
+ {g:'feedvotar', label:'🗳️ Feed de votar', subs:[
+   {panel:'curaduria', label:'📋 Curaduría', cnt:'cntCura'},
+   {panel:'feed',      label:'✅ Publicadas'},
+   {panel:'prensa',    label:'📰 Prensa (HOY)', cnt:'cntPrensa'},
+ ]},
+ {g:'votadas', label:'⚖️ Votadas', subs:[
+   {panel:'votadas',   label:'⭐ Destacadas', cnt:'cntDest'},
+ ]},
+ {g:'linkeo', label:'🔗 Linkeo', subs:[
+   {panel:'comp',      label:'🔗 Linkeo votar↔votadas', cnt:'cntPend'},
+ ]},
+ {g:'bancas', label:'🏛️ Bancas', subs:[
+   {panel:'bancasVal', label:'🪪 Validaciones', cnt:'cntBancasSol'},
+   {panel:'videos',    label:'🎙️ Videos', cnt:'cntVideos'},
+   {panel:'bancasLeg', label:'🏛️ Legisladores'},
+ ]},
+ {g:'sistema', label:'⚙️ Sistema', subs:[
+   {panel:'proximo',   label:'🎬 Próximamente'},
+ ]},
+];
+var PANELES=['comp','feed','prensa','bancasVal','bancasLeg','curaduria','votadas','videos','proximo'];
+var grupoActual='feedvotar', panelActual='curaduria';
+
+function pintarGrupos(){
+ var h='';
+ GRUPOS.forEach(function(gr){
+  h+='<button class="tab'+(gr.g===grupoActual?' on':'')+'" onclick="irGrupo(\''+gr.g+'\')">'+gr.label+'</button>';
+ });
+ $('#grupos').innerHTML=h;
 }
+function pintarSubtabs(){
+ var gr=GRUPOS.find(function(x){return x.g===grupoActual;}); if(!gr)return;
+ var h='';
+ gr.subs.forEach(function(s){
+  var cnt=s.cnt?'<span class="count" id="'+s.cnt+'" style="display:none">0</span>':'';
+  h+='<button class="tab'+(s.panel===panelActual?' on':'')+'" onclick="irPanel(\''+s.panel+'\')">'+s.label+cnt+'</button>';
+ });
+ $('#subtabs').innerHTML=h;
+ $('#subtabs').style.display=gr.subs.length?'flex':'none';
+}
+function irGrupo(g){
+ grupoActual=g;
+ var gr=GRUPOS.find(function(x){return x.g===g;});
+ panelActual=gr.subs[0].panel;   // al entrar a un grupo, abre su primera sub-pestaña
+ pintarGrupos(); pintarSubtabs(); mostrarPanel(panelActual);
+}
+function irPanel(p){ panelActual=p; pintarSubtabs(); mostrarPanel(p); }
+
+function mostrarPanel(p){
+ PANELES.forEach(function(x){var el=$('#tab-'+x); if(el)el.style.display=(x===p)?'block':'none';});
+ // carga perezosa (misma lógica de antes)
+ if(p==='feed'&&feedDatos.length===0)cargarFeed();
+ if(p==='prensa'&&prensaDatos.length===0)cargarPrensa();
+ if(p==='bancasVal'&&solicDatos.length===0)cargarSolicitudes();
+ if(p==='bancasLeg'&&bancasDatos.length===0)cargarBancas();
+ if(p==='curaduria'&&curaDatos.length===0)cargarCuraduria();
+ if(p==='votadas'&&votadasCura.length===0)cargarVotadasCura();
+ if(p==='videos'&&videosDatos.length===0)cargarVideosAdmin();
+}
+
+// Compatibilidad: si algo viejo llama tab('X'), lo redirigimos al panel nuevo.
+function tab(t){ var map={bancas:'bancasVal'}; irPanel(map[t]||t); }
 
 /* ===== CURADURIA DE VOTADAS (destacadas) ===== */
 var votadasCura=[];
@@ -658,8 +707,7 @@ function cargar(){
  rpc('admin_comparativa',{}).then(function(filas){
   datos=Array.isArray(filas)?filas:[];
   var pend=datos.filter(function(d){return d.estado==='pendiente';}).length;
-  if(pend>0){$('#cntPend').style.display='inline-block';$('#cntPend').textContent=pend;}
-  else{$('#cntPend').style.display='none';}
+  var cp=$('#cntPend'); if(cp){ if(pend>0){cp.style.display='inline-block';cp.textContent=pend;} else cp.style.display='none'; }
   render();
  }).catch(function(e){$('#lista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
 }
