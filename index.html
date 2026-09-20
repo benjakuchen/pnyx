@@ -850,6 +850,7 @@ var votedLabels={};    // key -> etiqueta corta del chip
 var votedLoaded=false; // ya se cargaron destacadas + ultimas?
 // Vista de Votadas: 'dest' = destacadas (default) | 'ult' = ultimas 15 dias | 'hist' = historicas
 var votedVista='dest';
+var votedCamara='Senado'; // cámara elegida en Votadas: 'Senado' | 'Diputados'
 var votedDetalle=null; // key de la votación abierta en detalle, o null (mostrando lista)
 var histTexto='', histAnio=null, histAnios=[], histResultados=null, histBuscando=false;
 var destacadas=[];     // filas de votadas_destacadas (LEY, prensa fuerte, 6 meses)
@@ -1225,29 +1226,31 @@ function renderVoted(){var el=$('#sc-voted');
    return;
  }
 
- // pestañas: Destacadas (default) | Últimas votadas | Históricas
+ // 1º: selector de CÁMARA (lo primero de la pantalla)
+ var selCam='<div class="camsel" style="display:flex;gap:8px;margin-bottom:10px">'
+  +'<button class="cambtn'+(votedCamara==='Senado'?' on':'')+'" data-act="votedCam" data-arg="Senado" style="flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:'+(votedCamara==='Senado'?'var(--brand)':'transparent')+';color:'+(votedCamara==='Senado'?'#fff':'var(--ink)')+';font-weight:700;font-size:15px;font-family:inherit">🏛️ Senado</button>'
+  +'<button class="cambtn'+(votedCamara==='Diputados'?' on':'')+'" data-act="votedCam" data-arg="Diputados" style="flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:'+(votedCamara==='Diputados'?'var(--brand)':'transparent')+';color:'+(votedCamara==='Diputados'?'#fff':'var(--ink)')+';font-weight:700;font-size:15px;font-family:inherit">🏛️ Diputados</button></div>';
+
+ // 2º: pestañas Destacadas | Últimas | Históricas
  var tabs='<div class="chips" style="margin-bottom:8px">'
   +'<button class="chip'+(votedVista==='dest'?' on':'')+'" data-act="votedVista" data-arg="dest">⭐ Destacadas</button>'
   +'<button class="chip'+(votedVista==='ult'?' on':'')+'" data-act="votedVista" data-arg="ult">Últimas votadas</button>'
   +'<button class="chip'+(votedVista==='hist'?' on':'')+'" data-act="votedVista" data-arg="hist">🔎 Históricas</button></div>';
 
- if(votedVista==='hist'){ el.innerHTML=tabs+renderHistoricas(); return; }
- if(votedVista==='ult'){ el.innerHTML=tabs+renderListaCamaras(ultimas,'Leyes votadas en el último mes. Ordenadas por fecha.','Todavía no hay leyes votadas en el último mes.'); return; }
+ var cab=selCam+tabs;
+ if(votedVista==='hist'){ el.innerHTML=cab+renderHistoricas(); return; }
+ if(votedVista==='ult'){ el.innerHTML=cab+renderListaCamara(ultimas,'Leyes votadas en el último mes. Ordenadas por fecha.','Todavía no hay leyes votadas en el último mes en '+votedCamara+'.'); return; }
  // default: destacadas
- el.innerHTML=tabs
+ el.innerHTML=cab
   +'<div class="note info" style="margin:2px 0 10px">⭐ Leyes votadas con más repercusión. Seleccionadas por Pnyx.</div>'
-  +renderListaCamaras(destacadas,'','Todavía no hay destacadas. Mirá "Últimas votadas" o "Históricas".');}
+  +renderListaCamara(destacadas,'','Todavía no hay destacadas en '+votedCamara+'. Mirá "Últimas votadas" o "Históricas".');}
 
-/* Lista de votaciones separada por cámara: Senado arriba, Diputados abajo. */
-function renderListaCamaras(filas,subtitulo,vacio){
- if(!filas||filas.length===0)return '<p class="muted" style="font-size:13px;padding:16px 0">'+vacio+'</p>';
+/* Lista de votaciones de la CÁMARA elegida (votedCamara). */
+function renderListaCamara(filas,subtitulo,vacio){
+ var fs=(filas||[]).filter(function(r){return r.camara===votedCamara;});
+ if(fs.length===0)return '<p class="muted" style="font-size:13px;padding:16px 0">'+vacio+'</p>';
  var h=subtitulo?'<div class="muted" style="font-size:12px;margin-bottom:6px">'+subtitulo+'</div>':'';
- ['Senado','Diputados'].forEach(function(cam){
-   var fs=filas.filter(function(r){return r.camara===cam;});
-   if(fs.length===0)return;
-   h+='<div style="font-size:12px;font-weight:700;color:var(--muted);margin:12px 0 4px;letter-spacing:.04em">'+cam.toUpperCase()+'</div>';
-   fs.forEach(function(row){h+=filaVotada(row);});
- });
+ fs.forEach(function(row){h+=filaVotada(row);});
  return h;}
 
 /* Una fila clickeable de votación (para destacadas y últimas). */
@@ -1306,10 +1309,11 @@ function renderHistoricas(){
  return h;}
 
 function renderHistResultados(){
- if(!histResultados) return '<p class="muted" style="font-size:13px;padding:10px 0">Escribí para buscar, o elegí un año o tipo.</p>';
- if(histResultados.length===0) return '<p class="muted" style="font-size:13px;padding:10px 0">No se encontraron votaciones.</p>';
+ if(!histResultados) return '<p class="muted" style="font-size:13px;padding:10px 0">Escribí para buscar, o elegí un año.</p>';
+ var lista=histResultados.filter(function(r){return r.camara===votedCamara;});
+ if(lista.length===0) return '<p class="muted" style="font-size:13px;padding:10px 0">No se encontraron votaciones en '+votedCamara+'.</p>';
  var h='';
- histResultados.forEach(function(row){
+ lista.forEach(function(row){
    var key='v'+row.id, ok=estadoDe(row.resultado)==='Aprobada';
    var f=row.votada_en?new Date(row.votada_en).toLocaleDateString('es-AR'):'';
    h+='<div class="brow" data-act="histAbrir" data-arg="'+row.id+'" style="align-items:flex-start;padding:11px 2px">'
@@ -1820,6 +1824,7 @@ document.addEventListener('click',function(e){var el=e.target.closest('[data-act
  else if(a==='closeFull')$('#fulltext').classList.remove('show');
  else if(a==='voteD'){$('#detail').classList.remove('show');$('#fulltext').classList.remove('show');flyAndVote(arg);}
  else if(a==='votedVista'){votedVista=arg;votedDetalle=null;renderVoted();if(arg==='hist'&&histResultados===null)buscarHistoricas();}
+ else if(a==='votedCam'){votedCamara=arg;votedDetalle=null;renderVoted();}
  else if(a==='votAbrir'){abrirVotadaPorId(arg);}
  else if(a==='cerrarVotada'){votedDetalle=null;renderVoted();}
  else if(a==='histAnio'){histAnio=arg?parseInt(arg,10):null;renderVoted();buscarHistoricas();}
