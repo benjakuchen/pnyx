@@ -147,21 +147,22 @@ def main():
         print("\n(DRY-RUN: no se escribio nada.)", file=sys.stderr)
         return
 
-    # Subir: primero poner 0 a todos, despues los que tienen labor.
-    LOTE = 100
+    # Escribir con UPDATE (no upsert): solo modifica filas existentes, nunca
+    # crea nuevas. Actualiza cada banca por su id.
     subidas = 0
-    filas = []
+    fallos = 0
     for b in bancas:
         nn = b.get("nombre_norm")
-        filas.append({"nombre_norm": nn, "camara": b.get("camara"),
-                      "leyes_presentadas": conteo.get(nn, 0)})
-    for i in range(0, len(filas), LOTE):
+        val = conteo.get(nn, 0)
         try:
-            sb.table("bancas").upsert(filas[i:i + LOTE], on_conflict="nombre_norm,camara").execute()
-            subidas += len(filas[i:i + LOTE])
+            sb.table("bancas").update({"leyes_presentadas": val}) \
+              .eq("nombre_norm", nn).eq("camara", b.get("camara")).execute()
+            subidas += 1
         except Exception as e:
-            print("  ! fallo un lote: %s" % e, file=sys.stderr)
-    print("\nLabor parlamentaria subida a bancas: %d filas actualizadas." % subidas, file=sys.stderr)
+            fallos += 1
+            if fallos <= 3:
+                print("  ! fallo al actualizar %s: %s" % (b.get("nombre"), e), file=sys.stderr)
+    print("\nLabor parlamentaria actualizada en bancas: %d filas (fallos: %d)." % (subidas, fallos), file=sys.stderr)
 
 
 if __name__ == "__main__":

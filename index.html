@@ -1561,9 +1561,11 @@ function filaBanca(b,pos){
  var pres=(b.presentismo!=null)?(Math.round(b.presentismo)+'% presente'):'presentismo s/d';
  var labor=(b.leyes_presentadas!=null&&b.leyes_presentadas>0)?(b.leyes_presentadas+' ley'+(b.leyes_presentadas===1?'':'es')):null;
  var sello=b.escucha?k('✅ Escucha','ok'):k('No participa','nt');
- // avatar: foto real si existe, si no la inicial
- var av=b.foto
-  ? '<div class="repav" style="overflow:hidden;padding:0"><img src="'+escHtml(b.foto)+'" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.textContent=\''+ini+'\'"></div>'
+ // avatar: foto real si existe, si no la inicial. La foto viene como ruta
+ // relativa ("fotos/dip_XXX.jpg"); se completa con el dominio de comovoto.
+ var fotoUrl=b.foto?(/^https?:\/\//.test(b.foto)?b.foto:'https://comovoto.dev.ar/'+b.foto.replace(/^\//,'')):'';
+ var av=fotoUrl
+  ? '<div class="repav" style="overflow:hidden;padding:0"><img src="'+escHtml(fotoUrl)+'" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.textContent=\''+ini+'\'"></div>'
   : '<div class="repav" style="background:'+(b.escucha?'var(--favor-bg)':'var(--surface2)')+';color:'+(b.escucha?'var(--favor)':'var(--muted)')+'">'+ini+'</div>';
  // línea de datos: labor (si hay) + presentismo
  var datos=(labor?labor+' · ':'')+pres;
