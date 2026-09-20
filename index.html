@@ -1529,7 +1529,8 @@ function pintarBanc(){
  // Buscador
  h+='<input id="bancaBuscar" style="width:100%;margin:0 0 12px;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;color:var(--ink);background:var(--surface);box-sizing:border-box" placeholder="Buscar por nombre…" value="'+escHtml(bancaBusca)+'" oninput="onBancaBusca(this.value)">';
 
- // Filtrar por cámara + búsqueda
+ // Filtrar por cámara + búsqueda. El orden viene del RPC:
+ // Diputados por labor parlamentaria (desc), Senadores por presentismo (desc).
  var q=bancaBusca.trim().toLowerCase();
  var lista=todas.filter(function(b){
   if(b.camara!==bancaCamara)return false;
@@ -1537,31 +1538,40 @@ function pintarBanc(){
   return true;
  });
 
+ // Nota del criterio de orden (solo cuando no está buscando)
+ if(!q){
+  h+='<div class="muted" style="font-size:11.5px;margin:0 0 8px">'
+    +(bancaCamara==='diputados'?'Ordenados por leyes presentadas (labor parlamentaria).'
+                              :'Ordenados por presentismo en las votaciones.')+'</div>';
+ }
+
  if(!lista.length){
   h+='<p class="muted" style="text-align:center;font-size:12.5px;padding:20px 0">Sin resultados.</p>';
   $('#sc-banc').innerHTML=h; return;
  }
 
- // Agrupar por provincia (alfabético); dentro, por nombre (ya viene ordenado por la RPC)
- var provs={};
- lista.forEach(function(b){var p=b.provincia||'Sin provincia';(provs[p]=provs[p]||[]).push(b);});
- Object.keys(provs).sort(function(a,c){return a.localeCompare(c,'es');}).forEach(function(p){
-  h+='<div class="sech" style="margin:16px 0 8px;font-size:12px">'+escHtml(p.toUpperCase())+'</div>';
-  provs[p].forEach(function(b){h+=filaBanca(b);});
- });
+ lista.forEach(function(b,i){h+=filaBanca(b,i+1);});
 
  $('#sc-banc').innerHTML=h;
  var inp=$('#bancaBuscar'); if(inp){inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}
 }
-function filaBanca(b){
+function filaBanca(b,pos){
  var pr=(b.nombre||'').split(/[\s,]+/).filter(Boolean);
  var ini=((pr[0]&&pr[0][0]||'')+(pr[1]&&pr[1][0]||'')).toUpperCase();
  var pres=(b.presentismo!=null)?(Math.round(b.presentismo)+'% presente'):'presentismo s/d';
+ var labor=(b.leyes_presentadas!=null&&b.leyes_presentadas>0)?(b.leyes_presentadas+' ley'+(b.leyes_presentadas===1?'':'es')):null;
  var sello=b.escucha?k('✅ Escucha','ok'):k('No participa','nt');
+ // avatar: foto real si existe, si no la inicial
+ var av=b.foto
+  ? '<div class="repav" style="overflow:hidden;padding:0"><img src="'+escHtml(b.foto)+'" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.textContent=\''+ini+'\'"></div>'
+  : '<div class="repav" style="background:'+(b.escucha?'var(--favor-bg)':'var(--surface2)')+';color:'+(b.escucha?'var(--favor)':'var(--muted)')+'">'+ini+'</div>';
+ // línea de datos: labor (si hay) + presentismo
+ var datos=(labor?labor+' · ':'')+pres;
  return '<div class="mem" style="display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;margin-bottom:8px">'
-  +'<div class="repav" style="background:'+(b.escucha?'var(--favor-bg)':'var(--surface2)')+';color:'+(b.escucha?'var(--favor)':'var(--muted)')+'">'+ini+'</div>'
+  +av
   +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13.5px">'+escHtml(b.nombre)+'</div>'
-  +'<div class="muted" style="font-size:11.5px">'+escHtml(b.bloque||'')+' · '+pres+'</div></div>'
+  +'<div class="muted" style="font-size:11.5px">'+escHtml(b.bloque||'')+(b.provincia?' · '+escHtml(b.provincia):'')+'</div>'
+  +'<div class="muted" style="font-size:11.5px;margin-top:1px">'+datos+'</div></div>'
   +sello+'</div>';
 }
 function onBancaBusca(v){bancaBusca=v;pintarBanc();}
