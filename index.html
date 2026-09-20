@@ -929,6 +929,7 @@ function chipLabel(titulo){
 }
 
 var UMBRAL_BLOC_MENOR=0;  // mostrar todos los bloques con al menos 1 voto
+var UMBRAL_TENDENCIA=100; // votos minimos por ley para mostrar tendencia (anonimato)
 var votes={},idx=0,curLaw='';
 /* estado del representante */
 var repState='none',selCargo='dipnac',cfg={escucha:true,ideo:true,foto:false},vidDone={};
@@ -992,14 +993,25 @@ function mostrarTermometro(ley,miVoto){
   var deck=$('#deck');if(!deck)return;
   if(!tot){idx++;renderCard();return;}
   var n=tot.a_favor+tot.en_contra+tot.abstencion;
-  var pf=n?Math.round(tot.a_favor/n*100):0,pc=n?Math.round(tot.en_contra/n*100):0,pa=n?Math.round(tot.abstencion/n*100):0;
   var etq={favor:'A favor',contra:'En contra',abst:'Abstencion'};
+  // Por debajo del umbral: no mostramos tendencia ni cantidad (anonimato).
+  if(n<UMBRAL_TENDENCIA){
+   deck.innerHTML='<div class="card fade" style="gap:14px;min-height:300px;justify-content:center;text-align:center;padding:24px">'+
+    '<div style="font-size:13px;color:var(--muted)">Tu voto: <b>'+(etq[miVoto]||miVoto)+'</b></div>'+
+    '<div style="font-size:36px">🗳️</div>'+
+    '<div class="serif" style="font-weight:700;font-size:16px">¡Listo, tu voto quedó registrado!</div>'+
+    '<div style="font-size:12.5px;color:var(--muted);line-height:1.5">Todavía no hay suficientes votos para mostrar la tendencia de esta ley.</div>'+
+    '<button class="primary sm" data-act="siguienteLey" style="margin-top:6px">Siguiente ley →</button>'+
+    '</div>';
+   $('#actions').style.display='none';return;
+  }
+  var pf=Math.round(tot.a_favor/n*100),pc=Math.round(tot.en_contra/n*100),pa=Math.round(tot.abstencion/n*100);
   deck.innerHTML='<div class="card fade" style="gap:14px;min-height:300px;justify-content:center;text-align:center;padding:24px">'+
    '<div style="font-size:13px;color:var(--muted)">Tu voto: <b>'+(etq[miVoto]||miVoto)+'</b></div>'+
    '<div class="serif" style="font-weight:700;font-size:16px">Así va la opinión ciudadana</div>'+
    '<div class="bar" style="height:14px">'+seg(pf,'var(--favor)')+seg(pa,'var(--abst)')+seg(pc,'var(--contra)')+'</div>'+
    '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)"><span>👍 '+pf+'%</span><span>➖ '+pa+'%</span><span>👎 '+pc+'%</span></div>'+
-   '<div style="font-size:11.5px;color:var(--muted)">'+nf(n)+(n===1?' voto':' votos')+' · anónimos</div>'+
+   '<div style="font-size:11.5px;color:var(--muted)">Datos anónimos y agregados</div>'+
    '<button class="primary sm" data-act="siguienteLey" style="margin-top:6px">Siguiente ley →</button>'+
    '</div>';
   $('#actions').style.display='none';
@@ -1174,12 +1186,21 @@ function renderTrend(){var v=pending.filter(function(b){return votes[b.id];}),el
      var mine=votes[b.id];
      if(!tot){card.querySelector('.muted').textContent='Sin datos aún.';return;}
      var n=tot.a_favor+tot.en_contra+tot.abstencion;
-     var pf=n?Math.round(tot.a_favor/n*100):0,pc=n?Math.round(tot.en_contra/n*100):0,pa=n?Math.round(tot.abstencion/n*100):0;
+     // Umbral de anonimato: por debajo de UMBRAL_TENDENCIA no se muestra
+     // ni tendencia ni cantidad de votos (evita inferir el voto de pocas
+     // personas). Desde el umbral: solo porcentajes, sin el numero de votos.
+     if(n<UMBRAL_TENDENCIA){
+       card.innerHTML='<div style="font-weight:700;font-size:14px;margin-bottom:6px">'+b.n+'</div>'+
+        '<div class="muted" style="font-size:12px;line-height:1.5">Todavía no hay suficientes votos para mostrar la tendencia.</div>'+
+        '<div style="font-size:11px;margin-top:6px"><span class="muted">Tu voto: '+C[mine].t+'</span></div>';
+       return;
+     }
+     var pf=Math.round(tot.a_favor/n*100),pc=Math.round(tot.en_contra/n*100),pa=Math.round(tot.abstencion/n*100);
      var top=Math.max(pf,pc,pa),clear=top>=60;
      var tag=k(clear?(pf===top?'Tiende a favor':pc===top?'Tiende en contra':'Tiende a abst.'):'Dividido',clear?(pf===top?'ok':pc===top?'con':'ab'):'nt');
      card.innerHTML='<div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><div style="font-weight:700;font-size:14px">'+b.n+'</div>'+tag+'</div>'+
       '<div class="bar">'+seg(pf,'var(--favor)')+seg(pa,'var(--abst)')+seg(pc,'var(--contra)')+'</div>'+
-      '<div style="display:flex;justify-content:space-between;font-size:11px"><span class="muted">Tu voto: '+C[mine].t+'</span><span class="muted">'+nf(n)+(n===1?' voto':' votos')+'</span></div>';
+      '<div style="display:flex;justify-content:space-between;font-size:11px"><span class="muted">Tu voto: '+C[mine].t+'</span><span class="muted">'+pf+'% a favor · '+pc+'% en contra'+(pa>0?' · '+pa+'% abst.':'')+'</span></div>';
    });
  });}
 
@@ -1434,7 +1455,8 @@ function cargarCruce(l){
     var t={a_favor:0,en_contra:0,abstencion:0};
     (filas||[]).forEach(function(f){if(t[f.voto]!==undefined)t[f.voto]=f.cantidad;});
     var n=t.a_favor+t.en_contra+t.abstencion;
-    if(n<1){ l.cruce=''; var e0=document.getElementById('cruce-'+l.id); if(e0)e0.outerHTML=''; return; }
+    // Bajo el umbral de anonimato no mostramos el cruce (ni conteo ni %).
+    if(n<UMBRAL_TENDENCIA){ l.cruce=''; var e0=document.getElementById('cruce-'+l.id); if(e0)e0.outerHTML=''; return; }
     var pf=Math.round(t.a_favor/n*100), pc=Math.round(t.en_contra/n*100), pa=Math.round(t.abstencion/n*100);
     // postura mayoritaria de la comunidad
     var cmayor = (t.a_favor>=t.en_contra && t.a_favor>=t.abstencion)?'favor':((t.en_contra>=t.abstencion)?'contra':'abst');
@@ -1452,7 +1474,7 @@ function cargarCruce(l){
       +'<div style="width:'+pa+'%;background:var(--abst)"></div></div>';
     var html='<div class="card" style="margin:0 0 12px;padding:13px 15px">'
       +'<div class="sech" style="margin-bottom:6px">🔗 TU COMUNIDAD vs EL CONGRESO</div>'
-      +'<div style="font-size:12.5px;color:var(--muted);margin-bottom:2px">La comunidad de Pnyx ('+n+' voto'+(n>1?'s':'')+') opinó <b style="color:var(--ink)">'+cTxt+'</b>:</div>'
+      +'<div style="font-size:12.5px;color:var(--muted);margin-bottom:2px">La comunidad de Pnyx opinó <b style="color:var(--ink)">'+cTxt+'</b>:</div>'
       +barra
       +'<div style="font-size:11px;color:var(--muted);margin-bottom:10px"><span style="color:var(--favor)">'+pf+'% a favor</span> · <span style="color:var(--contra)">'+pc+'% en contra</span> · <span style="color:var(--abst)">'+pa+'% abst.</span></div>'
       +'<div style="font-size:12.5px;color:var(--muted);margin-bottom:8px">El Congreso <b style="color:var(--ink)">'+gTxt+'</b>.</div>'
