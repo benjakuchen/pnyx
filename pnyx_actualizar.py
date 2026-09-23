@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Pnyx - (c) 2026 Benjamin Kuchen. Obra protegida por la Ley 11.723 (Argentina).
+# Distribuido bajo la Licencia Publica General Affero de GNU v3 (AGPL-3.0). Ver LICENSE.
 """
 Pnyx · Maestro — corre toda la tuberia en orden
 ------------------------------------------------
-Ejecuta todos los obreros en secuencia (menos el 16 linkeo, que todavia no
-esta probado). Cada uno actualiza Supabase (la fuente de verdad). Si un
-obrero falla, avisa y sigue con el resto (salvo el 1, que es requisito de
-los demas).
+Ejecuta todos los obreros en secuencia. Cada uno actualiza Supabase (la
+fuente de verdad). Si un obrero falla, avisa y sigue con el resto (salvo el
+1, que es requisito de los demas).
+
+Nota linkeo: el maestro corre el 16 en modo --sin-ia (solo titulo alto, no
+gasta API). El linkeo con IA (zona gris) se corre a mano y revisando.
 
 Uso:
   python pnyx_actualizar.py            (corrida normal, sin resumir de mas)
@@ -27,8 +31,9 @@ PASOS = [
     ("1_consultar_supabase.py", [], True),                              # estado + existentes.json
     ("2_bajar_diputados.py", [], False),                               # lista Diputados
     ("3_texto_diputados.py", (["--todos"] if FULL else []), False),    # texto Diputados -> Supabase
-    ("5_bajar_senado.py", [], False),                                  # lista Senado
-    ("6_texto_senado.py", (["--todos"] if FULL else []), False),       # texto Senado -> Supabase
+    # NOTA: el Senado (obreros 5 y 6) NO corre en GitHub: el sitio del Senado
+    # bloquea las descargas desde servidores de datacenter. Se corre A MANO
+    # desde la PC de Benjamin (ver pnyx_senado.py). Por eso no estan aca.
     ("15_ocr.py", [], False),                                          # OCR de escaneados sin texto (ambas camaras)
     ("4_resumir_diputados.py", (["50"] if FULL else []), False),       # resumen Diputados (incluye lo recien OCReado)
     ("7_resumir_senado.py", (["50"] if FULL else []), False),          # resumen Senado
@@ -39,7 +44,12 @@ PASOS = [
     ("13_sanciones.py", [], False),                                    # media sancion / sancion
     ("1_consultar_supabase.py", [], True),                             # refrescar estado
     ("14_curaduria.py", [], False),                                    # clasificar auto / cola / ruido
-    ("9_mezclar_ordenar.py", [], False),                              # puntuar y ordenar (ultimo)
+    ("9_mezclar_ordenar.py", [], False),                              # puntuar y ordenar
+    ("17_labor.py", [], False),                                        # labor parlamentaria (no gasta API)
+    # Linkeo AUTOMATICO solo por titulo alto (--sin-ia): no gasta credito de
+    # API y casi no se equivoca (umbral 0.72). La zona gris que usa IA se corre
+    # A MANO desde la PC:  python 16_linkeo.py   (revisando los matches).
+    ("16_linkeo.py", ["--sin-ia"], False),
 ]
 
 

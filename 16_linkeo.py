@@ -169,15 +169,14 @@ def main():
         if best[0] >= UMBRAL_ALTO and best[1]:
             # título muy confiable: se acepta directo
             metodo, ley, score = "titulo", best[1], round(best[0], 3)
-        elif best[0] >= UMBRAL_TITULO and best[1]:
-            # zona gris: la IA confirma antes de aceptar (si hay IA)
-            if cliente:
-                if confirmar_ia(cliente, titulo, best[1]):
-                    metodo, ley, score = "titulo+ia", best[1], round(best[0], 3)
-                else:
-                    ley, metodo, score = None, None, None   # la IA lo descartó
+        elif best[0] >= UMBRAL_TITULO and best[1] and cliente:
+            # zona gris: la IA confirma antes de aceptar. Sin IA (--sin-ia,
+            # p.ej. en el maestro automatico) NO se linkea la zona gris: queda
+            # para la corrida manual con IA, para no arriesgar matches dudosos.
+            if confirmar_ia(cliente, titulo, best[1]):
+                metodo, ley, score = "titulo+ia", best[1], round(best[0], 3)
             else:
-                metodo, ley, score = "titulo", best[1], round(best[0], 3)  # sin IA: se acepta
+                ley, metodo, score = None, None, None   # la IA lo descartó
         elif cliente:
             # título no alcanza: la IA elige entre las POCAS más parecidas (o ninguna)
             ley = linkear_ia(cliente, titulo, top_candidatas(titulo, leyes))
