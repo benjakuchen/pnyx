@@ -16,6 +16,15 @@ __pycache__/
 # Carpeta de archivos viejos
 _historico/
 
+# Archivos de trabajo del Senado (PDF bajados a mano, listados)
+senado_pdfs/
+senado_faltantes.txt
+senado_faltantes.csv
+senado.xls
+
+# Documentos personales / notas
+*.docx
+
 # Secretos (por si acaso, nunca subir)
 *.env
 secrets.txt
