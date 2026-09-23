@@ -141,7 +141,7 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
     <div class="ob show" id="o0">
       <div style="text-align:center;margin-top:14px"><div class="logo logoBig">pnyx</div><div class="muted" style="font-size:13px;margin-top:2px">la asamblea ciudadana</div></div>
       <div class="carousel" style="margin:24px 0"><div class="cphrase serif" id="cph"></div><div class="cauth" id="cau"></div><div class="cdots" id="cdots"></div></div>
-      <div class="chiprow"><span class="tag">anonimato por diseño</span><span class="tag">una persona, un voto</span><span class="tag">código abierto</span></div>
+      <div class="chiprow"><span class="tag">anonimato por diseño</span><span class="tag">una persona, un voto</span></div>
       <button class="primary" data-act="goto" data-arg="oC">Empezar</button>
       <button class="fullbtn" style="margin-top:10px" onclick="entrarComoDemo()">Ver un ejemplo (sin cuenta)</button>
     </div>
@@ -178,10 +178,10 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
 
     <div class="ob" id="oVer">
       <div style="text-align:center;margin-top:14px;font-size:46px">🪪</div>
-      <h2 class="serif" style="font-size:23px;text-align:center;margin:12px 0 6px">Verificá que sos vos</h2>
-      <p class="muted" style="text-align:center;margin:0 0 18px">Para que cada persona vote una sola vez, confirmamos tu identidad. Es rápido: una selfie y tu DNI.</p>
-      <div class="note info" style="margin-bottom:14px">🔒 Tu identidad queda separada de tus votos. Verificamos que sos una persona real y única, pero <b>nadie puede saber cómo votaste</b>.</div>
-      <button class="primary sm" onclick="iniciarVerificacionDidit()">Verificar mi identidad</button>
+      <h2 class="serif" style="font-size:23px;text-align:center;margin:12px 0 10px">Antes de continuar</h2>
+      <p class="muted" style="margin:0 0 12px;font-size:13.5px;line-height:1.55">Para que cada persona pueda votar una sola vez, una aplicación externa <b>(no es de Pnyx)</b> va a verificar que sos una persona real, con tu documento y una selfie.</p>
+      <div class="note info" style="margin-bottom:14px;line-height:1.55"><b>Nosotros no guardamos eso.</b> De vos solo conservamos tu <b>email</b> y el <b>distrito</b> donde vivís, para conocer las preferencias de cada distrito. Del documento no guardamos ni el número ni la foto: solo una huella cifrada que no se puede revertir, y que sirve únicamente para impedir que la misma persona se registre dos veces. Tu identidad queda separada de tus votos: <b>nadie puede saber qué votaste</b>.</div>
+      <button class="primary sm" onclick="iniciarVerificacionDidit()">Entendido, continuar</button>
       <div id="verMsg" style="margin-top:14px;font-size:13px;text-align:center;color:var(--muted);display:none"></div>
     </div>
 
@@ -674,9 +674,10 @@ function pedirLoginParaVotar(){
 function pedirVerificarParaVotar(){
   var d=$('#detail');
   d.innerHTML='<button class="back" data-act="closeDetail">← Volver</button>'
-   +'<h3 class="title" style="font-size:20px">Verificá tu identidad para votar</h3>'
-   +'<p class="muted" style="font-size:13.5px;margin:10px 0">Para que cada persona vote una sola vez, antes de votar necesitás verificar que sos una persona real (una selfie y tu documento). Tu identidad queda <b>separada de tus votos</b>: nadie puede saber cómo votaste.</p>'
-   +'<button class="primary sm" onclick="iniciarVerificacionDidit()">Verificar mi identidad</button>'
+   +'<h3 class="title" style="font-size:20px">Antes de continuar</h3>'
+   +'<p class="muted" style="font-size:13.5px;margin:10px 0;line-height:1.55">Para que cada persona pueda votar una sola vez, una aplicación externa <b>(no es de Pnyx)</b> va a verificar que sos una persona real, con tu documento y una selfie.</p>'
+   +'<div class="note info" style="margin:0 0 12px;line-height:1.55"><b>Nosotros no guardamos eso.</b> De vos solo conservamos tu <b>email</b> y el <b>distrito</b> donde vivís, para conocer las preferencias de cada distrito. Del documento no guardamos ni el número ni la foto: solo una huella cifrada que no se puede revertir, y que sirve únicamente para impedir que la misma persona se registre dos veces. Tu identidad queda separada de tus votos: <b>nadie puede saber qué votaste</b>.</div>'
+   +'<button class="primary sm" onclick="iniciarVerificacionDidit()">Entendido, continuar</button>'
    +'<div id="verMsgP" style="margin-top:10px;font-size:12.5px;color:var(--muted);display:none"></div>';
   abrirOverlay(d);
 }
@@ -1577,6 +1578,15 @@ function pintarBanc(){
  $('#sc-banc').innerHTML=h;
  var inp=$('#bancaBuscar'); if(inp){inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}
 }
+// Arma la URL de la ficha del legislador en comovoto. El sitio identifica a
+// cada uno por su "nombre canonico" (?leg=APELLIDO, NOMBRE), en mayusculas y
+// sin acentos, y hace el match sin distinguir may/min. Reproducimos ese
+// formato desde el nombre que tenemos ("APELLIDO, Nombre").
+function comovotoLegUrl(nombre){
+ if(!nombre)return '';
+ var k=nombre.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase();
+ return 'https://comovoto.dev.ar/?leg='+encodeURIComponent(k);
+}
 function filaBanca(b,pos){
  var pr=(b.nombre||'').split(/[\s,]+/).filter(Boolean);
  var ini=((pr[0]&&pr[0][0]||'')+(pr[1]&&pr[1][0]||'')).toUpperCase();
@@ -1591,11 +1601,16 @@ function filaBanca(b,pos){
   : '<div class="repav" style="background:'+(b.escucha?'var(--favor-bg)':'var(--surface2)')+';color:'+(b.escucha?'var(--favor)':'var(--muted)')+'">'+ini+'</div>';
  // línea de datos: labor (si hay) + presentismo
  var datos=(labor?labor+' · ':'')+pres;
+ var url=comovotoLegUrl(b.nombre);
+ var link=url
+  ? '<a href="'+escHtml(url)+'" target="_blank" rel="noopener" style="display:inline-block;margin-top:5px;font-size:11.5px;color:var(--brand);text-decoration:none;font-weight:700">Ver su actividad ↗</a>'
+  : '';
  return '<div class="mem" style="display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;margin-bottom:8px">'
   +av
   +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13.5px">'+escHtml(b.nombre)+'</div>'
   +'<div class="muted" style="font-size:11.5px">'+escHtml(b.bloque||'')+(b.provincia?' · '+escHtml(b.provincia):'')+'</div>'
-  +'<div class="muted" style="font-size:11.5px;margin-top:1px">'+datos+'</div></div>'
+  +'<div class="muted" style="font-size:11.5px;margin-top:1px">'+datos+'</div>'
+  +link+'</div>'
   +sello+'</div>';
 }
 function onBancaBusca(v){bancaBusca=v;pintarBanc();}

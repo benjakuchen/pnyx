@@ -31,9 +31,14 @@ PASOS = [
     ("1_consultar_supabase.py", [], True),                              # estado + existentes.json
     ("2_bajar_diputados.py", [], False),                               # lista Diputados
     ("3_texto_diputados.py", (["--todos"] if FULL else []), False),    # texto Diputados -> Supabase
-    # NOTA: el Senado (obreros 5 y 6) NO corre en GitHub: el sitio del Senado
-    # bloquea las descargas desde servidores de datacenter. Se corre A MANO
-    # desde la PC de Benjamin (ver pnyx_senado.py). Por eso no estan aca.
+    # SENADO: NO se puede automatizar. El sitio del Senado tiene un anti-bot
+    # (F5 Shape / TSPD): devuelve un JavaScript-challenge en vez del Excel a
+    # cualquier script (probado 23/09/2026, falla incluso desde la PC). Solo
+    # un navegador real lo pasa. Por eso TODO el Senado es manual:
+    #   1) bajar el Excel a mano del sitio  -> guardarlo como senado.xls
+    #   2) python senado_desde_excel.py     (descubre leyes nuevas)
+    #   3) python senado_reporte.py --todos (lista que falta)
+    #   4) bajar PDFs a mano -> senado_pdfs\ -> python senado_subir.py
     ("15_ocr.py", [], False),                                          # OCR de escaneados sin texto (ambas camaras)
     ("4_resumir_diputados.py", (["50"] if FULL else []), False),       # resumen Diputados (incluye lo recien OCReado)
     ("7_resumir_senado.py", (["50"] if FULL else []), False),          # resumen Senado
