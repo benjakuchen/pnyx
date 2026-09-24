@@ -1337,7 +1337,8 @@ function renderHistoricas(){
  return h;}
 
 function renderHistResultados(){
- if(!histResultados) return '<p class="muted" style="font-size:13px;padding:10px 0">Escribí para buscar, o elegí un año.</p>';
+ if(histResultados===null) return '<p class="muted" style="font-size:13px;padding:10px 0">Escribí para buscar, o elegí un año.</p>';
+ if(!Array.isArray(histResultados)) return '<p class="muted" style="font-size:13px;padding:10px 0">No se pudo buscar. Probá de nuevo.</p>';
  var lista=histResultados.filter(function(r){return r.camara===votedCamara;});
  if(lista.length===0) return '<p class="muted" style="font-size:13px;padding:10px 0">No se encontraron votaciones en '+votedCamara+'.</p>';
  var h='';
@@ -1360,10 +1361,15 @@ function buscarHistoricas(){
    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
    body:JSON.stringify({p_texto:histTexto||'',p_anio:histAnio,p_limite:50})})
   .then(function(r){return r.json();})
-  .then(function(rows){histResultados=(rows||[]);histBuscando=false;
+  .then(function(rows){
+    // La RPC puede devolver un array (OK) o un objeto de error. Solo tomamos
+    // arrays; cualquier otra cosa la tratamos como "sin resultados" y avisamos.
+    if(Array.isArray(rows)){histResultados=rows;}
+    else{histResultados=[];console.log('votadas_buscar no devolvió un array:',rows);}
+    histBuscando=false;
     // solo actualizo los resultados: NO re-renderizo todo, para no perder el foco del input
     var c=$('#histRes'); if(c)c.innerHTML=renderHistResultados();})
-  .catch(function(){histBuscando=false;var c=$('#histRes');if(c)c.innerHTML='<p class="muted" style="font-size:13px">No se pudo buscar.</p>';});}
+  .catch(function(){histBuscando=false;histResultados=[];var c=$('#histRes');if(c)c.innerHTML='<p class="muted" style="font-size:13px">No se pudo buscar.</p>';});}
 
 function cargarAnios(){
  fetch(SUPABASE_URL+'/rest/v1/rpc/votadas_anios',{method:'POST',
