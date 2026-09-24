@@ -209,23 +209,50 @@ var $=function(s){return document.querySelector(s);};
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toast(t){var el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(function(){el.classList.remove('show');},2400);}
 
+// Verifica contra la base que el usuario logueado es admin (tabla admins,
+// vía función es_admin()). Si no, no deja entrar.
+async function chequearEsAdmin(){
+ try{
+  var r=await fetch(SUPABASE_URL+'/rest/v1/rpc/es_admin',{method:'POST',
+    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:'{}'});
+  var v=await r.json();
+  return v===true;
+ }catch(e){return false;}
+}
+
 async function adminLogin(){
  var email=$('#admEmail').value.trim(), pass=$('#admPass').value, msg=$('#loginMsg');
  msg.style.color='var(--muted)';msg.textContent='Entrando…';
  var res=await supabase.auth.signInWithPassword({email:email,password:pass});
  if(res.error){msg.style.color='var(--contra)';msg.textContent='Error: '+res.error.message;return;}
  token=res.data.session.access_token;
+ // Verificar que sea admin (está en la tabla admins de Supabase)
+ var ok=await chequearEsAdmin();
+ if(!ok){
+   msg.style.color='var(--contra)';msg.textContent='Esta cuenta no tiene permisos de administrador.';
+   await supabase.auth.signOut(); token=SUPABASE_KEY; return;
+ }
  $('#admWho').textContent=email;
  $('#login').style.display='none';$('#consola').style.display='block';
  initNav(); cargar();
 }
 async function adminLogout(){await supabase.auth.signOut();location.reload();}
 (async function(){
- /* LOGIN DESACTIVADO TEMPORALMENTE (reponer antes de produccion) */
+ // Login OBLIGATORIO. Si hay sesión activa y es admin, entra; si no, muestra login.
  var {data:{session}}=await supabase.auth.getSession();
- if(session){token=session.access_token;$('#admWho').textContent=session.user.email;}
- else{$('#admWho').textContent='(sin login — modo desarrollo)';}
- $('#login').style.display='none';$('#consola').style.display='block';initNav();cargar();
+ if(session){
+   token=session.access_token;
+   var ok=await chequearEsAdmin();
+   if(ok){
+     $('#admWho').textContent=session.user.email;
+     $('#login').style.display='none';$('#consola').style.display='block';initNav();cargar();
+     return;
+   }
+   // sesión sin permisos: cerrar y pedir login
+   await supabase.auth.signOut(); token=SUPABASE_KEY;
+ }
+ // sin sesión válida: mostrar login, ocultar consola
+ $('#login').style.display='block';$('#consola').style.display='none';
 })();
 // Arranca la navegación: dibuja los grupos y abre el primero (Feed de votar → Curaduría).
 function initNav(){ pintarGrupos(); irGrupo('feedvotar'); }
