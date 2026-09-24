@@ -11,6 +11,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Pnyx</title>
+<!-- PWA: instalable en el celular -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1C5BAE">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Pnyx">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
 <style>
 :root{
  --paper:#E9F1FA;--surface:#FFFFFF;--surface2:#EAF2FB;
@@ -19,7 +28,7 @@
  --favor:#1E8C57;--favor-bg:#E2F0E7;--contra:#C03A2B;--contra-bg:#F7E5E1;
  --abst:#B07F20;--abst-bg:#F6ECD6;--ia:#6B4FB0;--ia-bg:#ECE6F7;
  --aus:#C2CEDA;--r:14px;--r-sm:10px;
- --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+ --serif:'Fraunces',Georgia,"Iowan Old Style","Times New Roman",serif;
  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -156,7 +165,7 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
       <button class="back" data-act="goto" data-arg="oC">← Volver</button>
       <div class="bigsecret"><div class="em">🔒</div><b>Tu identidad y tus votos quedan por separado.</b><span style="font-size:13px;opacity:.95">Nadie puede saber qué votaste.</span></div>
       <p class="muted" style="margin:0 0 14px">Necesitamos tu acuerdo. El segundo va aparte porque tu opinión política es un dato sensible.</p>
-      <div class="chk" id="k1" data-act="chk" data-arg="1"><div class="box" id="b1"></div><div class="muted" style="color:var(--ink)">Acepto los <b style="font-weight:700">Términos y la Política de Privacidad</b>. <span style="color:var(--brand);font-weight:700">Ver resumen</span></div></div>
+      <div class="chk" id="k1" data-act="chk" data-arg="1"><div class="box" id="b1"></div><div class="muted" style="color:var(--ink)">Acepto los <a href="terminos.html" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--brand);font-weight:700;text-decoration:underline">Términos y la Política de Privacidad</a>.</div></div>
       <div class="chk" id="k2" data-act="chk" data-arg="2"><div class="box" id="b2"></div><div class="muted" style="color:var(--ink)">Consiento el <b style="font-weight:700">tratamiento de mi opinión política</b> y la verificación de identidad.</div></div>
       <button class="primary" id="tycBtn" disabled data-act="goto" data-arg="oRen">Continuar →</button>
     </div>
@@ -208,7 +217,7 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
   </div>
 
   <div id="app" style="display:none;flex:1;flex-direction:column;min-height:0">
-    <div class="hdr"><span class="logo">Pnyx</span><span class="pill brand">🇦🇷 Argentina · Nacional</span></div>
+    <div class="hdr"><span class="logo">pnyx</span><span class="pill brand">🇦🇷 Argentina · Nacional</span></div>
     <div class="civicbar">🔒 Tu voto es secreto · tu identidad y tus votos quedan separados</div>
     <div class="main">
       <div id="sc-vote" class="pad show">
@@ -1942,6 +1951,15 @@ function tipUnaVez(clave,texto){
   tips[clave]=true;
   try{sessionStorage.setItem('pnyxTips',JSON.stringify(tips));}catch(e){}
   return '<div class="tipcard">💡 '+texto+'</div>';
+}
+</script>
+<script>
+/* PWA: registra el service worker para que Pnyx sea instalable en el celular.
+   No cachea la app (siempre carga la última versión). */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').catch(function(e){console.log('SW no registrado:',e);});
+  });
 }
 </script>
 </body>
