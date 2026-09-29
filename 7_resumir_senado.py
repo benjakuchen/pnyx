@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Pnyx - (c) 2026 Benjamin Kuchen. Obra protegida por la Ley 11.723 (Argentina).
+# Distribuido bajo la Licencia Publica General Affero de GNU v3 (AGPL-3.0). Ver LICENSE.
 """
 Pnyx · Obrero 7 — Resumir Senado con IA (Supabase = fuente de verdad)
 ----------------------------------------------------------------------
@@ -80,28 +82,40 @@ def main():
 
     top_n = TOP_N
     todas = False
+    incluir_no_pub = False
     for a in sys.argv[1:]:
         if a.isdigit():
             top_n = int(a)
         elif a.lower() in ("todas", "--todas", "all"):
             todas = True
+        elif a.lower() in ("--incluir-no-publicadas", "--todas-publicadas-o-no", "--all-estados"):
+            incluir_no_pub = True
 
     sb = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-    # Objetivo: leyes PUBLICADAS del Senado con texto pero sin oracion.
+    # Objetivo: leyes del Senado con texto pero sin oracion (resumen).
+    # Por defecto solo PUBLICADAS (igual que el automatico de las 4 AM).
+    # Con --incluir-no-publicadas: tambien las que estan sin publicar, para
+    # poder resumirlas a mano apenas se sube el texto.
     q = (sb.table("leyes")
          .select("bill_id,titulo,expediente,texto_oficial")
          .eq("camara", "Senado")
-         .eq("publicada", True)
          .is_("oracion_ia", "null")
          .not_.is_("texto_oficial", "null"))
+    if not incluir_no_pub:
+        q = q.eq("publicada", True)
     res = q.execute()
     objetivo = [p for p in (res.data or []) if p.get("texto_oficial") and len(p["texto_oficial"]) > 200]
     if not todas:
         objetivo = objetivo[:top_n]
 
     if not objetivo:
-        print("No hay leyes del Senado PUBLICADAS con texto pendientes de resumir.", file=sys.stderr)
+        if incluir_no_pub:
+            print("No hay leyes del Senado con texto pendientes de resumir.", file=sys.stderr)
+        else:
+            print("No hay leyes del Senado PUBLICADAS con texto pendientes de resumir.", file=sys.stderr)
+            print("(Si querés resumir también las que están sin publicar, corré:", file=sys.stderr)
+            print("  python 7_resumir_senado.py --incluir-no-publicadas )", file=sys.stderr)
         return
 
     print("Resumiendo %d leyes publicadas del Senado...\n" % len(objetivo), file=sys.stderr)

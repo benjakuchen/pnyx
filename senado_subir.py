@@ -21,6 +21,7 @@ Uso (PowerShell, desde la carpeta PNYX):
 
 import os
 import re
+import shutil
 import sys
 import urllib.request
 
@@ -40,6 +41,7 @@ SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY", "")
 CARPETA = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("-") else "senado_pdfs"
 MIN_CARACTERES = 60
 BUCKET = "pdfs-leyes"
+FORZAR = "--forzar" in sys.argv   # resubir aunque la ley ya tenga texto
 
 
 def normalizar_billid(nombre_archivo):
@@ -103,37 +105,60 @@ def main():
         return
 
     sb = create_client(SUPABASE_URL, SUPABASE_KEY)
-    print("Subiendo %d PDF desde '%s'..." % (len(pdfs), CARPETA), file=sys.stderr)
+    # Carpeta donde se archivan los PDF ya procesados, para no re-subirlos.
+    carpeta_subidos = os.path.join(CARPETA, "subidos")
+    os.makedirs(carpeta_subidos, exist_ok=True)
+
+    def archivar(fname):
+        """Mueve el PDF a senado_pdfs/subidos/ (no re-sube la proxima vez)."""
+        try:
+            shutil.move(os.path.join(CARPETA, fname), os.path.join(carpeta_subidos, fname))
+        except Exception as e:
+            print("    (aviso: no pude mover %s a subidos/: %s)" % (fname, e), file=sys.stderr)
+
+    print("Subiendo %d PDF desde '%s'...%s" % (len(pdfs), CARPETA,
+          " (--forzar: resube aunque ya tengan texto)" if FORZAR else ""), file=sys.stderr)
     ok = 0
     escaneadas = 0
     fallos = 0
     sin_match = 0
+    salteados = 0
     for i, fname in enumerate(sorted(pdfs), 1):
         bill_id = normalizar_billid(fname)
         path = os.path.join(CARPETA, fname)
 
         # La ley TIENE que existir ya en la base (la creo senado_desde_excel).
-        # Si no existe, NO creamos fila fantasma: avisamos para renombrar el PDF.
+        # Traemos tambien si ya tiene texto/PDF, para saltear los ya subidos.
         try:
-            existe = sb.table("leyes").select("bill_id").eq("bill_id", bill_id).limit(1).execute().data
+            filas = sb.table("leyes").select("bill_id,texto_oficial,texto_escaneado,url_pdf_oficial") \
+                      .eq("bill_id", bill_id).limit(1).execute().data
         except Exception as e:
-            existe = None
             print("  [%d/%d] %s  (no pude verificar: %s)" % (i, len(pdfs), bill_id, e), file=sys.stderr)
             fallos += 1
             continue
-        if not existe:
+        if not filas:
             sin_match += 1
             print("  [%d/%d] %s  NO EXISTE en la base -> revisá el nombre del PDF (archivo: %s)"
                   % (i, len(pdfs), bill_id, fname), file=sys.stderr)
             continue
 
+        d = filas[0]
+        ya_tiene = (d.get("texto_oficial") and len(str(d.get("texto_oficial"))) >= MIN_CARACTERES) \
+                   or d.get("texto_escaneado") or d.get("url_pdf_oficial")
+        if ya_tiene and not FORZAR:
+            salteados += 1
+            print("  [%d/%d] %s  ya tenía texto -> se saltea (archivado)" % (i, len(pdfs), bill_id), file=sys.stderr)
+            archivar(fname)
+            continue
+
         texto = extraer_texto(path)
+        exito = False
         if texto and len(texto) >= MIN_CARACTERES:
             try:
                 sb.table("leyes").update(
                     {"texto_oficial": texto, "texto_escaneado": False}
                 ).eq("bill_id", bill_id).execute()
-                ok += 1
+                ok += 1; exito = True
                 est = "OK (%d car.) -> texto subido" % len(texto)
             except Exception as e:
                 fallos += 1
@@ -144,15 +169,18 @@ def main():
                 sb.table("leyes").update(
                     {"texto_escaneado": True, "url_pdf_oficial": url_storage}
                 ).eq("bill_id", bill_id).execute()
-                escaneadas += 1
+                escaneadas += 1; exito = True
                 est = "ESCANEADO -> PDF subido a Storage (lo OCRea el obrero 15)"
             except Exception as e:
                 fallos += 1
                 est = "escaneado pero fallo: %s" % e
         print("  [%d/%d] %s  %s" % (i, len(pdfs), bill_id, est), file=sys.stderr)
+        if exito:
+            archivar(fname)
 
-    print("\nTexto legible subido: %d | Escaneados: %d | Sin match: %d | Fallos: %d | de %d"
-          % (ok, escaneadas, sin_match, fallos, len(pdfs)), file=sys.stderr)
+    print("\nSubidos: %d texto + %d escaneados | Ya estaban (salteados): %d | Sin match: %d | Fallos: %d | de %d"
+          % (ok, escaneadas, salteados, sin_match, fallos, len(pdfs)), file=sys.stderr)
+    print("(Los PDF procesados se movieron a  %s )" % carpeta_subidos, file=sys.stderr)
     if sin_match:
         print("(Los 'NO EXISTE' son PDF cuyo nombre no coincide con ningun bill_id.", file=sys.stderr)
         print(" Renombralos como dice senado_faltantes.txt, ej: SENADO637-26.pdf)", file=sys.stderr)

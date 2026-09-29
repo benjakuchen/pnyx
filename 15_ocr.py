@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Pnyx - (c) 2026 Benjamin Kuchen. Obra protegida por la Ley 11.723 (Argentina).
+# Distribuido bajo la Licencia Publica General Affero de GNU v3 (AGPL-3.0). Ver LICENSE.
 """
 Pnyx · Obrero 15 — OCR de PDFs escaneados (IA lee la imagen y resume)
 ----------------------------------------------------------------------
@@ -107,21 +109,29 @@ def main():
         print('Falta $env:ANTHROPIC_API_KEY', file=sys.stderr); sys.exit(1)
 
     limite = 3
+    incluir_no_pub = False
     for a in sys.argv[1:]:
         if a.isdigit():
             limite = int(a)
+        elif a.lower() in ("--incluir-no-publicadas", "--all-estados"):
+            incluir_no_pub = True
 
     sb = create_client(SUPABASE_URL, SUPABASE_KEY)
-    res = (sb.table("leyes")
-           .select("bill_id,titulo,url_pdf_oficial")
-           .eq("publicada", True)
-           .eq("texto_escaneado", True)
-           .is_("oracion_ia", "null")
-           .not_.is_("url_pdf_oficial", "null")
-           .limit(limite).execute())
+    q = (sb.table("leyes")
+         .select("bill_id,titulo,url_pdf_oficial")
+         .eq("texto_escaneado", True)
+         .is_("oracion_ia", "null")
+         .not_.is_("url_pdf_oficial", "null"))
+    if not incluir_no_pub:
+        q = q.eq("publicada", True)
+    res = q.limit(limite).execute()
     objetivo = res.data or []
     if not objetivo:
-        print("No hay leyes escaneadas publicadas pendientes de OCR.", file=sys.stderr)
+        if incluir_no_pub:
+            print("No hay leyes escaneadas pendientes de OCR.", file=sys.stderr)
+        else:
+            print("No hay leyes escaneadas publicadas pendientes de OCR.", file=sys.stderr)
+            print("(Para incluir las sin publicar:  python 15_ocr.py --incluir-no-publicadas )", file=sys.stderr)
         return
 
     print("Leyes escaneadas a procesar con OCR: %d\n" % len(objetivo), file=sys.stderr)
