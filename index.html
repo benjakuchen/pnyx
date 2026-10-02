@@ -449,10 +449,11 @@ async function continuarTrasLogin(){
   try{
     var {data:{session}}=await supabase.auth.getSession();
     if(!session){mostrarVerificacion();return;}
-    var r=await fetch(SUPABASE_URL+'/rest/v1/identidad_verificada?select=verificado&user_id=eq.'+session.user.id,
+    var r=await fetch(SUPABASE_URL+'/rest/v1/identidad_verificada?select=verificado,provincia&user_id=eq.'+session.user.id,
       {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token}});
     var filas=await r.json();
     var ok=Array.isArray(filas)&&filas[0]&&filas[0].verificado;
+    if(filas&&filas[0]&&filas[0].provincia)miZona=filas[0].provincia;
     console.log('VERIF check:',filas,'-> ok:',ok);
     if(ok){enterApp();}else{mostrarVerificacion();}
   }catch(e){mostrarVerificacion();}
@@ -520,7 +521,7 @@ async function cargarVotadas(listo){
     var {data:{session}}=await supabase.auth.getSession();
     var tok=session?session.access_token:SUPABASE_KEY;
     var uid=usuarioActual?usuarioActual.id:null;
-    var url=SUPABASE_URL+'/rest/v1/ya_voto?select=ley_bill_id';
+    var url=SUPABASE_URL+'/rest/v1/ya_voto?select=ley_bill_id&limit=5000';
     if(!session&&uid)url+='&user_id=eq.'+uid; // sin sesión, filtro por el usuario fijo
     var r=await fetch(url,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+tok}});
     var filas=await r.json();
@@ -980,7 +981,7 @@ function guardarVoto(ley,choice){
  fetch(SUPABASE_URL+'/rest/v1/rpc/emitir_voto',{
    method:'POST',
    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
-   body:JSON.stringify({p_usuario:usuarioActual.id,p_ley_bill_id:ley.billId,p_voto:voto})
+   body:JSON.stringify({p_usuario:usuarioActual.id,p_ley_bill_id:ley.billId,p_voto:voto,p_zona:miZona||null})
  }).then(function(r){return r.json();})
  .then(function(resultado){
    if(resultado==='OK'||resultado==='YA_VOTASTE'){votadas[ley.billId]=true;histGuardar(ley,choice);}
@@ -1184,16 +1185,23 @@ function openExperts(){
   .catch(function(){var c=document.getElementById('expcuerpo');if(c)c.innerHTML='<span class="muted">No se pudieron cargar las opiniones. Probá de nuevo.</span>';});
 }
 
-function renderTrend(){var v=pending.filter(function(b){return votes[b.id];}),el=$('#sc-trend');
- if(!v.length){el.innerHTML='<div style="text-align:center;padding:48px 12px"><div style="font-size:38px">📊</div><p class="muted">Votá proyectos para ver cómo va opinando la ciudadanía.</p></div>';return;}
+function renderTrend(){var el=$('#sc-trend');
+ // Tomamos las leyes que votaste del HISTORIAL LOCAL (persiste en el
+ // dispositivo), no de 'pending' (que ya no tiene las votadas). Así las
+ // tendencias siguen apareciendo al reentrar. El sentido del voto queda
+ // solo acá, en tu dispositivo (anonimato: no se liga a tu usuario en la base).
+ var hist=histLeer();
+ if(!hist.length){el.innerHTML='<div style="text-align:center;padding:48px 12px"><div style="font-size:38px">📊</div><p class="muted">Votá proyectos para ver cómo va opinando la ciudadanía.</p></div>';return;}
  el.innerHTML='<div class="sech">TENDENCIA CIUDADANA · EN CURSO</div><p class="muted" style="font-size:13px;margin:0 0 14px">Sobre lo que votaste. Datos reales y anónimos.</p><div id="trendBody"><p class="muted" style="font-size:13px">Cargando resultados...</p></div>';
  var cont=$('#trendBody');cont.innerHTML='';
- v.forEach(function(b){
+ hist.forEach(function(h){
+   var b={billId:h.billId, n:(h.titulo||h.billId)};
+   var mine=h.voto;   // 'favor' | 'contra' | 'abst'
+   if(!C[mine])mine={a_favor:'favor',en_contra:'contra',abstencion:'abst'}[mine]||'favor';
    var card=document.createElement('div');card.className='card';card.style.cssText='gap:7px;padding:14px;margin-bottom:10px';
    card.innerHTML='<div style="font-weight:700;font-size:14px;margin-bottom:4px">'+b.n+'</div><div class="muted" style="font-size:12px">Cargando...</div>';
    cont.appendChild(card);
    pedirResultados(b,function(tot){
-     var mine=votes[b.id];
      if(!tot){card.querySelector('.muted').textContent='Sin datos aún.';return;}
      var n=tot.a_favor+tot.en_contra+tot.abstencion;
      // Umbral de anonimato: por debajo de UMBRAL_TENDENCIA no se muestra
@@ -1209,10 +1217,38 @@ function renderTrend(){var v=pending.filter(function(b){return votes[b.id];}),el
      var top=Math.max(pf,pc,pa),clear=top>=60;
      var tag=k(clear?(pf===top?'Tiende a favor':pc===top?'Tiende en contra':'Tiende a abst.'):'Dividido',clear?(pf===top?'ok':pc===top?'con':'ab'):'nt');
      card.innerHTML='<div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><div style="font-weight:700;font-size:14px">'+b.n+'</div>'+tag+'</div>'+
+      '<div class="muted" style="font-size:10.5px;letter-spacing:.03em;margin-top:2px">NACIONAL</div>'+
       '<div class="bar">'+seg(pf,'var(--favor)')+seg(pa,'var(--abst)')+seg(pc,'var(--contra)')+'</div>'+
-      '<div style="display:flex;justify-content:space-between;font-size:11px"><span class="muted">Tu voto: '+C[mine].t+'</span><span class="muted">'+pf+'% a favor · '+pc+'% en contra'+(pa>0?' · '+pa+'% abst.':'')+'</span></div>';
+      '<div style="display:flex;justify-content:space-between;font-size:11px"><span class="muted">Tu voto: '+C[mine].t+'</span><span class="muted">'+pf+'% a favor · '+pc+'% en contra'+(pa>0?' · '+pa+'% abst.':'')+'</span></div>'+
+      '<div id="zona-'+b.billId+'"></div>';
+     // Tendencia REGIONAL: solo para legisladores con banca validada y con zona.
+     if(miBanca && miZona){ agregarTendenciaZona(b.billId, miZona); }
    });
  });}
+
+/* Para un legislador validado: trae la tendencia de SU provincia y la suma
+   debajo de la nacional, en la tarjeta de la ley (Tendencias). */
+function agregarTendenciaZona(billId, zona){
+ fetch(SUPABASE_URL+'/rest/v1/rpc/resultados_por_ley_zona',{method:'POST',
+   headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
+   body:JSON.stringify({bill:billId,p_zona:zona})})
+  .then(function(r){return r.json();})
+  .then(function(filas){
+   var cont=document.getElementById('zona-'+billId); if(!cont)return;
+   var t={a_favor:0,en_contra:0,abstencion:0};
+   (Array.isArray(filas)?filas:[]).forEach(function(f){if(t[f.voto]!==undefined)t[f.voto]=f.cantidad;});
+   var n=t.a_favor+t.en_contra+t.abstencion;
+   if(n<UMBRAL_TENDENCIA){
+     cont.innerHTML='<div class="muted" style="font-size:10.5px;letter-spacing:.03em;margin-top:8px">📍 '+escHtml(zona).toUpperCase()+'</div>'+
+       '<div class="muted" style="font-size:11px">Todavía no hay suficientes votos de tu distrito.</div>';
+     return;
+   }
+   var pf=Math.round(t.a_favor/n*100),pc=Math.round(t.en_contra/n*100),pa=Math.round(t.abstencion/n*100);
+   cont.innerHTML='<div class="muted" style="font-size:10.5px;letter-spacing:.03em;margin-top:8px">📍 '+escHtml(zona).toUpperCase()+'</div>'+
+     '<div class="bar">'+seg(pf,'var(--favor)')+seg(pa,'var(--abst)')+seg(pc,'var(--contra)')+'</div>'+
+     '<div style="text-align:right;font-size:11px"><span class="muted">'+pf+'% a favor · '+pc+'% en contra'+(pa>0?' · '+pa+'% abst.':'')+'</span></div>';
+  }).catch(function(){});
+}
 
 /* dibuja el bloque de una votacion (una sola camara) con sus bloques reales */
 function chamber(l){var t=l.tot,total=t[0]+t[1]+t[2]+t[3]||1,ok=estadoDe(l.r)==='Aprobada';
@@ -1764,17 +1800,19 @@ function borrarHistorial(){
 /* ===== VERIFICACIÓN DE IDENTIDAD (estado real desde identidad_verificada) ===== */
 var verifState=false;
 var verifMotivo=null;
+var miZona=null;   // provincia del usuario (de identidad_verificada), para la tendencia regional
 async function chequearVerificacion(cb){
- if(!usuarioActual){verifState=false;verifMotivo=null;if(cb)cb();return;}
+ if(!usuarioActual){verifState=false;verifMotivo=null;miZona=null;if(cb)cb();return;}
  try{
   var {data:{session}}=await supabase.auth.getSession();
   var token=(session&&session.access_token)?session.access_token:SUPABASE_KEY;
-  var r=await fetch(SUPABASE_URL+'/rest/v1/identidad_verificada?select=verificado,motivo_rechazo&user_id=eq.'+usuarioActual.id,
+  var r=await fetch(SUPABASE_URL+'/rest/v1/identidad_verificada?select=verificado,motivo_rechazo,provincia&user_id=eq.'+usuarioActual.id,
     {headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token}});
   var filas=await r.json();
   var f=(Array.isArray(filas)&&filas[0])?filas[0]:null;
   verifState=!!(f&&f.verificado);
   verifMotivo=(f&&f.motivo_rechazo)?f.motivo_rechazo:null;
+  miZona=(f&&f.provincia)?f.provincia:null;
  }catch(e){verifState=false;verifMotivo=null;}
  if(cb)cb();
 }
@@ -1787,7 +1825,10 @@ function bloqueVerificacion(){
  }
  return '<div class="card" style="margin-top:12px;gap:6px"><div style="font-weight:700;font-size:14px">🪪 Verificá tu identidad</div><p class="muted" style="font-size:12.5px;margin:0">Para que cada persona vote una sola vez, confirmamos que sos una persona real (una selfie y tu documento). Tu identidad queda <b>separada de tus votos</b>: nadie puede saber cómo votaste.</p><button class="primary sm" style="margin-top:6px" onclick="iniciarVerificacionDidit()">Verificar mi identidad</button><div id="verMsgP" style="margin-top:10px;font-size:12.5px;color:var(--muted);display:none"></div></div>';
 }
-function renderPerfil(){var n=Object.keys(votes).length;
+function renderPerfil(){
+ // Cuenta los votos del HISTORIAL LOCAL (persiste al reentrar), no de 'votes'
+ // (que solo se llena en la sesión donde votaste).
+ var n=histLeer().length;
  chequearVerificacion(function(){renderPerfilInterno(n);});
 }
 function renderPerfilInterno(n){
