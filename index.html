@@ -88,6 +88,8 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
 .vrow{display:flex;gap:9px}
 .vbtn{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:10px 4px;font-size:12px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px}
 .vbtn .em{font-size:20px}.vbtn.f{color:var(--favor)}.vbtn.c{color:var(--contra)}.vbtn.a{color:var(--abst)}
+.skipbtn{width:100%;border:none;background:transparent;color:var(--muted);border-radius:var(--r);padding:9px;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px}
+.skipbtn:active{opacity:.6}
 .hint{font-size:11px;color:var(--faint);text-align:center;margin:9px 0 0}
 .bar{height:10px;border-radius:6px;overflow:hidden;display:flex;background:var(--surface2);margin:7px 0 5px}
 .overlay{position:absolute;inset:0;min-height:100%;background:var(--surface);padding:16px;overflow:auto;display:none;z-index:20}.overlay.show{display:block}
@@ -225,6 +227,7 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
         <div class="actions" id="actions">
           <button class="infobtn" data-act="info">📄 Ver el proyecto (recomendado)</button>
           <div class="vrow"><button class="vbtn c" data-act="vote" data-arg="contra"><span class="em">👎</span>En contra</button><button class="vbtn a" data-act="vote" data-arg="abst"><span class="em">➖</span>Abstención<span class="gq" onclick="event.stopPropagation();glosa(&quot;abstencion&quot;)">i</span></button><button class="vbtn f" data-act="vote" data-arg="favor"><span class="em">👍</span>A favor</button></div>
+          <button class="skipbtn" data-act="skip">⏭️ Saltar por ahora</button>
           <p class="hint">Deslizá la tarjeta → a favor · ← en contra</p>
         </div>
         <div class="overlay" id="detail"></div>
@@ -1028,6 +1031,17 @@ function mostrarTermometro(ley,miVoto){
   $('#actions').style.display='none';
  });
 }
+/* Saltar: la ley actual va al FINAL del mazo y sigue dando vueltas hasta
+   que la votes (o la vote el Congreso, en cuyo caso deja de aparecer). */
+function saltar(){
+ if(idx>=pending.length)return;
+ var ley=pending.splice(idx,1)[0];   // la saco de donde está
+ pending.push(ley);                  // la mando al final del ciclo
+ // idx NO se incrementa: ahora apunta a la que era la siguiente
+ if(idx>=pending.length)idx=0;       // por si era la última
+ renderCard();
+}
+function flyAndSkip(){var c=$('#card');if(c){c.style.transition='transform .3s';c.style.transform='translateY(-460px)';c.style.opacity='0';}setTimeout(saltar,180);}
 function siguienteLey(){idx++;$('#actions').style.display='';renderCard();}
 function doVote(choice){if(idx>=pending.length)return;
  if(modoDemo){votes[pending[idx].id]=choice;setTimeout(function(){idx++;renderCard();},170);return;}
@@ -1935,6 +1949,7 @@ document.addEventListener('click',function(e){var el=e.target.closest('[data-act
  else if(a==='chk'){if(arg==='1'){c1=!c1;$('#b1').className='box'+(c1?' on':'');$('#b1').innerHTML=c1?'✓':'';$('#k1').className='chk'+(c1?' on':'');}else{c2=!c2;$('#b2').className='box'+(c2?' on':'');$('#b2').innerHTML=c2?'✓':'';$('#k2').className='chk'+(c2?' on':'');}$('#tycBtn').disabled=!(c1&&c2);}
  else if(a==='tab')selectTab(arg);
  else if(a==='vote')flyAndVote(arg);
+ else if(a==='skip')flyAndSkip();
  else if(a==='siguienteLey')siguienteLey();
  else if(a==='info')openDetail();
  else if(a==='closeDetail')$('#detail').classList.remove('show');

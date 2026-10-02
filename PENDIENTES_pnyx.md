@@ -11,7 +11,21 @@ Registro de todo lo acordado que falta hacer, para no perderlo entre sesiones.
 - **Obrero 16 (linkeo)** afinado: linkea contra TODAS las leyes con texto; título ≥0.72 acepta directo, 0.62–0.72 la IA confirma (sí/no), <0.62 la IA elige entre las 5 mejores por título (o ninguna). Dry-run limpio: 7 matches. (16_linkeo.py + sql_linkeo.sql)
 - **Tendencias — umbral y anonimato**: constante `UMBRAL_TENDENCIA=100`. Con menos de 100 votos por ley → cartel "Todavía no hay suficientes votos", sin barra ni tag. Desde 100 → solo porcentajes, SIN mostrar cantidad de votos. Aplicado en Tendencias, en el termómetro (post-voto) y en el cruce comunidad-vs-Congreso. El admin sigue viendo números reales. (index.html)
 
+## HECHO 2/10
+- **Botón "Saltar por ahora"** en el feed de votar: la ley saltada se manda al final del mazo y sigue circulando hasta que la votes (o la vote el Congreso, en cuyo caso deja de aparecer). No se marca como votada. Funciona con botón y lo dejé con animación hacia arriba. (index.html)
+
 ## PENDIENTES
+
+### 0. Doble cámara: misma ley en Diputados y Senado (EN CURSO, decidido opción 2)
+- Problema: una ley pasa por las dos cámaras (media sanción). Hoy aparece 2 veces: se puede votar 2 veces y se resume 2 veces. Pero el texto puede haber CAMBIADO entre cámaras, así que no siempre es redundante.
+- Decisión: opción 2 = AVISAR al usuario ("ya votaste esta ley en la otra cámara, votaste X; ahora está en la otra con posibles cambios") + COMPARAR qué cambió.
+- Plan por pasos:
+  - PASO A (lo más pesado): vincular las 2 versiones de la misma ley entre cámaras. Hoy NO hay vínculo (bill_id distintos: HCDN... vs SENADO...). Vía realista: por título/similitud (como el obrero 16 de linkeo).
+  - PASO B (fácil, una vez hecho A): al cargar una ley para votar, si el usuario ya votó su par en la otra cámara, mostrar aviso. No bloquear.
+  - PASO C: resumen comparativo IA ("respecto de Diputados, el Senado modificó..."). Requiere A + texto de ambas.
+- PENDIENTE INMEDIATO para retomar: correr en Supabase y pegar el resultado →
+  `select bill_id, camara, origen, expediente, titulo from leyes where media_sancion = true limit 15;`
+  (para ver si se pueden vincular las cámaras con lo que ya hay).
 
 ### 1. Aplicar y verificar el linkeo (obrero 16) — INMEDIATO
 - Correr `python 16_linkeo.py` (aplica). Solo 1 ley se despublica (Patentes → HCDN...); las demás solo suman resumen.
@@ -19,6 +33,22 @@ Registro de todo lo acordado que falta hacer, para no perderlo entre sesiones.
 - Si hay algún match malo, desvincular desde admin → Linkeo.
 - Obrero 16 NO va al maestro automático (gasta crédito de API): correr a mano.
 - Sumar **17_labor** al maestro (ese sí, no gasta API).
+
+### NUEVOS (pedido 21/09)
+
+#### A. Admin — editar el título mostrado
+- Feed de votar: YA se puede editar el título (textarea "TÍTULO EDITADO POR IA").
+- FALTA: en Votadas poder editar el título que se muestra al ciudadano.
+
+#### HECHO 23/09 — Admin: ver resumen y ley completa
+- En Feed y en Votadas, botón "📄 Resumen y ley completa" en cada tarjeta: muestra resumen IA + texto completo desplegable + link al documento oficial (igual que la app del ciudadano). Carga bajo demanda por REST, sin tocar RPCs. En Votadas depende del linkeo. (pnyx-admin.html)
+
+#### B. Votadas — cartel de posible ausentismo tendencioso
+- En una votada: si la diferencia entre afirmativos y negativos es chica Y ese número es parecido al de ausentes, mostrar un cartel de "posible ausentismo tendencioso" (cuando la ausencia pudo definir el resultado).
+- Definir el criterio exacto (umbrales de "diferencia chica" y "parecido a ausentes").
+
+#### HECHO 24/09 — Votadas Históricas: buscador arreglado
+- Causa: había DOS versiones de la función votadas_buscar en Supabase (una vieja con p_tipo). Postgres no sabía cuál usar (error PGRST203) → la app crasheaba (histResultados.filter is not a function). Se borró la vieja: drop function votadas_buscar(text, integer, text, integer). Además index.html ahora valida que la respuesta sea array (no crashea si vuelve a pasar).
 
 ### 2. Panel de deslizadores en el admin (grupo Sistema)
 - Sliders continuos para calibrar lo automático: umbral de prensa, sensibilidades, ventanas de fechas.
@@ -34,9 +64,12 @@ Registro de todo lo acordado que falta hacer, para no perderlo entre sesiones.
 - pnyx.ar / pnyx.com.ar registrados; esperar activación (nslookup pnyx.ar).
 - Cuando activen: DNS en nic.ar → GitHub Pages, Custom domain en Settings→Pages, y actualizar Site URL + Redirect en Supabase al dominio nuevo.
 
-### 7. Registro DNDA (en curso)
-- Obra publicada iniciada (EX-2026-91494536). Falta: pagar aranceles y subir el ZIP cuando llegue el mail con link+contraseña (60 días hábiles).
-- Dejar el de obra inédita (EX-2026-59025992) como antecedente, no cancelar.
+### 7. Registro DNDA — CAMBIO DE RUMBO (2/10): ir por obra INÉDITA, no publicada
+- Qué pasó: en el trámite de obra PUBLICADA (EX-2026-91494536) la DNDA liquidó un arancel enorme (del orden de $200.000.000) porque se declaró un valor de ejemplar/edición altísimo. No tiene sentido pagar eso para registrar software.
+- Decisión: NO subsanar ni pagar ese expediente. Dejarlo caer / no continuarlo.
+- Hacer en su lugar: registro de obra **INÉDITA** (arancel fijo bajo, del orden de $1.400). Retomar el expediente de inédita que ya existía: EX-2026-59025992.
+- La protección de la obra (el código) es la misma; lo que cambia es que "inédita" no dispara el arancel por valor de edición.
+- PENDIENTE: completar/retomar EX-2026-59025992 como obra inédita y pagar el arancel fijo. (Lo hacemos cuando toque, está anotado.)
 
 ### 8. Seguridad admin (URGENTE antes de público)
 - El admin NO tiene login activo ("modo desarrollo"). Reactivar login/rol antes de abrir al público.
