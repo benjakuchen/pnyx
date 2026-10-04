@@ -123,7 +123,7 @@ h1{font-size:20px;margin:0 0 4px}
 
   <div id="tab-feed" style="display:none">
    <div class="card">
-    <h1>Feed de votación</h1>
+    <h1>Feed de votación <span id="feedCount" class="muted" style="font-size:14px;font-weight:700"></span></h1>
     <p class="muted" style="margin:4px 0 0;font-size:13.5px">Las leyes que hoy están para votar en Pnyx. Editá el título editado por IA, o despublicá las que sean spam, duplicados o errores de carga. Por defecto, todas se publican.</p>
    </div>
    <div class="filtros">
@@ -180,7 +180,7 @@ h1{font-size:20px;margin:0 0 4px}
 
   <div id="tab-votadas" style="display:none">
    <div class="card">
-    <h1>Votadas: destacadas</h1>
+    <h1>Votadas: destacadas <span id="votadasCount" class="muted" style="font-size:14px;font-weight:700"></span></h1>
     <p class="muted" style="margin:4px 0 0;font-size:13.5px">Elegí qué leyes ya votadas por el Congreso aparecen en <b>Destacadas</b> (la vista principal de "Votadas" en la app). Las destacadas quedan ahí hasta que las saques. 📰 = tuvo prensa (sugerida). ⏰ = lleva más de 1 mes destacada (quizás conviene sacarla). Las demás ya salen solas en "Últimas" (1 mes) o "Históricas".</p>
    </div>
    <div id="votadasLista"><div class="empty">Cargando…</div></div>
@@ -334,6 +334,7 @@ function cargarVotadasCura(){
   votadasCura=Array.isArray(filas)?filas:[];
   var nd=votadasCura.filter(function(v){return v.destacada;}).length;
   var c=$('#cntDest'); if(c){if(nd){c.style.display='';c.textContent=nd;}else c.style.display='none';}
+  var vc=$('#votadasCount'); if(vc)vc.textContent='· '+nd+' destacadas de '+votadasCura.length+' votadas';
   renderVotadasCura();
  }).catch(function(e){$('#votadasLista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
 }
@@ -353,7 +354,8 @@ function renderVotadasCura(){
      : '<button class="btn on sm" onclick="toggleDestacada('+v.id+',true)">⭐ Destacar</button>';
    h+='<div class="card" style="margin-bottom:8px">'
      +'<div style="display:flex;gap:10px;align-items:flex-start;justify-content:space-between">'
-     +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13.5px;line-height:1.35">'+esc(v.titulo)+'</div>'
+     +'<div style="flex:1;min-width:0">'
+     +'<textarea class="edit" style="min-height:40px;width:100%;font-weight:700" onblur="guardarVotadaId(this,'+v.id+')">'+esc(v.titulo||'')+'</textarea>'
      +'<div class="muted" style="font-size:11.5px;margin-top:3px">'+f
      +(v.destacada?' · <b style="color:var(--brand)">EN DESTACADAS</b>'+(v.dias_destacada?' ('+v.dias_destacada+' días)':''):'')
      +marcas+'</div></div>'+btn+'</div>'
@@ -576,12 +578,14 @@ function renderCuraLista(lista, hayMas, extra){
   var etq=etqOrden[d.curaduria_orden]||'';
   h+='<div class="card" id="cura-'+d.bill_id+'" style="padding:12px 14px">'
    +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span class="muted" style="font-size:11px;font-weight:700">'+etq+'</span></div>'
-   +'<div style="font-weight:700;font-size:14px;line-height:1.35">'+titulo+'</div>'
-   +'<div class="muted" style="font-size:11.5px;margin-top:3px">'+meta+'</div>'
+   +'<div class="lbl" style="font-size:10px;font-weight:800;color:var(--muted);margin-bottom:4px">TÍTULO (editable · lo ve el ciudadano)</div>'
+   +'<textarea class="edit" style="min-height:44px;width:100%" onblur="guardarFeedTitulo(this,\''+d.bill_id+'\')">'+esc(d.oracion_ia||d.titulo||'')+'</textarea>'
+   +'<div style="font-size:11px;color:var(--faint);margin-top:4px">Oficial: '+esc(d.titulo||'')+'</div>'
+   +'<div class="muted" style="font-size:11.5px;margin-top:5px">'+meta+'</div>'
    +'<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">'
    +'<button class="chip on" onclick="accionCura(\''+d.bill_id+'\',\'publicar\')">✅ Publicar</button>'
    +'<button class="chip" onclick="accionCura(\''+d.bill_id+'\',\'descartar\')">✕ Descartar</button>'
-   +'<button class="chip" onclick="toggleLeyFeed(\''+d.bill_id+'\')">📄 De qué trata</button>'
+   +'<button class="chip" onclick="toggleLeyFeed(\''+d.bill_id+'\')">📄 De qué trata / resumen</button>'
    +'</div>'
    +'<div id="leybox-'+d.bill_id+'" style="display:none;margin-top:10px;border-top:1px solid var(--line);padding-top:10px"></div>'
    +'</div>';
@@ -750,6 +754,10 @@ function cargarFeed(){
  }).catch(function(e){$('#feedLista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
 }
 function renderFeed(){
+ // Contador arriba: cuántas publicadas (en el feed real) sobre el total
+ var cEl=$('#feedCount');
+ if(cEl){var pub=feedDatos.filter(function(x){return x.publicada;}).length;
+  cEl.textContent='· '+pub+' publicadas de '+feedDatos.length;}
  var q=($('#feedBuscar')?$('#feedBuscar').value.trim().toLowerCase():'');
  var lista=feedDatos.filter(function(d){
   if(feedFiltro==='pub'&&!d.publicada)return false;
@@ -799,6 +807,19 @@ function guardarFeedTitulo(ta,billId){
   var d=feedDatos.find(function(x){return x.bill_id===billId;});if(d)d.oracion_ia=ta.value.trim();
   toast('Título guardado');
  });
+}
+/* Guarda el resumen editado. Sirve en Curaduría, Feed y Votadas
+   (todos pasan por pintarLeyDetalle). Actualiza también el cache y
+   los datos en memoria para que no se pierda al cerrar y reabrir. */
+function guardarResumen(ta,billId){
+ var val=ta.value.trim();
+ rpc('admin_editar_resumen_feed',{p_bill_id:billId,p_nuevo:val}).then(function(){
+  if(leyCache[billId])leyCache[billId].resumen_ia=val;
+  if(leyCache['v'+billId])leyCache['v'+billId].resumen_ia=val;
+  var fd=(typeof feedDatos!=='undefined')&&feedDatos.find(function(x){return x.bill_id===billId;});if(fd)fd.resumen_ia=val;
+  var cd=(typeof curaDatos!=='undefined')&&curaDatos.find(function(x){return x.bill_id===billId;});if(cd)cd.resumen_ia=val;
+  toast('Resumen guardado');
+ }).catch(function(e){toast('No se pudo guardar el resumen');});
 }
 
 /* ===== EXPERTOS ===== */
@@ -875,9 +896,16 @@ function sbGet(path){
 var leyCache={};   // bill_id -> {resumen_ia,oracion_ia,url_pdf_oficial,texto_oficial,...}
 
 function pintarLeyDetalle(cont,d){
- var resumen = d.resumen_ia || d.oracion_ia || '';
+ var bid = d.bill_id || cont.getAttribute('data-bid') || '';
+ var resumen = d.resumen_ia || '';
  var h='';
- if(resumen){
+ if(bid){
+  // Resumen EDITABLE: se guarda al salir del campo (onblur)
+  h+='<div class="lbl" style="font-size:10px;font-weight:800;color:var(--muted);margin-bottom:5px">RESUMEN (editable · lo ve el ciudadano)</div>'
+   +'<textarea class="edit" style="min-height:70px;width:100%" '
+   +'onblur="guardarResumen(this,\''+bid+'\')" '
+   +'placeholder="Esta ley todavía no tiene resumen. Escribilo acá.">'+esc(resumen)+'</textarea>';
+ }else if(resumen){
   h+='<div style="font-weight:700;font-size:12px;margin-bottom:4px">📄 De qué trata</div>'
    +'<p style="font-size:13px;line-height:1.5;margin:0 0 10px">'+esc(resumen)+'</p>';
  }else{
@@ -903,10 +931,11 @@ function toggleLeyFeed(billId){
  var box=document.getElementById('leybox-'+billId);if(!box)return;
  if(box.style.display!=='none'){box.style.display='none';return;}
  box.style.display='block';
+ box.setAttribute('data-bid',billId);
  if(leyCache[billId]){pintarLeyDetalle(box,leyCache[billId]);return;}
  box.innerHTML='<span class="muted" style="font-size:12px">Cargando…</span>';
- sbGet('leyes?select=resumen_ia,oracion_ia,url_pdf_oficial,texto_oficial&bill_id=eq.'+encodeURIComponent(billId))
-  .then(function(rows){var d=(rows&&rows[0])||{};leyCache[billId]=d;pintarLeyDetalle(box,d);})
+ sbGet('leyes?select=bill_id,resumen_ia,oracion_ia,url_pdf_oficial,texto_oficial&bill_id=eq.'+encodeURIComponent(billId))
+  .then(function(rows){var d=(rows&&rows[0])||{};if(!d.bill_id)d.bill_id=billId;leyCache[billId]=d;pintarLeyDetalle(box,d);})
   .catch(function(){box.innerHTML='<span class="muted" style="font-size:12px">No se pudo cargar. Probá de nuevo.</span>';});
 }
 
@@ -922,8 +951,9 @@ function toggleLeyVotada(votId){
   .then(function(rows){
    var bid=(rows&&rows[0]&&rows[0].ley_bill_id)||'';
    if(!bid){var vacio={};leyCache[ck]=vacio;box.innerHTML='<span class="muted" style="font-size:12px">Esta votación no está linkeada a ninguna ley del feed (sin resumen ni documento).</span>';return;}
-   return sbGet('leyes?select=resumen_ia,oracion_ia,url_pdf_oficial,texto_oficial&bill_id=eq.'+encodeURIComponent(bid))
-    .then(function(r2){var d=(r2&&r2[0])||{};leyCache[ck]=d;pintarLeyDetalle(box,d);});
+   box.setAttribute('data-bid',bid);
+   return sbGet('leyes?select=bill_id,resumen_ia,oracion_ia,url_pdf_oficial,texto_oficial&bill_id=eq.'+encodeURIComponent(bid))
+    .then(function(r2){var d=(r2&&r2[0])||{};if(!d.bill_id)d.bill_id=bid;leyCache[ck]=d;pintarLeyDetalle(box,d);});
   })
   .catch(function(){box.innerHTML='<span class="muted" style="font-size:12px">No se pudo cargar. Probá de nuevo.</span>';});
 }
@@ -1001,6 +1031,13 @@ function guardarVotada(ta,acta,camara){
  rpc('admin_editar_titulo_votada',{p_acta:acta,p_camara:camara,p_nuevo:ta.value.trim()}).then(function(){
   toast('Título del Congreso guardado');
  });
+}
+function guardarVotadaId(ta,id){
+ var val=ta.value.trim();
+ rpc('admin_editar_titulo_votada_id',{p_id:id,p_nuevo:val}).then(function(){
+  var v=votadasCura.find(function(x){return x.id===id;});if(v)v.titulo=val;
+  toast('Título guardado');
+ }).catch(function(){toast('No se pudo guardar');});
 }
 function flashSaved(id){var e=document.getElementById(id);if(e){e.classList.add('show');setTimeout(function(){e.classList.remove('show');},1500);}}
 

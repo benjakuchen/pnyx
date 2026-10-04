@@ -49,6 +49,7 @@ PASOS = [
     ("13_sanciones.py", [], False),                                    # media sancion / sancion
     ("1_consultar_supabase.py", [], True),                             # refrescar estado
     ("14_curaduria.py", [], False),                                    # clasificar auto / cola / ruido
+    ("18_caducar.py", [], False),                                      # archivar lo viejo de la cola (+60 dias)
     ("9_mezclar_ordenar.py", [], False),                              # puntuar y ordenar
     ("17_labor.py", [], False),                                        # labor parlamentaria (no gasta API)
     # Linkeo AUTOMATICO solo por titulo alto (--sin-ia): no gasta credito de
