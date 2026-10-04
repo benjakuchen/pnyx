@@ -699,7 +699,7 @@ var pending=[];
 var votadas={};
 
 function cargarLeyes(listo){
- var url=SUPABASE_URL+'/rest/v1/leyes?select=*&publicada=eq.true&order=puntaje_pnyx.desc&limit=60';
+ var url=SUPABASE_URL+'/rest/v1/leyes?select=*&publicada=eq.true&order=orden_manual.asc.nullslast,puntaje_pnyx.desc&limit=60';
  fetch(url,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}})
   .then(function(r){return r.json();})
   .then(function(filas){

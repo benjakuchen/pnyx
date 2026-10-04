@@ -766,17 +766,33 @@ function renderFeed(){
   return true;
  });
  if(lista.length===0){$('#feedLista').innerHTML='<div class="card"><div class="empty">No hay leyes en esta vista.</div></div>';return;}
+ // El reordenamiento manual solo tiene sentido en "Publicadas" y sin búsqueda
+ // (si no, lo que ves no es el orden real del feed).
+ var ordenable=(feedFiltro==='pub' && !q);
+ feedVisible=lista;  // guardo la lista visible para las flechas
  var h='';
- lista.forEach(function(d){
+ if(ordenable){
+  h+='<div class="card" style="padding:9px 14px;background:var(--brand-soft,#eef4ff)"><span style="font-size:12px;color:var(--brand);font-weight:700">↕ Orden del feed: usá las flechas para subir/bajar. Lo que ordenás a mano queda fijo (ningún proceso automático lo cambia).</span></div>';
+ }
+ lista.forEach(function(d,ix){
   var cam=(d.camara||'').toLowerCase().indexOf('sen')>=0?'sen':'dip';
   var ms=d.media_sancion?'<span class="st pend" style="margin-left:6px">media sanción</span>':'';
   var pubBtn=d.publicada
    ? '<button class="btn warn sm" onclick="togglePub(\''+d.bill_id+'\',false)">Despublicar</button>'
    : '<button class="btn ok sm" onclick="togglePub(\''+d.bill_id+'\',true)">Publicar</button>';
   var estado=d.publicada?'<span class="st link">✓ publicada</span>':'<span class="st desc">oculta</span>';
+  var manu=(d.orden_manual!=null)?'<span class="st" style="background:#fff3cd;color:#8a6d00;margin-left:6px">📌 fijada #'+d.orden_manual+'</span>':'';
+  var flechas='';
+  if(ordenable){
+   var up=(ix>0)?'<button class="btn sec sm" title="Subir" onclick="moverFeed('+ix+',-1)">▲</button>':'<button class="btn sec sm" disabled style="opacity:.3">▲</button>';
+   var dn=(ix<lista.length-1)?'<button class="btn sec sm" title="Bajar" onclick="moverFeed('+ix+',1)">▼</button>':'<button class="btn sec sm" disabled style="opacity:.3">▼</button>';
+   var soltar=(d.orden_manual!=null)?'<button class="btn sm" title="Soltar: vuelve al orden automático" onclick="soltarOrden(\''+d.bill_id+'\')">✕ soltar</button>':'';
+   flechas='<span style="display:flex;gap:4px;margin-right:8px">'+up+dn+soltar+'</span>';
+  }
   h+='<div class="card" id="feed-'+d.bill_id+'" style="padding:0">'
    +'<div style="padding:11px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px">'
-   +estado+ms
+   +flechas
+   +estado+ms+manu
    +'<span class="pill '+cam+'" style="margin-left:8px">'+esc(d.camara)+'</span>'
    +'<span class="exp" style="color:var(--brand);font-size:11.5px;font-weight:700;margin-left:6px">'+esc(d.expediente||d.bill_id)+'</span>'
    +'<span style="font-size:11px;color:var(--muted);margin-left:6px">'+esc(d.fecha||'')+' · '+(d.puntaje_pnyx||0)+' pts</span>'
@@ -795,6 +811,40 @@ function renderFeed(){
    +'</div></div>';
  });
  $('#feedLista').innerHTML=h;
+}
+
+/* ---- Orden manual del feed (flechas ▲▼) ----
+   feedVisible es la lista tal como se ve. Al mover, reordeno ese array,
+   reasigno orden_manual secuencial (10,20,30…) a TODA la lista visible y
+   persisto SOLO las filas que cambiaron de número. Dejo huecos de 10 para
+   que futuros inserts tengan lugar sin renumerar todo. */
+var feedVisible=[];
+function moverFeed(ix,dir){
+ var j=ix+dir;
+ if(j<0||j>=feedVisible.length)return;
+ var a=feedVisible[ix], b=feedVisible[j];
+ // Para intercambiar necesito que ambas tengan número. Si alguna está en
+ // automático (null), le doy su posición visible actual (base 10) como punto
+ // de partida; así "entra" al orden manual justo donde está hoy.
+ if(a.orden_manual==null)a.orden_manual=(ix+1)*10;
+ if(b.orden_manual==null)b.orden_manual=(j+1)*10;
+ var oa=a.orden_manual, ob=b.orden_manual;
+ a.orden_manual=ob; b.orden_manual=oa;
+ // reflejar en feedDatos (fuente real) y reordenar en memoria
+ [a,b].forEach(function(d){var fd=feedDatos.find(function(x){return x.bill_id===d.bill_id;});if(fd)fd.orden_manual=d.orden_manual;});
+ var tmp=feedVisible[ix];feedVisible[ix]=feedVisible[j];feedVisible[j]=tmp;
+ renderFeed();
+ // persistir las dos
+ Promise.all([
+  rpc('admin_set_orden_manual',{p_bill_id:a.bill_id,p_orden:a.orden_manual}),
+  rpc('admin_set_orden_manual',{p_bill_id:b.bill_id,p_orden:b.orden_manual})
+ ]).then(function(){toast('Orden guardado');}).catch(function(){toast('No se pudo guardar el orden');});
+}
+function soltarOrden(billId){
+ rpc('admin_set_orden_manual',{p_bill_id:billId,p_orden:null}).then(function(){
+  var fd=feedDatos.find(function(x){return x.bill_id===billId;});if(fd)fd.orden_manual=null;
+  toast('Soltada: vuelve al orden automático');renderFeed();
+ }).catch(function(){toast('No se pudo soltar');});
 }
 function togglePub(billId,pub){
  rpc('admin_publicar',{p_bill_id:billId,p_pub:pub}).then(function(){
