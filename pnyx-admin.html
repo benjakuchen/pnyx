@@ -871,6 +871,13 @@ function guardarResumen(ta,billId){
   toast('Resumen guardado');
  }).catch(function(e){toast('No se pudo guardar el resumen');});
 }
+/* Resumen manual de una votada SIN ley linkeada (se guarda en la votación) */
+function guardarResumenVotada(ta,votId){
+ var val=ta.value.trim();
+ rpc('admin_set_resumen_votada',{p_id:votId,p_texto:val}).then(function(){
+  toast('Resumen de la votada guardado');
+ }).catch(function(){toast('No se pudo guardar');});
+}
 
 /* ===== EXPERTOS ===== */
 var POSTURAS={a_favor:'A favor',en_contra:'En contra',abstencion:'Abstención'};
@@ -997,10 +1004,19 @@ function toggleLeyVotada(votId){
  var ck='v'+votId;
  if(leyCache[ck]){pintarLeyDetalle(box,leyCache[ck]);return;}
  box.innerHTML='<span class="muted" style="font-size:12px">Cargando…</span>';
- sbGet('votaciones_congreso?select=ley_bill_id&id=eq.'+votId)
+ sbGet('votaciones_congreso?select=ley_bill_id,resumen_admin&id=eq.'+votId)
   .then(function(rows){
-   var bid=(rows&&rows[0]&&rows[0].ley_bill_id)||'';
-   if(!bid){var vacio={};leyCache[ck]=vacio;box.innerHTML='<span class="muted" style="font-size:12px">Esta votación no está linkeada a ninguna ley del feed (sin resumen ni documento).</span>';return;}
+   var fila=(rows&&rows[0])||{};
+   var bid=fila.ley_bill_id||'';
+   if(!bid){
+    // No está linkeada: no hay ley donde guardar. Dejamos escribir un
+    // RESUMEN MANUAL propio de la votación (se guarda en votaciones_congreso).
+    leyCache[ck]={sinLink:true};
+    box.innerHTML='<div class="lbl" style="font-size:10px;font-weight:800;color:var(--muted);margin-bottom:5px">RESUMEN MANUAL (editable · lo ve el ciudadano)</div>'
+     +'<textarea class="edit" style="min-height:70px;width:100%" onblur="guardarResumenVotada(this,'+votId+')" placeholder="Esta votación no está linkeada a una ley. Escribí acá un resumen para el ciudadano.">'+esc(fila.resumen_admin||'')+'</textarea>'
+     +'<p class="muted" style="font-size:11px;margin-top:6px">Sin ley linkeada: no hay documento oficial para mostrar. Si la linkeás desde "Linkeo", tomará el resumen y el texto de la ley.</p>';
+    return;
+   }
    box.setAttribute('data-bid',bid);
    return sbGet('leyes?select=bill_id,resumen_ia,oracion_ia,url_pdf_oficial,texto_oficial&bill_id=eq.'+encodeURIComponent(bid))
     .then(function(r2){var d=(r2&&r2[0])||{};if(!d.bill_id)d.bill_id=bid;leyCache[ck]=d;pintarLeyDetalle(box,d);});
