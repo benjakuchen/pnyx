@@ -534,8 +534,40 @@ function traerMasCura(){
   renderCuraduria(filas.length===curaLimit);
  }).catch(function(e){$('#curaLista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
 }
+/* ¿Es una LEY de verdad, o es "todo lo demás" (homenaje, declaración,
+   beneplácito, pedido de informes, resolución interna, acuerdo)?
+   Portado del clasificador del obrero. Sin el expediente decidimos por título. */
+function esLeyReal(d){
+ var t=(d.titulo||d.oracion_ia||'');
+ // normalizar: sin tildes, mayúsculas
+ t=t.normalize('NFKD').replace(/[̀-ͯ]/g,'').toUpperCase();
+ var ruido=[/^DECLAR/, /\bBENEPLACITO\b/, /\bHOMENAJE\b/, /\bADHESION\b/,
+   /\bPEDIDO DE INFORME/, /\bDECLARASE DE INTERES\b/, /\bDE INTERES\b/,
+   /\bREPUDIO\b/, /\bPESAR\b/, /\bRECONOCIMIENTO A\b/, /\bCAPITAL NACIONAL\b/,
+   /\bFIESTA NACIONAL\b/, /\bDIA NACIONAL\b/, /\bDIA MUNDIAL\b/, /\bINSTITUYESE EL DIA\b/,
+   /\bDECLARASE EL DIA\b/, /\bANIVERSARIO\b/, /\bCONMEMORACION\b/, /\bSOLIDARIDAD CON\b/,
+   /\bPREOCUPACION POR\b/, /\bMOCION\b/, /\bCUARTO INTERMEDIO\b/, /\bSOBRE TABLAS\b/];
+ for(var i=0;i<ruido.length;i++){if(ruido[i].test(t))return false;}
+ return true;
+}
 function renderCuraduria(hayMas){
  if(!curaDatos.length){$('#curaLista').innerHTML='<div class="card"><div class="empty">No hay leyes pendientes de revisión. 🎉</div></div>';$('#curaMas').innerHTML='';return;}
+ // Separar: leyes de verdad (cola visible) vs. todo lo demás (oculto, buscable)
+ var leyes=[], otros=[];
+ curaDatos.forEach(function(d){(esLeyReal(d)?leyes:otros).push(d);});
+ curaOtros=otros;
+ var btnOtros='';
+ if(otros.length){
+  btnOtros='<div style="text-align:center;margin:14px 0 2px">'
+   +'<button class="btn sec sm" onclick="toggleOtrosCura()">🗂️ Todo lo demás ('+otros.length+')</button>'
+   +'</div><div id="otrosBox" style="display:none"></div>';
+ }
+ renderCuraLista(leyes, hayMas, btnOtros);
+}
+function renderCuraLista(lista, hayMas, extra){
+ extra=extra||'';
+ if(!lista.length){$('#curaLista').innerHTML='<div class="card"><div class="empty">No hay leyes pendientes de revisión. 🎉</div></div>'+extra;$('#curaMas').innerHTML='';return;}
+ var curaDatos=lista; // sombra local para reusar el render de abajo
  var etqOrden={1:'⚖️ Tema de peso',2:'📰 En prensa',3:'· Otras'};
  var h='';
  curaDatos.forEach(function(d){
@@ -554,14 +586,63 @@ function renderCuraduria(hayMas){
    +'<div id="leybox-'+d.bill_id+'" style="display:none;margin-top:10px;border-top:1px solid var(--line);padding-top:10px"></div>'
    +'</div>';
  });
- $('#curaLista').innerHTML=h;
+ $('#curaLista').innerHTML=h+extra;
  $('#curaMas').innerHTML=hayMas?'<button class="chip" onclick="traerMasCura()">Cargar más ↓</button>':'<span class="muted" style="font-size:12px">Fin de la cola.</span>';
 }
+
+/* ---- "Todo lo demás": lo que el filtro sacó de la cola (homenajes, etc.) ---- */
+var curaOtros=[], otrosAbierto=false;
+function toggleOtrosCura(){
+ var box=$('#otrosBox'); if(!box)return;
+ otrosAbierto=!otrosAbierto;
+ if(!otrosAbierto){box.style.display='none';return;}
+ box.style.display='block';
+ pintarOtros('');
+}
+function pintarOtros(q){
+ var box=$('#otrosBox'); if(!box)return;
+ q=(q||'').trim().toLowerCase();
+ var lista=curaOtros.filter(function(d){
+  if(!q)return true;
+  var txt=((d.oracion_ia||'')+' '+(d.titulo||'')+' '+(d.bill_id||'')+' '+(d.autor||'')).toLowerCase();
+  return txt.indexOf(q)>=0;
+ });
+ var h='<div class="card" style="padding:12px 14px">'
+  +'<p class="muted" style="font-size:12px;margin:0 0 8px">Lo que el filtro dejó fuera de la cola (homenajes, declaraciones, pedidos de informe, etc.). Si algo es una ley real, publicalo y pasa al feed.</p>'
+  +'<input id="otrosBuscar" type="text" placeholder="🔎 Buscar en todo lo demás…" value="'+esc(q)+'" '
+  +'oninput="pintarOtros(this.value)" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:13.5px;font-family:inherit">'
+  +'</div>';
+ if(!lista.length){
+  h+='<div class="card"><div class="empty">'+(q?'Sin resultados para "'+esc(q)+'".':'No hay nada acá.')+'</div></div>';
+  box.innerHTML=h; var inp=$('#otrosBuscar'); if(inp){inp.focus();var v=inp.value;inp.value='';inp.value=v;} return;
+ }
+ lista.slice(0,80).forEach(function(d){
+  var titulo=esc(d.oracion_ia||d.titulo||d.bill_id);
+  var meta=esc(d.bill_id)+(d.camara?(' · '+esc(d.camara)):'')+(d.autor?(' · '+esc(d.autor)):'');
+  h+='<div class="card" id="cura-'+d.bill_id+'" style="padding:12px 14px">'
+   +'<div style="font-weight:700;font-size:14px;line-height:1.35">'+titulo+'</div>'
+   +'<div class="muted" style="font-size:11.5px;margin-top:3px">'+meta+'</div>'
+   +'<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">'
+   +'<button class="chip on" onclick="accionCura(\''+d.bill_id+'\',\'publicar\')">✅ Publicar igual</button>'
+   +'<button class="chip" onclick="accionCura(\''+d.bill_id+'\',\'descartar\')">✕ Descartar</button>'
+   +'<button class="chip" onclick="toggleLeyFeed(\''+d.bill_id+'\')">📄 De qué trata</button>'
+   +'</div>'
+   +'<div id="leybox-'+d.bill_id+'" style="display:none;margin-top:10px;border-top:1px solid var(--line);padding-top:10px"></div>'
+   +'</div>';
+ });
+ if(lista.length>80)h+='<p class="muted" style="font-size:12px;text-align:center">Mostrando 80 de '+lista.length+'. Afiná la búsqueda.</p>';
+ box.innerHTML=h;
+ var inp=$('#otrosBuscar'); if(inp){inp.focus();var v=inp.value;inp.value='';inp.value=v;}
+}
+
 function accionCura(billId,accion){
  rpc('admin_curaduria_accion',{p_bill_id:billId,p_accion:accion}).then(function(){
   curaDatos=curaDatos.filter(function(x){return x.bill_id!==billId;});
+  curaOtros=curaOtros.filter(function(x){return x.bill_id!==billId;});
   var c=$('#cntCura'); if(c&&c.textContent){var n=parseInt(c.textContent)-1;if(n>0)c.textContent=n;else c.style.display='none';}
-  renderCuraduria(true);
+  // Si estamos viendo "todo lo demás", refrescar solo esa lista para no perder la búsqueda
+  if(otrosAbierto){var inp=$('#otrosBuscar');pintarOtros(inp?inp.value:'');}
+  else renderCuraduria(true);
  }).catch(function(e){alert('Error: '+String(e));});
 }
 
