@@ -169,7 +169,11 @@ h1{font-size:20px;margin:0 0 4px}
    <div class="card">
     <h1>Curaduría del feed</h1>
     <p class="muted" style="margin:4px 0 0;font-size:13.5px">Estas leyes NO se publican solas. Revisá de arriba hacia abajo (primero temas de peso, después las de prensa, después el resto) y decidí cuáles van al feed. Lo que publiques aparece en la app; lo que descartes no vuelve a la cola. Las de media sanción o en prensa ya se publicaron automáticamente.</p>
+    <div style="margin-top:10px">
+     <button class="btn sec sm" onclick="toggleCaducadas()">⏰ Revisar caducadas <span id="cntCaduc" class="muted"></span></button>
+    </div>
    </div>
+   <div id="caducBox" style="display:none"></div>
    <div id="curaLista"><div class="empty">Cargando…</div></div>
    <div id="curaMas" style="text-align:center;margin-top:12px"></div>
   </div>
@@ -482,7 +486,45 @@ function cargarCuraduria(){
   var n=(typeof tot==='number')?tot:(tot&&tot[0]||0);
   var c=$('#cntCura'); if(c){if(n>0){c.style.display='';c.textContent=n;}else c.style.display='none';}
  }).catch(function(){});
+ rpc('admin_caducadas_total',{}).then(function(tot){
+  var n=(typeof tot==='number')?tot:(tot&&tot[0]||0);
+  var c=$('#cntCaduc'); if(c)c.textContent=n?('('+n+')'):'';
+ }).catch(function(){});
  traerMasCura();
+}
+
+/* ---- Caducadas: proyectos viejos archivados automáticamente ---- */
+var caducAbierto=false;
+function toggleCaducadas(){
+ var box=$('#caducBox');
+ caducAbierto=!caducAbierto;
+ if(!caducAbierto){box.style.display='none';return;}
+ box.style.display='block';
+ box.innerHTML='<div class="card"><div class="empty">Cargando caducadas…</div></div>';
+ rpc('admin_caducadas',{p_limit:200,p_offset:0}).then(function(filas){
+  filas=Array.isArray(filas)?filas:[];
+  if(!filas.length){box.innerHTML='<div class="card"><div class="empty">No hay proyectos caducados.</div></div>';return;}
+  var h='<div class="card"><div style="font-weight:700;font-size:13.5px;margin-bottom:4px">⏰ Proyectos caducados</div>'
+   +'<p class="muted" style="font-size:12px;margin:0 0 4px">Más de 60 días en la cola sin publicarse, sin media sanción ni prensa. No están borrados: podés rescatar cualquiera y vuelve a la cola.</p></div>';
+  filas.forEach(function(d){
+   var titulo=esc(d.oracion_ia||d.titulo||d.bill_id);
+   var meta=esc(d.bill_id)+(d.camara?(' · '+esc(d.camara)):'')+' · '+esc(d.fecha||'')+' · '+(d.dias||0)+' días';
+   h+='<div class="card" id="caduc-'+d.bill_id+'" style="padding:11px 14px">'
+    +'<div style="font-weight:700;font-size:13.5px;line-height:1.35">'+titulo+'</div>'
+    +'<div class="muted" style="font-size:11.5px;margin-top:3px">'+meta+'</div>'
+    +'<div style="margin-top:8px"><button class="btn ok sm" onclick="rescatarCaducada(\''+d.bill_id+'\')">↩ Rescatar a la cola</button></div>'
+    +'</div>';
+  });
+  box.innerHTML=h;
+ }).catch(function(e){box.innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
+}
+function rescatarCaducada(billId){
+ rpc('admin_rescatar_caducada',{p_bill_id:billId}).then(function(){
+  var el=$('#caduc-'+billId); if(el)el.remove();
+  toast('Rescatada: volvió a la cola');
+  // refrescar contadores y la cola
+  cargarCuraduria();
+ }).catch(function(){toast('No se pudo rescatar');});
 }
 function traerMasCura(){
  rpc('admin_cola_curaduria',{p_limit:curaLimit,p_offset:curaOffset}).then(function(filas){
@@ -504,10 +546,13 @@ function renderCuraduria(hayMas){
    +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span class="muted" style="font-size:11px;font-weight:700">'+etq+'</span></div>'
    +'<div style="font-weight:700;font-size:14px;line-height:1.35">'+titulo+'</div>'
    +'<div class="muted" style="font-size:11.5px;margin-top:3px">'+meta+'</div>'
-   +'<div style="display:flex;gap:8px;margin-top:10px">'
+   +'<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">'
    +'<button class="chip on" onclick="accionCura(\''+d.bill_id+'\',\'publicar\')">✅ Publicar</button>'
    +'<button class="chip" onclick="accionCura(\''+d.bill_id+'\',\'descartar\')">✕ Descartar</button>'
-   +'</div></div>';
+   +'<button class="chip" onclick="toggleLeyFeed(\''+d.bill_id+'\')">📄 De qué trata</button>'
+   +'</div>'
+   +'<div id="leybox-'+d.bill_id+'" style="display:none;margin-top:10px;border-top:1px solid var(--line);padding-top:10px"></div>'
+   +'</div>';
  });
  $('#curaLista').innerHTML=h;
  $('#curaMas').innerHTML=hayMas?'<button class="chip" onclick="traerMasCura()">Cargar más ↓</button>':'<span class="muted" style="font-size:12px">Fin de la cola.</span>';
