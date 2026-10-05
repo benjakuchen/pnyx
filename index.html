@@ -237,6 +237,7 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
       <div id="sc-trend" class="pad"></div>
       <div id="sc-voted" class="pad"></div>
       <div id="sc-banc" class="pad"></div>
+      <div id="sc-plaza" class="pad"></div>
       <div id="sc-perfil" class="pad"></div>
     </div>
     <div class="overlay ovfull" id="blocd"></div>
@@ -248,9 +249,9 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
     <div id="stories"></div>
     <div class="nav">
       <button class="on" data-act="tab" data-arg="vote"><span class="em">🗳️</span>Votar</button>
+      <button data-act="tab" data-arg="plaza"><span class="em">🏛️</span>Plaza</button>
       <button data-act="tab" data-arg="trend"><span class="em">📊</span>Tendencias</button>
       <button data-act="tab" data-arg="voted"><span class="em">⚖️</span>Votadas</button>
-      <button data-act="tab" data-arg="banc"><span class="em">👥</span>Bancas</button>
       <button data-act="tab" data-arg="perfil"><span class="em">🪪</span>Perfil</button>
     </div>
   </div>
@@ -1050,8 +1051,23 @@ function doVote(choice){if(idx>=pending.length)return;
  var ley=pending[idx];votes[ley.id]=choice;guardarVoto(ley,choice);setTimeout(function(){idx++;renderCard();},170);}
 function flyAndVote(choice){var c=$('#card');if(c){c.style.transition='transform .25s';if(choice==='favor')c.style.transform='translateX(520px) rotate(28deg)';else if(choice==='contra')c.style.transform='translateX(-520px) rotate(-28deg)';else c.style.opacity='0';}doVote(choice);}
 
+/* Doble cámara: si esta ley tiene par en la otra cámara y YA la votaste
+   allá (según el histórico local), avisar qué votaste. El texto puede
+   haber cambiado entre cámaras, así que no se bloquea: solo se avisa. */
+function avisoOtraCamara(b){
+ if(!b||!b.ley_par)return '';
+ var hist=histLeer();
+ var prev=null;
+ for(var i=0;i<hist.length;i++){if(hist[i].billId===b.ley_par){prev=hist[i];break;}}
+ if(!prev)return '';
+ var etq={favor:'a favor',contra:'en contra',abst:'en abstención'};
+ var mivoto=etq[prev.voto]||prev.voto;
+ return '<div class="note info" style="margin:0 0 14px;background:#fff7e6;border-color:#f0c36d">'
+  +'🔁 <b>Ya votaste esta ley en la otra cámara</b> (votaste <b>'+mivoto+'</b>). '
+  +'Ahora vuelve con posibles cambios del texto. Volvé a votar según esta versión.</div>';
+}
 function openDetail(){if(idx>=pending.length)return;var b=pending[idx],d=$('#detail');
- d.innerHTML='<button class="back" data-act="closeDetail">← Volver</button><h3 class="title" style="font-size:20px">'+b.n+'</h3><p class="muted" style="font-size:12.5px;margin:4px 0 12px">'+b.camara+' · '+b.estado+'</p><div class="prop" style="margin:0 0 12px"><div class="av">'+b.ini+'</div><div><div class="muted" style="font-size:11.5px">Propone</div><div style="font-size:13px;font-weight:700">'+proponeLinea(b)+'</div></div></div><div style="margin-bottom:6px">'+k('✨ resumen IA','ia')+'</div><p style="font-size:14px;line-height:1.55;margin:0 0 14px">'+b.resumen+'</p>'+expBtn(b)+opinarLegisladorBtn(b)+textoBtn(b)+'<div id="videosLeg-'+b.billId+'"></div><div class="note info" style="margin:12px 0 16px">🔁 Cuando el Congreso lo vote, vas a ver cómo votó cada bloque frente a tu postura.</div><div class="vrow"><button class="vbtn c" data-act="voteD" data-arg="contra"><span class="em">👎</span>En contra</button><button class="vbtn a" data-act="voteD" data-arg="abst"><span class="em">➖</span>Abstención<span class="gq" onclick="event.stopPropagation();glosa(&quot;abstencion&quot;)">i</span></button><button class="vbtn f" data-act="voteD" data-arg="favor"><span class="em">👍</span>A favor</button></div>';
+ d.innerHTML='<button class="back" data-act="closeDetail">← Volver</button><h3 class="title" style="font-size:20px">'+b.n+'</h3><p class="muted" style="font-size:12.5px;margin:4px 0 12px">'+b.camara+' · '+b.estado+'</p>'+avisoOtraCamara(b)+'<div class="prop" style="margin:0 0 12px"><div class="av">'+b.ini+'</div><div><div class="muted" style="font-size:11.5px">Propone</div><div style="font-size:13px;font-weight:700">'+proponeLinea(b)+'</div></div></div><div style="margin-bottom:6px">'+k('✨ resumen IA','ia')+'</div><p style="font-size:14px;line-height:1.55;margin:0 0 14px">'+b.resumen+'</p>'+expBtn(b)+opinarLegisladorBtn(b)+textoBtn(b)+'<div id="videosLeg-'+b.billId+'"></div><div class="note info" style="margin:12px 0 16px">🔁 Cuando el Congreso lo vote, vas a ver cómo votó cada bloque frente a tu postura.</div><div class="vrow"><button class="vbtn c" data-act="voteD" data-arg="contra"><span class="em">👎</span>En contra</button><button class="vbtn a" data-act="voteD" data-arg="abst"><span class="em">➖</span>Abstención<span class="gq" onclick="event.stopPropagation();glosa(&quot;abstencion&quot;)">i</span></button><button class="vbtn f" data-act="voteD" data-arg="favor"><span class="em">👍</span>A favor</button></div>';
  abrirOverlay(d);cargarVideosLeg(b.billId);}
 function openFull(){if(idx>=pending.length)return;var b=pending[idx],f=$('#fulltext');
  var cab='<button class="back" data-act="closeFull">← Volver al resumen</button><h3 class="title" style="font-size:20px">'+b.n+'</h3><p class="muted" style="font-size:12px;margin:4px 0 12px">📜 Texto del proyecto · '+b.camara+'</p>';
@@ -1953,13 +1969,253 @@ document.addEventListener('input',function(e){
   }
 });
 
-function selectTab(s){var btns=document.querySelectorAll('.nav button');for(var i=0;i<btns.length;i++)btns[i].classList.toggle('on',btns[i].getAttribute('data-arg')===s);['vote','trend','voted','banc','perfil'].forEach(function(x){$('#sc-'+x).classList.toggle('show',x===s);});if(s==='trend')renderTrend();if(s==='voted')renderVoted();if(s==='banc')renderBanc();if(s==='perfil')renderPerfil();var m=$('.main');if(m)m.scrollTop=0;}
+/* ======================================================================
+   LA PLAZA · Iniciativas ciudadanas
+   La comunidad propone, un equipo curador redacta, y se apoya (anónimo).
+   El nick se elige una vez (perfil_civico) con aviso de anonimato/acoso.
+   ====================================================================== */
+var miNick=null;            // nick elegido (null = todavía no eligió)
+var plazaFiltro='apoyo';    // construccion | aporte | apoyo | presentada
+var plazaLista=[];          // iniciativas cargadas
+var plazaDetalle=null;      // iniciativa abierta (objeto) o null
+
+function rpcPlaza(fn,body){
+ return fetch(SUPABASE_URL+'/rest/v1/rpc/'+fn,{method:'POST',
+   headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
+   body:JSON.stringify(body||{})}).then(function(r){return r.json();});
+}
+
+function renderPlaza(){
+ var c=$('#sc-plaza');if(!c)return;
+ // Sin sesión: invitar a entrar
+ if(modoInvitado||!usuarioActual){
+  c.innerHTML='<h2 class="serif" style="font-size:22px;margin:4px 0 8px">🏛️ La plaza</h2>'+
+   '<p class="muted" style="font-size:13.5px;margin:0 0 14px">Acá la gente no solo vota leyes: las construye. Proponé una iniciativa, sumate a redactar una, o apoyá las que te representan.</p>'+
+   '<div class="card"><p style="margin:0 0 10px;font-size:13.5px">Para participar necesitás tu cuenta.</p><button class="primary" data-act="plazaLogin">Ingresar</button></div>';
+  return;
+ }
+ // Cartel de bienvenida la primera vez (hasta que elija nick / acepte aviso)
+ if(miNick===null){ plazaCargarNick(function(){ if(miNick===null) renderPlazaBienvenida(); else renderPlazaHome(); });
+   c.innerHTML='<p class="muted" style="font-size:13px;padding:20px 0">Cargando la plaza…</p>'; return; }
+ renderPlazaHome();
+}
+
+function plazaCargarNick(cb){
+ rpcPlaza('mi_nick',{p_user_id:usuarioActual.id}).then(function(rows){
+  var r=(Array.isArray(rows)&&rows[0])?rows[0]:null;
+  miNick=(r&&r.acepto_aviso&&r.nick)?r.nick:null;
+  if(cb)cb();
+ }).catch(function(){miNick=null;if(cb)cb();});
+}
+
+/* ---- Cartel de bienvenida: aviso de anonimato + elegir nick ---- */
+function renderPlazaBienvenida(){
+ var c=$('#sc-plaza');if(!c)return;
+ c.innerHTML='<h2 class="serif" style="font-size:22px;margin:4px 0 10px">Bienvenido/a a la plaza</h2>'+
+  '<div class="card" style="gap:11px">'+
+   '<div style="font-size:13.5px;line-height:1.55">Acá se construyen leyes entre muchos. A diferencia del voto, que es siempre anónimo, cuando <b>participás activamente</b> (proponés, redactás u objetás) lo hacés con un <b>nick</b> visible para el resto.</div>'+
+   '<div class="note warn" style="font-size:12.5px;margin:0">⚠️ <b>Pensalo antes de elegir.</b> Mostrarte puede conectarte con gente que piensa como vos —algo hermoso—, pero también expone tu figura a <b>acoso por tu posición política</b>. Elegí cuánto querés identificarte: tu nombre real, un alias, lo que prefieras. Tu apoyo a una iniciativa sigue siendo anónimo siempre.</div>'+
+   '<div><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Tu nick en la plaza</div>'+
+   '<input id="nickInput" type="text" maxlength="30" placeholder="Ej: Benja_K, Vecina_del_Sur…" style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:11px;font-size:14px;font-family:inherit;box-sizing:border-box"></div>'+
+   '<button class="primary" data-act="plazaGuardarNick">Entendí · entrar a la plaza</button>'+
+  '</div>';
+}
+
+function plazaGuardarNick(){
+ var inp=$('#nickInput');var v=inp?inp.value.trim():'';
+ if(v.length<2){alert('Elegí un nick de al menos 2 caracteres.');return;}
+ rpcPlaza('guardar_nick',{p_user_id:usuarioActual.id,p_nick:v,p_acepto:true}).then(function(){
+  miNick=v;renderPlazaHome();
+ }).catch(function(){alert('No se pudo guardar. Probá de nuevo.');});
+}
+
+/* ---- Home de la plaza: filtros por etapa + lista ---- */
+function renderPlazaHome(){
+ var c=$('#sc-plaza');if(!c)return;
+ var fils=[['apoyo','🤝 Apoyar'],['aporte','✏️ En aporte'],['construccion','🔨 En construcción'],['presentada','🏛️ Presentadas']];
+ var chips=fils.map(function(f){return '<button class="chip'+(plazaFiltro===f[0]?' on':'')+'" data-act="plazaFil" data-arg="'+f[0]+'">'+f[1]+'</button>';}).join('');
+ c.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0 4px">'+
+   '<h2 class="serif" style="font-size:22px;margin:0">🏛️ La plaza</h2>'+
+   '<span class="muted" style="font-size:12px">como <b>'+escHtml(miNick)+'</b></span></div>'+
+  '<p class="muted" style="font-size:12.5px;margin:0 0 12px">Buscá una causa antes de crear una nueva: sumarse es más fuerte que dispersar.</p>'+
+  '<div class="filtros" style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px">'+chips+'</div>'+
+  '<div id="plazaLista"><p class="muted" style="font-size:13px">Cargando…</p></div>'+
+  '<button class="primary" style="margin-top:14px" data-act="plazaNueva">+ Proponer una nueva</button>';
+ cargarPlazaLista();
+}
+
+function cargarPlazaLista(){
+ rpcPlaza('iniciativas_listar',{p_estado:plazaFiltro}).then(function(rows){
+  plazaLista=Array.isArray(rows)?rows:[];
+  var cont=$('#plazaLista');if(!cont)return;
+  if(!plazaLista.length){
+   cont.innerHTML='<div class="card" style="text-align:center;gap:8px;padding:22px"><div style="font-size:30px">🌱</div><div class="serif" style="font-weight:700;font-size:15px">Todavía no hay iniciativas acá</div><div class="muted" style="font-size:12.5px">Sé la primera persona en encender una.</div></div>';
+   return;
+  }
+  cont.innerHTML=plazaLista.map(filaIniciativa).join('');
+ }).catch(function(){var cont=$('#plazaLista');if(cont)cont.innerHTML='<p class="muted" style="font-size:13px">No se pudo cargar. Probá de nuevo.</p>';});
+}
+
+function filaIniciativa(it){
+ var estadoTag={construccion:['🔨 En construcción','nt'],aporte:['✏️ En aporte','ci'],apoyo:['🤝 Apoyar','fav'],presentada:['🏛️ Presentada','ok']}[it.estado]||['·','nt'];
+ var barra='';
+ if(it.estado==='apoyo'||it.estado==='presentada'){
+  barra='<div class="muted" style="font-size:11.5px;margin-top:5px">🤝 '+(it.apoyos||0)+' apoyos · '+(it.provincias||0)+' provincias</div>';
+ }else if(it.estado==='construccion'){
+  barra='<div class="muted" style="font-size:11.5px;margin-top:5px">👥 equipo curador: '+(it.curadores||0)+'/'+(it.cupo||9)+'</div>';
+ }
+ return '<div class="card" style="margin-bottom:10px;cursor:pointer" data-act="plazaAbrir" data-arg="'+it.id+'">'+
+   '<div style="display:flex;gap:7px;align-items:center;margin-bottom:5px">'+k(estadoTag[0],estadoTag[1])+(it.tema?'<span class="muted" style="font-size:11px">· '+escHtml(it.tema)+'</span>':'')+'</div>'+
+   '<div class="serif" style="font-weight:700;font-size:15px;line-height:1.3">'+escHtml(it.titulo)+'</div>'+barra+'</div>';
+}
+
+/* ---- Proponer una iniciativa (con anti-duplicados) ---- */
+function plazaNueva(){
+ var c=$('#sc-plaza');if(!c)return;
+ c.innerHTML='<button class="back" data-act="plazaVolver">← Volver a la plaza</button>'+
+  '<h2 class="serif" style="font-size:20px;margin:6px 0 10px">Nueva iniciativa</h2>'+
+  '<div class="card" style="gap:10px">'+
+   campoPlaza('titulo','Título','Ej: Etiquetado en comedores escolares')+
+   campoPlaza('problema','El problema','¿Qué pasa hoy que habría que cambiar?',true)+
+   campoPlaza('propuesta','Qué proponés','En una o dos frases',true)+
+   campoPlaza('tema','Tema','Ej: Salud, Ambiente, Transporte')+
+   '<div id="dupBox"></div>'+
+   '<div class="note info" style="font-size:12px;margin:0">⚖️ Quedan fuera por ley los temas de impuestos, penal, presupuesto y tratados.</div>'+
+   '<button class="primary" data-act="plazaChequearDup">Continuar →</button>'+
+  '</div>';
+}
+function campoPlaza(id,lbl,ph,area){
+ var inp=area?'<textarea id="pz-'+id+'" rows="2" placeholder="'+ph+'" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:11px;font-size:14px;font-family:inherit;box-sizing:border-box;resize:vertical"></textarea>'
+              :'<input id="pz-'+id+'" type="text" placeholder="'+ph+'" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:11px;font-size:14px;font-family:inherit;box-sizing:border-box">';
+ return '<div><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">'+lbl+'</div>'+inp+'</div>';
+}
+function plazaChequearDup(){
+ var tit=($('#pz-titulo')||{}).value;tit=(tit||'').trim();
+ if(tit.length<4){alert('Poné un título un poco más largo.');return;}
+ rpcPlaza('iniciativas_parecidas',{p_titulo:tit}).then(function(rows){
+  rows=Array.isArray(rows)?rows:[];
+  var box=$('#dupBox');if(!box)return;
+  if(!rows.length){crearIniciativaFinal();return;}
+  box.innerHTML='<div class="note warn" style="font-size:12.5px"><b>⚠️ Ya existe algo parecido.</b> Sumarte a una que ya tiene fuerza es mejor que empezar de cero.'+
+   rows.map(function(r){return '<div style="margin-top:7px;display:flex;justify-content:space-between;gap:8px;align-items:center"><span>'+escHtml(r.titulo)+' <span class="muted">('+(r.apoyos||0)+' apoyos)</span></span><button class="chip" data-act="plazaAbrir" data-arg="'+r.id+'">Ver</button></div>';}).join('')+
+   '<button class="primary" style="margin-top:10px" data-act="plazaCrearIgual">Crear la mía igual</button></div>';
+ }).catch(function(){crearIniciativaFinal();});
+}
+function crearIniciativaFinal(){
+ var g=function(id){var e=$('#pz-'+id);return e?e.value.trim():'';};
+ rpcPlaza('crear_iniciativa',{p_user_id:usuarioActual.id,p_titulo:g('titulo'),p_problema:g('problema'),p_propuesta:g('propuesta'),p_tema:g('tema')})
+  .then(function(id){ plazaFiltro='construccion'; abrirIniciativa(id); })
+  .catch(function(){alert('No se pudo crear. Probá de nuevo.');});
+}
+
+/* ---- Detalle / sala de una iniciativa ---- */
+function abrirIniciativa(id){
+ rpcPlaza('iniciativas_listar',{p_estado:null}).then(function(rows){
+  rows=Array.isArray(rows)?rows:[];
+  var it=null;rows.forEach(function(r){if(String(r.id)===String(id))it=r;});
+  if(!it){alert('No se encontró la iniciativa.');return;}
+  plazaDetalle=it;
+  // traer texto, enmiendas y si ya apoyé, en paralelo
+  Promise.all([
+   rpcPlaza('iniciativa_texto',{p_iniciativa_id:id}),
+   rpcPlaza('enmiendas_listar',{p_iniciativa_id:id}),
+   rpcPlaza('ya_apoye',{p_usuario:usuarioActual.id,p_iniciativa_id:id})
+  ]).then(function(res){
+   plazaDetalle._texto=Array.isArray(res[0])?res[0]:[];
+   plazaDetalle._enm=Array.isArray(res[1])?res[1]:[];
+   plazaDetalle._yaApoye=(res[2]===true);
+   renderIniciativaDetalle();
+  });
+ });
+}
+function renderIniciativaDetalle(){
+ var c=$('#sc-plaza');if(!c)return;var it=plazaDetalle;if(!it)return;
+ var h='<button class="back" data-act="plazaVolver">← Volver a la plaza</button>';
+ var estadoTag={construccion:'🔨 En construcción',aporte:'✏️ En aporte',apoyo:'🤝 Juntando apoyo',presentada:'🏛️ Presentada'}[it.estado]||'';
+ h+='<div style="margin:8px 0 4px">'+k(estadoTag,'ci')+'</div>';
+ h+='<h2 class="serif" style="font-size:20px;margin:2px 0 8px;line-height:1.25">'+escHtml(it.titulo)+'</h2>';
+ if(it.problema)h+='<p style="font-size:13.5px;margin:0 0 6px"><b>Problema:</b> '+escHtml(it.problema)+'</p>';
+ if(it.propuesta)h+='<p style="font-size:13.5px;margin:0 0 12px"><b>Propuesta:</b> '+escHtml(it.propuesta)+'</p>';
+
+ // El texto (artículos)
+ h+='<div class="sech" style="margin-top:6px">EL TEXTO · versión '+(it.version||1)+'</div>';
+ if(it._texto.length){
+  h+=it._texto.map(function(a){return '<div class="card" style="margin-bottom:7px;border-left:3px solid var(--brand)"><div style="font-size:10px;font-weight:700;color:var(--brand);text-transform:uppercase">Artículo '+a.numero+'</div><p style="font-size:13px;margin:3px 0 0;line-height:1.45">'+escHtml(a.contenido)+'</p></div>';}).join('');
+ }else{
+  h+='<div class="card" style="margin-bottom:7px"><p class="muted" style="font-size:12.5px;margin:0">Todavía no hay artículos. El equipo curador los irá escribiendo.</p></div>';
+ }
+
+ // Acciones según estado
+ if(it.estado==='construccion'||it.estado==='aporte'){
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'+
+     '<button class="primary sm" style="flex:1" data-act="plazaSumarme" data-arg="'+it.id+'">👥 Sumarme a curar</button>'+
+     '<button class="vbtn" style="flex:1;border:1.5px solid var(--line);border-radius:12px" data-act="plazaEnmienda" data-arg="'+it.id+'">✏️ Proponer mejora</button></div>';
+ }else if(it.estado==='apoyo'){
+  if(it._yaApoye){
+   h+='<div class="note ok" style="margin-top:10px">✓ Ya apoyaste esta iniciativa. ¡Gracias!</div>';
+  }else{
+   h+='<div class="note info" style="margin-top:10px;font-size:12.5px">🔒 Texto cerrado en la versión '+(it.version||1)+'. Apoyás exactamente esto.</div>'+
+      '<button class="primary" style="margin-top:8px" data-act="plazaApoyar" data-arg="'+it.id+'">🤝 Apoyar esta iniciativa</button>';
+  }
+  h+='<div class="muted" style="font-size:11.5px;text-align:center;margin-top:8px">Tu apoyo es anónimo: se cuenta tu provincia, no tu nombre.</div>';
+ }else if(it.estado==='presentada'){
+  h+='<div class="note ok" style="margin-top:10px">🏛️ Presentada en el Congreso'+(it.presentada_por?' por '+escHtml(it.presentada_por):'')+'. Seguila en Votadas.</div>';
+ }
+
+ // Enmiendas
+ h+='<div class="sech" style="margin-top:16px">APORTES DE LA COMUNIDAD ('+it._enm.length+')</div>';
+ if(it._enm.length){
+  h+=it._enm.slice(0,20).map(function(e){
+   var et={pendiente:['● esperando respuesta','ab'],incorporada:['✓ incorporada','ok'],respondida:['respondida','nt']}[e.estado]||['','nt'];
+   return '<div class="card" style="margin-bottom:7px"><div style="font-size:12px"><b>'+escHtml(e.seudonimo||'Vecino/a')+'</b> · '+(e.tipo==='objecion'?'objeción':'enmienda')+'</div><p style="font-size:12.5px;margin:3px 0 5px;line-height:1.4">'+escHtml(e.texto)+'</p><div style="display:flex;justify-content:space-between;align-items:center"><span class="muted" style="font-size:11px">▲ '+(e.apoyos||0)+'</span>'+k(et[0],et[1])+'</div></div>';
+  }).join('');
+ }else{
+  h+='<p class="muted" style="font-size:12.5px">Todavía no hay aportes.</p>';
+ }
+ c.innerHTML=h;
+}
+
+/* ---- Acciones ---- */
+function plazaSumarme(id){
+ rpcPlaza('sumarse_curador',{p_user_id:usuarioActual.id,p_iniciativa_id:id}).then(function(r){
+  if(r==='OK'){alert('¡Te sumaste al equipo curador!');abrirIniciativa(id);}
+  else if(r==='CUPO_LLENO')alert('El equipo curador ya está completo.');
+  else if(r==='YA_SOS_CURADOR')alert('Ya sos parte del equipo.');
+  else alert('No se pudo. Probá de nuevo.');
+ });
+}
+function plazaEnmienda(id){
+ var txt=prompt('Escribí tu mejora u objeción al texto:');
+ if(!txt||!txt.trim())return;
+ rpcPlaza('proponer_enmienda',{p_user_id:usuarioActual.id,p_iniciativa_id:id,p_tipo:'enmienda',p_texto:txt.trim()})
+  .then(function(){abrirIniciativa(id);});
+}
+function plazaApoyar(id){
+ if(!verifState){pedirVerificarParaVotar();return;}
+ rpcPlaza('apoyar_iniciativa',{p_usuario:usuarioActual.id,p_iniciativa_id:id,p_zona:miZona||null}).then(function(r){
+  if(r==='OK'||r==='YA_APOYASTE'){abrirIniciativa(id);}
+  else alert('No se pudo apoyar. Probá de nuevo.');
+ });
+}
+
+function selectTab(s){var btns=document.querySelectorAll('.nav button');for(var i=0;i<btns.length;i++)btns[i].classList.toggle('on',btns[i].getAttribute('data-arg')===s);['vote','trend','voted','banc','plaza','perfil'].forEach(function(x){var el=$('#sc-'+x);if(el)el.classList.toggle('show',x===s);});if(s==='trend')renderTrend();if(s==='voted')renderVoted();if(s==='banc')renderBanc();if(s==='plaza')renderPlaza();if(s==='perfil')renderPerfil();var m=$('.main');if(m)m.scrollTop=0;}
 
 document.addEventListener('click',function(e){var el=e.target.closest('[data-act]');if(!el)return;var a=el.getAttribute('data-act'),arg=el.getAttribute('data-arg');
  if(a==='goto')showScreen(arg);
  else if(a==='country'){if(arg==='1'){$('#ccNote').style.display='none';showScreen('oTyc');}else{$('#ccNote').style.display='block';}}
  else if(a==='chk'){if(arg==='1'){c1=!c1;$('#b1').className='box'+(c1?' on':'');$('#b1').innerHTML=c1?'✓':'';$('#k1').className='chk'+(c1?' on':'');}else{c2=!c2;$('#b2').className='box'+(c2?' on':'');$('#b2').innerHTML=c2?'✓':'';$('#k2').className='chk'+(c2?' on':'');}$('#tycBtn').disabled=!(c1&&c2);}
  else if(a==='tab')selectTab(arg);
+ else if(a==='plazaLogin')pedirLoginParaVotar();
+ else if(a==='plazaGuardarNick')plazaGuardarNick();
+ else if(a==='plazaFil'){plazaFiltro=arg;renderPlazaHome();}
+ else if(a==='plazaNueva')plazaNueva();
+ else if(a==='plazaVolver'){plazaDetalle=null;renderPlazaHome();}
+ else if(a==='plazaChequearDup')plazaChequearDup();
+ else if(a==='plazaCrearIgual')crearIniciativaFinal();
+ else if(a==='plazaAbrir')abrirIniciativa(arg);
+ else if(a==='plazaSumarme')plazaSumarme(arg);
+ else if(a==='plazaEnmienda')plazaEnmienda(arg);
+ else if(a==='plazaApoyar')plazaApoyar(arg);
  else if(a==='vote')flyAndVote(arg);
  else if(a==='skip')flyAndSkip();
  else if(a==='siguienteLey')siguienteLey();
