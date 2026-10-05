@@ -2120,12 +2120,14 @@ function abrirIniciativa(id){
    rpcPlaza('iniciativa_texto',{p_iniciativa_id:id}),
    rpcPlaza('enmiendas_listar',{p_iniciativa_id:id}),
    rpcPlaza('ya_apoye',{p_usuario:usuarioActual.id,p_iniciativa_id:id}),
-   rpcPlaza('soy_curador',{p_user_id:usuarioActual.id,p_iniciativa_id:id})
+   rpcPlaza('soy_curador',{p_user_id:usuarioActual.id,p_iniciativa_id:id}),
+   rpcPlaza('iniciativa_fundamentos',{p_iniciativa_id:id})
   ]).then(function(res){
    plazaDetalle._texto=Array.isArray(res[0])?res[0]:[];
    plazaDetalle._enm=Array.isArray(res[1])?res[1]:[];
    plazaDetalle._yaApoye=(res[2]===true);
    plazaDetalle._soyCurador=(res[3]===true);
+   plazaDetalle._fund=(typeof res[4]==='string')?res[4]:'';
    renderIniciativaDetalle();
   });
  });
@@ -2139,23 +2141,39 @@ function renderIniciativaDetalle(){
  if(it.problema)h+='<p style="font-size:13.5px;margin:0 0 6px"><b>Problema:</b> '+escHtml(it.problema)+'</p>';
  if(it.propuesta)h+='<p style="font-size:13.5px;margin:0 0 12px"><b>Propuesta:</b> '+escHtml(it.propuesta)+'</p>';
 
- // El texto (artículos)
+ // El texto (proyecto de ley, estructurado por secciones)
  var editable=it._soyCurador && !it.texto_cerrado && (it.estado==='construccion'||it.estado==='aporte');
- h+='<div class="sech" style="margin-top:6px">EL TEXTO · versión '+(it.version||1)+(it.texto_cerrado?' · 🔒 cerrado':'')+'</div>';
+ h+='<div class="sech" style="margin-top:6px">PROYECTO DE LEY · versión '+(it.version||1)+(it.texto_cerrado?' · 🔒 cerrado':'')+'</div>';
+ // Fórmula de sanción (fija)
+ h+='<p class="muted serif" style="font-size:12px;font-style:italic;margin:0 0 8px">El Senado y Cámara de Diputados de la Nación Argentina, reunidos en Congreso, sancionan con fuerza de Ley:</p>';
  if(it._texto.length){
-  h+=it._texto.map(function(a){
-   var ed=editable?'<button class="chip" style="margin-top:6px" data-act="plazaEditArt" data-arg="'+it.id+'|'+a.numero+'">✏️ Editar</button>':'';
-   return '<div class="card" style="margin-bottom:7px;border-left:3px solid var(--brand)"><div style="font-size:10px;font-weight:700;color:var(--brand);text-transform:uppercase">Artículo '+a.numero+'</div><p style="font-size:13px;margin:3px 0 0;line-height:1.45">'+escHtml(a.contenido)+'</p>'+ed+'</div>';
-  }).join('');
+  var secLbl={objeto:'OBJETO',definiciones:'DEFINICIONES / ÁMBITO',cuerpo:'DISPOSICIONES',autoridad:'AUTORIDAD DE APLICACIÓN',vigencia:'DISPOSICIONES FINALES'};
+  var secActual=null;
+  it._texto.forEach(function(a){
+   var sl=secLbl[a.seccion]||'DISPOSICIONES';
+   if(sl!==secActual){h+='<div style="font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.05em;margin:10px 0 4px">'+sl+'</div>';secActual=sl;}
+   var ed=editable?'<button class="chip" style="margin-top:6px" data-act="plazaEditArt" data-arg="'+it.id+'|'+a.numero+'">✏️</button> <button class="chip" style="margin-top:6px" data-act="plazaBorrarArt" data-arg="'+it.id+'|'+a.numero+'">🗑️</button>':'';
+   h+='<div class="card" style="margin-bottom:6px;border-left:3px solid var(--brand);padding:11px 13px"><div style="font-size:10px;font-weight:700;color:var(--brand)">Artículo '+a.numero+'</div><p style="font-size:13px;margin:3px 0 0;line-height:1.45">'+escHtml(a.contenido)+'</p>'+ed+'</div>';
+  });
  }else{
-  h+='<div class="card" style="margin-bottom:7px"><p class="muted" style="font-size:12.5px;margin:0">Todavía no hay artículos'+(editable?'. Empezá a escribir el texto abajo.':'. El equipo curador los irá escribiendo.')+'</p></div>';
+  h+='<div class="card" style="margin-bottom:6px"><p class="muted" style="font-size:12.5px;margin:0">Todavía no hay artículos'+(editable?'. Usá el formulario de abajo para construir la ley paso a paso.':'. El equipo curador los irá escribiendo.')+'</p></div>';
  }
- // Herramientas de curador: agregar artículo + cerrar texto
+ // Artículo de forma (fijo)
+ if(it._texto.length)h+='<p class="muted serif" style="font-size:12px;font-style:italic;margin:6px 0 0">Comuníquese al Poder Ejecutivo.</p>';
+ // Fundamentos
+ h+='<div class="sech" style="margin-top:14px">FUNDAMENTOS</div>';
+ h+='<div class="card" style="margin-bottom:6px"><p style="font-size:12.5px;margin:0;line-height:1.5;white-space:pre-wrap">'+(it._fund?escHtml(it._fund):'<span class="muted">Todavía sin fundamentos. Explican el problema, los antecedentes y qué se busca lograr.</span>')+'</p>'+
+   (editable?'<button class="chip" style="margin-top:8px" data-act="plazaFund" data-arg="'+it.id+'">✏️ Editar fundamentos</button>':'')+'</div>';
+
+ // Herramientas de curador: agregar artículo por sección + cerrar texto
  if(editable){
   var proximo=(it._texto.length? Math.max.apply(null,it._texto.map(function(a){return a.numero;}))+1 : 1);
-  h+='<button class="chip on" style="margin-bottom:4px" data-act="plazaEditArt" data-arg="'+it.id+'|'+proximo+'">+ Agregar artículo '+proximo+'</button>';
+  h+='<div class="sech" style="margin-top:12px">AGREGAR ARTÍCULO (elegí la sección)</div>'+
+     '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+     ['objeto|Objeto','definiciones|Definiciones','cuerpo|Disposición','autoridad|Autoridad','vigencia|Vigencia'].map(function(s){var p=s.split('|');
+       return '<button class="chip" data-act="plazaAddArt" data-arg="'+it.id+'|'+proximo+'|'+p[0]+'">+ '+p[1]+'</button>';}).join('')+'</div>';
   if(it._texto.length){
-   h+='<div class="note warn" style="font-size:12px;margin:8px 0 0">🔒 <b>Cerrar el texto</b> congela esta versión para empezar a juntar apoyo. No se podrá editar (salvo re-abrir). <button class="chip" style="margin-top:6px" data-act="plazaCerrar" data-arg="'+it.id+'">Cerrar texto y pasar a apoyo</button></div>';
+   h+='<div class="note warn" style="font-size:12px;margin:10px 0 0">🔒 <b>Cerrar el texto</b> congela esta versión y pasa a juntar apoyo. <button class="chip" style="margin-top:6px" data-act="plazaCerrar" data-arg="'+it.id+'">Cerrar texto y pasar a apoyo</button></div>';
   }
  }
 
@@ -2212,18 +2230,43 @@ function plazaApoyar(id){
   else alert('No se pudo apoyar. Probá de nuevo.');
  });
 }
-function plazaEditArt(arg){
- var p=String(arg).split('|');var id=p[0],num=parseInt(p[1],10);
- var actual='';
- if(plazaDetalle&&plazaDetalle._texto){plazaDetalle._texto.forEach(function(a){if(a.numero===num)actual=a.contenido;});}
- var txt=prompt('Artículo '+num+' (escribí o editá el texto):',actual);
- if(txt===null)return;
- txt=txt.trim();if(!txt){alert('El artículo no puede quedar vacío.');return;}
- rpcPlaza('guardar_articulo',{p_user_id:usuarioActual.id,p_iniciativa_id:parseInt(id,10),p_numero:num,p_contenido:txt}).then(function(r){
-  if(r==='OK'){abrirIniciativa(parseInt(id,10));}
-  else if(r==='TEXTO_CERRADO')alert('El texto ya está cerrado, no se puede editar.');
+var AYUDA_SEC={objeto:'OBJETO (Art. 1): qué crea o establece la ley, en una frase. Ej: "La presente ley tiene por objeto…"',
+ definiciones:'DEFINICIONES / ÁMBITO: a quién/qué alcanza, términos clave.',
+ cuerpo:'DISPOSICIÓN DE FONDO: lo que la ley realmente ordena, prohíbe o regula.',
+ autoridad:'AUTORIDAD DE APLICACIÓN: qué organismo la hace cumplir.',
+ vigencia:'DISPOSICIÓN FINAL / VIGENCIA: desde cuándo rige, plazos, derogaciones.'};
+function guardarArt(id,num,sec,actual){
+ var txt=prompt((AYUDA_SEC[sec]||'')+'\n\nArtículo '+num+':',actual||'');
+ if(txt===null)return;txt=txt.trim();if(!txt){alert('El artículo no puede quedar vacío.');return;}
+ rpcPlaza('guardar_articulo2',{p_user_id:usuarioActual.id,p_iniciativa_id:parseInt(id,10),p_numero:num,p_seccion:sec,p_contenido:txt}).then(function(r){
+  if(r==='OK')abrirIniciativa(parseInt(id,10));
+  else if(r==='TEXTO_CERRADO')alert('El texto ya está cerrado.');
   else if(r==='NO_SOS_CURADOR')alert('Solo el equipo curador puede editar.');
   else alert('No se pudo guardar.');
+ });
+}
+function plazaEditArt(arg){
+ var p=String(arg).split('|');var id=p[0],num=parseInt(p[1],10);
+ var actual='',sec='cuerpo';
+ if(plazaDetalle&&plazaDetalle._texto){plazaDetalle._texto.forEach(function(a){if(a.numero===num){actual=a.contenido;sec=a.seccion||'cuerpo';}});}
+ guardarArt(id,num,sec,actual);
+}
+function plazaAddArt(arg){
+ var p=String(arg).split('|');guardarArt(p[0],parseInt(p[1],10),p[2],'');
+}
+function plazaBorrarArt(arg){
+ var p=String(arg).split('|');var id=p[0],num=parseInt(p[1],10);
+ if(!confirm('¿Borrar el artículo '+num+'?'))return;
+ rpcPlaza('borrar_articulo',{p_user_id:usuarioActual.id,p_iniciativa_id:parseInt(id,10),p_numero:num}).then(function(r){
+  if(r==='OK')abrirIniciativa(parseInt(id,10));else alert('No se pudo borrar.');
+ });
+}
+function plazaFund(id){
+ var actual=(plazaDetalle&&plazaDetalle._fund)||'';
+ var txt=prompt('Fundamentos (el "por qué" de la ley): problema, antecedentes, qué se busca lograr.',actual);
+ if(txt===null)return;
+ rpcPlaza('guardar_fundamentos',{p_user_id:usuarioActual.id,p_iniciativa_id:parseInt(id,10),p_texto:txt.trim()}).then(function(r){
+  if(r==='OK')abrirIniciativa(parseInt(id,10));else alert('No se pudo guardar.');
  });
 }
 function plazaCerrar(id){
@@ -2253,6 +2296,9 @@ document.addEventListener('click',function(e){var el=e.target.closest('[data-act
  else if(a==='plazaEnmienda')plazaEnmienda(arg);
  else if(a==='plazaApoyar')plazaApoyar(arg);
  else if(a==='plazaEditArt')plazaEditArt(arg);
+ else if(a==='plazaAddArt')plazaAddArt(arg);
+ else if(a==='plazaBorrarArt')plazaBorrarArt(arg);
+ else if(a==='plazaFund')plazaFund(arg);
  else if(a==='plazaCerrar')plazaCerrar(arg);
  else if(a==='vote')flyAndVote(arg);
  else if(a==='skip')flyAndSkip();
