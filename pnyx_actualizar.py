@@ -52,10 +52,11 @@ PASOS = [
     ("18_caducar.py", [], False),                                      # archivar lo viejo de la cola (+60 dias)
     ("9_mezclar_ordenar.py", [], False),                              # puntuar y ordenar
     ("17_labor.py", [], False),                                        # labor parlamentaria (no gasta API)
-    # Linkeo AUTOMATICO solo por titulo alto (--sin-ia): no gasta credito de
-    # API y casi no se equivoca (umbral 0.72). La zona gris que usa IA se corre
-    # A MANO desde la PC:  python 16_linkeo.py   (revisando los matches).
-    ("16_linkeo.py", ["--sin-ia"], False),
+    # LINKEO: ya NO corre automatico. El linkeo es 100% MANUAL desde el admin
+    # (panel Linkeo), con candidatas SOLO de leyes que estuvieron en plebiscito,
+    # ordenadas por confianza (RPC buscar_leyes_linkeo / sugerencia_linkeo).
+    # Al linkear a mano, la votada pasa a Destacadas. El obrero 16 queda como
+    # herramienta opcional a mano, no en el maestro.
 ]
 
 

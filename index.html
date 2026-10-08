@@ -1215,30 +1215,45 @@ function openExperts(){
   .catch(function(){var c=document.getElementById('expcuerpo');if(c)c.innerHTML='<span class="muted">No se pudieron cargar las opiniones. Probá de nuevo.</span>';});
 }
 
+var trendBusca={dip:'',sen:''};   // texto de búsqueda por cámara
+function camaraDeBill(billId){ return (String(billId||'').toUpperCase().indexOf('SENADO')===0) ? 'sen' : 'dip'; }
 function renderTrend(){var el=$('#sc-trend');
- // Tomamos las leyes que votaste del HISTORIAL LOCAL (persiste en el
- // dispositivo), no de 'pending' (que ya no tiene las votadas). Así las
- // tendencias siguen apareciendo al reentrar. El sentido del voto queda
- // solo acá, en tu dispositivo (anonimato: no se liga a tu usuario en la base).
+ // Historial LOCAL (persiste en el dispositivo). El sentido del voto queda
+ // solo acá (anonimato). Separamos por cámara según el bill_id.
  var hist=histLeer();
  if(!hist.length){el.innerHTML='<div style="text-align:center;padding:48px 12px"><div style="font-size:38px">📊</div><p class="muted">Votá proyectos para ver cómo va opinando la ciudadanía.</p></div>';return;}
- el.innerHTML='<div class="sech">TENDENCIA CIUDADANA · EN CURSO</div><p class="muted" style="font-size:13px;margin:0 0 14px">Sobre lo que votaste. Datos reales y anónimos.</p><div id="trendBody"><p class="muted" style="font-size:13px">Cargando resultados...</p></div>';
- var cont=$('#trendBody');cont.innerHTML='';
- hist.forEach(function(h){
-   var b={billId:h.billId, n:(h.titulo||h.billId)};
-   var mine=h.voto;   // 'favor' | 'contra' | 'abst'
+ el.innerHTML='<div class="sech">TENDENCIA CIUDADANA · EN CURSO</div>'+
+   '<p class="muted" style="font-size:13px;margin:0 0 14px">Sobre lo que votaste. Datos reales y anónimos.</p>'+
+   '<div id="trendDip"></div><div id="trendSen"></div>';
+ renderTrendCamara('dip','🏛️ Diputados',hist);
+ renderTrendCamara('sen','🏛️ Senado',hist);
+}
+function renderTrendCamara(cam,titulo,hist){
+ var cont=$('#trend'+(cam==='dip'?'Dip':'Sen'));if(!cont)return;
+ var items=hist.filter(function(h){return camaraDeBill(h.billId)===cam;});
+ if(!items.length){cont.innerHTML='';return;}  // si no votaste nada de esa cámara, no muestra la sección
+ var q=(trendBusca[cam]||'').toLowerCase();
+ var vis=items.filter(function(h){return !q || (String(h.titulo||h.billId).toLowerCase().indexOf(q)>=0);});
+ var h='<div class="sech" style="margin-top:10px">'+titulo+' ('+items.length+')</div>'+
+   '<input type="text" value="'+escHtml(trendBusca[cam]||'')+'" placeholder="🔎 Buscar en '+(cam==='dip'?'Diputados':'Senado')+'…" '+
+   'oninput="trendBusca.'+cam+'=this.value;renderTrendCamara(\''+cam+'\',\''+titulo+'\',histLeer())" '+
+   'style="width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-size:13.5px;font-family:inherit;box-sizing:border-box;margin-bottom:10px">'+
+   '<div id="trendBody-'+cam+'"></div>';
+ cont.innerHTML=h;
+ var body=$('#trendBody-'+cam);
+ if(!vis.length){body.innerHTML='<p class="muted" style="font-size:12.5px;margin:0 0 6px">Sin resultados'+(q?' para "'+escHtml(q)+'"':'')+'.</p>';return;}
+ vis.forEach(function(hh){
+   var b={billId:hh.billId, n:(hh.titulo||hh.billId)};
+   var mine=hh.voto;
    if(!C[mine])mine={a_favor:'favor',en_contra:'contra',abstencion:'abst'}[mine]||'favor';
    var card=document.createElement('div');card.className='card';card.style.cssText='gap:7px;padding:14px;margin-bottom:10px';
-   card.innerHTML='<div style="font-weight:700;font-size:14px;margin-bottom:4px">'+b.n+'</div><div class="muted" style="font-size:12px">Cargando...</div>';
-   cont.appendChild(card);
+   card.innerHTML='<div style="font-weight:700;font-size:14px;margin-bottom:4px">'+escHtml(b.n)+'</div><div class="muted" style="font-size:12px">Cargando...</div>';
+   body.appendChild(card);
    pedirResultados(b,function(tot){
      if(!tot){card.querySelector('.muted').textContent='Sin datos aún.';return;}
      var n=tot.a_favor+tot.en_contra+tot.abstencion;
-     // Umbral de anonimato: por debajo de UMBRAL_TENDENCIA no se muestra
-     // ni tendencia ni cantidad de votos (evita inferir el voto de pocas
-     // personas). Desde el umbral: solo porcentajes, sin el numero de votos.
      if(n<UMBRAL_TENDENCIA){
-       card.innerHTML='<div style="font-weight:700;font-size:14px;margin-bottom:6px">'+b.n+'</div>'+
+       card.innerHTML='<div style="font-weight:700;font-size:14px;margin-bottom:6px">'+escHtml(b.n)+'</div>'+
         '<div class="muted" style="font-size:12px;line-height:1.5">Todavía no hay suficientes votos para mostrar la tendencia.</div>'+
         '<div style="font-size:11px;margin-top:6px"><span class="muted">Tu voto: '+C[mine].t+'</span></div>';
        return;
@@ -1246,15 +1261,15 @@ function renderTrend(){var el=$('#sc-trend');
      var pf=Math.round(tot.a_favor/n*100),pc=Math.round(tot.en_contra/n*100),pa=Math.round(tot.abstencion/n*100);
      var top=Math.max(pf,pc,pa),clear=top>=60;
      var tag=k(clear?(pf===top?'Tiende a favor':pc===top?'Tiende en contra':'Tiende a abst.'):'Dividido',clear?(pf===top?'ok':pc===top?'con':'ab'):'nt');
-     card.innerHTML='<div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><div style="font-weight:700;font-size:14px">'+b.n+'</div>'+tag+'</div>'+
+     card.innerHTML='<div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><div style="font-weight:700;font-size:14px">'+escHtml(b.n)+'</div>'+tag+'</div>'+
       '<div class="muted" style="font-size:10.5px;letter-spacing:.03em;margin-top:2px">NACIONAL</div>'+
       '<div class="bar">'+seg(pf,'var(--favor)')+seg(pa,'var(--abst)')+seg(pc,'var(--contra)')+'</div>'+
       '<div style="display:flex;justify-content:space-between;font-size:11px"><span class="muted">Tu voto: '+C[mine].t+'</span><span class="muted">'+pf+'% a favor · '+pc+'% en contra'+(pa>0?' · '+pa+'% abst.':'')+'</span></div>'+
       '<div id="zona-'+b.billId+'"></div>';
-     // Tendencia REGIONAL: solo para legisladores con banca validada y con zona.
      if(miBanca && miZona){ agregarTendenciaZona(b.billId, miZona); }
    });
- });}
+ });
+}
 
 /* Para un legislador validado: trae la tendencia de SU provincia y la suma
    debajo de la nacional, en la tarjeta de la ley (Tendencias). */
@@ -2003,28 +2018,45 @@ function renderPlaza(){
 function plazaCargarNick(cb){
  rpcPlaza('mi_nick',{p_user_id:usuarioActual.id}).then(function(rows){
   var r=(Array.isArray(rows)&&rows[0])?rows[0]:null;
-  miNick=(r&&r.acepto_aviso&&r.nick)?r.nick:null;
+  // Válido solo si aceptó Y la versión del consentimiento coincide con la actual.
+  var consintioActual = r && r.acepto_aviso && (r.consent_plaza_version===CONSENT_PLAZA_VERSION);
+  miNick=(consintioActual && r.nick)?r.nick:null;
+  // si ya tiene nick pero cambió la versión, lo precargamos para no re-escribirlo
+  window._plazaNickPrevio=(r&&r.nick)?r.nick:'';
   if(cb)cb();
  }).catch(function(){miNick=null;if(cb)cb();});
 }
 
 /* ---- Cartel de bienvenida: aviso de anonimato + elegir nick ---- */
+/* Versión del consentimiento de la Plaza. Si cambia el texto, subí este
+   número y a cada persona se le vuelve a pedir el consentimiento. */
+var CONSENT_PLAZA_VERSION='1';
 function renderPlazaBienvenida(){
  var c=$('#sc-plaza');if(!c)return;
- c.innerHTML='<h2 class="serif" style="font-size:22px;margin:4px 0 10px">Bienvenido/a a la plaza</h2>'+
+ // NOTA: texto BORRADOR de consentimiento. Revisar/ajustar con abogado antes de abrir al público.
+ c.innerHTML='<h2 class="serif" style="font-size:22px;margin:4px 0 10px">Entrar a la plaza</h2>'+
   '<div class="card" style="gap:11px">'+
-   '<div style="font-size:13.5px;line-height:1.55">Acá se construyen leyes entre muchos. A diferencia del voto, que es siempre anónimo, cuando <b>participás activamente</b> (proponés, redactás u objetás) lo hacés con un <b>nick</b> visible para el resto.</div>'+
-   '<div class="note warn" style="font-size:12.5px;margin:0">⚠️ <b>Pensalo antes de elegir.</b> Mostrarte puede conectarte con gente que piensa como vos —algo hermoso—, pero también expone tu figura a <b>acoso por tu posición política</b>. Elegí cuánto querés identificarte: tu nombre real, un alias, lo que prefieras. Tu apoyo a una iniciativa sigue siendo anónimo siempre.</div>'+
+   '<div style="font-size:13.5px;line-height:1.55">La plaza es un espacio aparte del voto. Acá se <b>construyen y se impulsan</b> iniciativas ciudadanas. Antes de entrar, leé y aceptá estas condiciones, que son <b>distintas</b> de las que aceptaste al crear tu cuenta.</div>'+
+   '<div class="note warn" style="font-size:12px;margin:0;line-height:1.5">⚠️ <b>Identidad visible.</b> A diferencia del voto (siempre anónimo), al participar (proponer, redactar, objetar) usás un <b>nick</b> visible. Mostrarte puede conectarte con gente afín, pero también expone tu figura a <b>acoso por tu posición política</b>. Tu apoyo a una iniciativa sí sigue siendo anónimo.</div>'+
+   '<div class="note info" style="font-size:12px;margin:0;line-height:1.5">📋 <b>Uso cívico y responsabilidad.</b> La plaza es solo para construir propuestas legislativas por vías pacíficas y democráticas. No se permite usarla para convocar a la violencia, hostigar personas, ni actividades ilegales. <b>Cada participante es responsable</b> de lo que escribe, propone u organiza. Pnyx es una herramienta de intermediación: no es autora de las iniciativas ni responsable de las acciones que las personas decidan tomar fuera de la app.</div>'+
+   '<div class="chk" id="kPlaza" data-act="chkPlaza" style="display:flex;gap:9px;align-items:flex-start;cursor:pointer"><div class="box" id="boxPlaza" style="flex-shrink:0"></div><div class="muted" style="color:var(--ink);font-size:12.5px">Leí y acepto las condiciones de la plaza. Entiendo que soy responsable de mi participación.</div></div>'+
    '<div><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Tu nick en la plaza</div>'+
-   '<input id="nickInput" type="text" maxlength="30" placeholder="Ej: Vecina_del_Sur, JuanaC, Ciudadano22…" style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:11px;font-size:14px;font-family:inherit;box-sizing:border-box"></div>'+
-   '<button class="primary" data-act="plazaGuardarNick">Entendí · entrar a la plaza</button>'+
+   '<input id="nickInput" type="text" maxlength="30" value="'+escHtml(window._plazaNickPrevio||'')+'" placeholder="Ej: Vecina_del_Sur, JuanaC, Ciudadano22…" style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:11px;font-size:14px;font-family:inherit;box-sizing:border-box"></div>'+
+   '<button class="primary" id="btnPlazaEntrar" data-act="plazaGuardarNick" disabled style="opacity:.5">Aceptar y entrar</button>'+
   '</div>';
 }
-
+var plazaConsent=false;
+function togglePlazaConsent(){
+ plazaConsent=!plazaConsent;
+ var box=$('#boxPlaza');if(box){box.className='box'+(plazaConsent?' on':'');box.innerHTML=plazaConsent?'✓':'';}
+ var chk=$('#kPlaza');if(chk)chk.className='chk'+(plazaConsent?' on':'');
+ var b=$('#btnPlazaEntrar');if(b){b.disabled=!plazaConsent;b.style.opacity=plazaConsent?'1':'.5';}
+}
 function plazaGuardarNick(){
+ if(!plazaConsent){alert('Primero aceptá las condiciones de la plaza.');return;}
  var inp=$('#nickInput');var v=inp?inp.value.trim():'';
  if(v.length<2){alert('Elegí un nick de al menos 2 caracteres.');return;}
- rpcPlaza('guardar_nick',{p_user_id:usuarioActual.id,p_nick:v,p_acepto:true}).then(function(){
+ rpcPlaza('guardar_nick',{p_user_id:usuarioActual.id,p_nick:v,p_acepto:true,p_consent_version:CONSENT_PLAZA_VERSION}).then(function(){
   miNick=v;renderPlazaHome();
  }).catch(function(){alert('No se pudo guardar. Probá de nuevo.');});
 }
@@ -2286,6 +2318,7 @@ document.addEventListener('click',function(e){var el=e.target.closest('[data-act
  else if(a==='tab')selectTab(arg);
  else if(a==='plazaLogin')pedirLoginParaVotar();
  else if(a==='plazaGuardarNick')plazaGuardarNick();
+ else if(a==='chkPlaza')togglePlazaConsent();
  else if(a==='plazaFil'){plazaFiltro=arg;renderPlazaHome();}
  else if(a==='plazaNueva')plazaNueva();
  else if(a==='plazaVolver'){plazaDetalle=null;renderPlazaHome();}

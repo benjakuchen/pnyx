@@ -108,15 +108,14 @@ h1{font-size:20px;margin:0 0 4px}
 
   <div id="tab-comp">
    <div class="card">
-    <h1>Leyes — para votar y ya votadas</h1>
-    <p class="muted" style="margin:4px 0 0;font-size:13.5px">A la izquierda, la ley como aparece en el feed de Pnyx (título editable por IA). A la derecha, cómo la votó el Congreso. Podés editar ambos títulos, emparejar las que no linkearon, o marcar las que no están en el feed.</p>
+    <h1>Linkeo votar ↔ votadas</h1>
+    <p class="muted" style="margin:4px 0 0;font-size:13.5px">Partí de las leyes publicadas en el feed (son pocas) y buscales su votación en el Congreso. Pnyx te sugiere la más parecida; vos confirmás. Al linkear, esa ley pasa a Votadas destacadas.</p>
    </div>
    <div class="filtros">
     <span class="muted" style="font-size:12.5px;font-weight:700">Ver:</span>
-    <button class="chip on" data-f="pendiente" onclick="filtrar('pendiente')">Pendientes de linkeo</button>
+    <button class="chip on" data-f="feed" onclick="filtrar('feed')">📋 Publicadas sin linkear</button>
     <button class="chip" data-f="linkeada" onclick="filtrar('linkeada')">Linkeadas</button>
     <button class="chip" data-f="descartada" onclick="filtrar('descartada')">Descartadas</button>
-    <button class="chip" data-f="todas" onclick="filtrar('todas')">Todas</button>
    </div>
    <div id="lista"><div class="empty">Cargando…</div></div>
   </div>
@@ -207,8 +206,9 @@ var SUPABASE_URL='https://ihmbhbhwlntsjqdavxge.supabase.co';
 var SUPABASE_KEY='sb_publishable_ih-dOjPauQayOpzn7uL6vw_vIt96ZHR';
 var supabase=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 var token=SUPABASE_KEY;
-var filtroActual='pendiente';
+var filtroActual='feed';
 var datos=[];
+var feedSinLink=[];   // leyes publicadas sin linkear (modo invertido)
 var $=function(s){return document.querySelector(s);};
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toast(t){var el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(function(){el.classList.remove('show');},2400);}
@@ -932,7 +932,11 @@ function delExperto(id,bill){
  rpc('admin_expertos_del',{p_id:id}).then(function(){toast('Opinión eliminada');cargarExpertos(bill);});
 }
 
-function filtrar(f){filtroActual=f;document.querySelectorAll('.chip').forEach(function(c){c.classList.toggle('on',c.getAttribute('data-f')===f);});render();}
+function filtrar(f){filtroActual=f;document.querySelectorAll('.chip[data-f]').forEach(function(c){c.classList.toggle('on',c.getAttribute('data-f')===f);});
+ // 'feed' y los otros vienen de fuentes distintas: recargar según corresponda.
+ if(f==='feed'){ if(!feedSinLink.length) cargarFeedSinLink(); else renderFeedSinLink(); }
+ else { if(!datos.length) cargar(); else render(); }
+}
 
 function rpc(fn,body){
  return fetch(SUPABASE_URL+'/rest/v1/rpc/'+fn,{method:'POST',
@@ -1025,15 +1029,79 @@ function toggleLeyVotada(votId){
 }
 
 function cargar(){
+ if(filtroActual==='feed'){ cargarFeedSinLink(); return; }
  rpc('admin_comparativa',{}).then(function(filas){
   datos=Array.isArray(filas)?filas:[];
-  var pend=datos.filter(function(d){return d.estado==='pendiente';}).length;
-  var cp=$('#cntPend'); if(cp){ if(pend>0){cp.style.display='inline-block';cp.textContent=pend;} else cp.style.display='none'; }
   render();
  }).catch(function(e){$('#lista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
 }
 
+/* MODO INVERTIDO: a la izquierda las leyes publicadas SIN linkear; para cada
+   una, sugerencia automática de su votación del Congreso + buscador. */
+function cargarFeedSinLink(){
+ rpc('admin_feed_sin_linkear',{}).then(function(filas){
+  feedSinLink=Array.isArray(filas)?filas:[];
+  var cp=$('#cntPend'); if(cp){ if(feedSinLink.length>0){cp.style.display='inline-block';cp.textContent=feedSinLink.length;} else cp.style.display='none'; }
+  renderFeedSinLink();
+ }).catch(function(e){$('#lista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
+}
+function renderFeedSinLink(){
+ if(!feedSinLink.length){$('#lista').innerHTML='<div class="card"><div class="empty">🎉 Todas las leyes publicadas ya tienen su votación del Congreso linkeada.</div></div>';return;}
+ var h='';
+ feedSinLink.forEach(function(l){
+  var t=esc(l.oracion_ia||l.titulo||l.bill_id);
+  var cam=(l.camara||'').toLowerCase().indexOf('sen')>=0?'sen':'dip';
+  h+='<div class="card" id="fl-'+l.bill_id+'" style="padding:14px">'
+   +'<div style="display:flex;gap:7px;align-items:center;margin-bottom:5px"><span class="pill '+cam+'">'+esc(l.camara)+'</span><span class="exp" style="color:var(--brand);font-size:11.5px;font-weight:700">'+esc(l.expediente||l.bill_id)+'</span></div>'
+   +'<div style="font-weight:700;font-size:14px;line-height:1.35;margin-bottom:8px">'+t+'</div>'
+   +'<div class="lbl" style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase">Buscar su votación en el Congreso</div>'
+   +'<button class="btn sec sm" style="margin:6px 0" onclick="sugerirVot(\''+l.bill_id+'\')">💡 Ver sugerencia automática</button>'
+   +'<div id="sugv-'+l.bill_id+'"></div>'
+   +'<input class="buscador" placeholder="Buscar votación por título…" oninput="buscarVot(this,\''+l.bill_id+'\')">'
+   +'<div class="resultados" id="resv-'+l.bill_id+'"></div>'
+   +'</div>';
+ });
+ $('#lista').innerHTML=h;
+}
+function filaVotacion(bill, v){
+ var conf=(v.sim!=null)?Math.round(v.sim*100):null;
+ var badge=conf!=null?'<span class="st '+(conf>=60?'link':(conf>=35?'pend':'desc'))+'" style="margin-right:6px">'+conf+'%</span>':'';
+ var f=v.votada_en?(' · '+new Date(v.votada_en).toLocaleDateString('es-AR')):'';
+ return '<div class="res" onclick="linkearDesdeLey(\''+bill+'\',\''+v.acta_id+'\',\''+esc(v.camara)+'\')">'
+   +badge+'<b>'+esc(v.resultado||'')+'</b> '+esc(v.titulo||'').slice(0,90)
+   +'<span class="muted" style="font-size:11px">'+f+'</span></div>';
+}
+function sugerirVot(bill){
+ var cont=document.getElementById('sugv-'+bill);if(cont)cont.innerHTML='<span class="muted" style="font-size:12px">Buscando…</span>';
+ rpc('buscar_votaciones_para_ley',{p_bill_id:bill,p_q:null}).then(function(rows){
+  rows=Array.isArray(rows)?rows:[];
+  if(!rows.length){if(cont)cont.innerHTML='<span class="muted" style="font-size:12px">Sin candidata clara. Usá el buscador.</span>';return;}
+  if(cont)cont.innerHTML='<div style="border:1px solid var(--brand);border-radius:8px;padding:4px">'+filaVotacion(bill,rows[0])+'</div>';
+ }).catch(function(){if(cont)cont.innerHTML='<span class="muted" style="font-size:12px">No se pudo.</span>';});
+}
+function buscarVot(input,bill){
+ clearTimeout(buscarTimer);var q=input.value.trim();
+ var cont=document.getElementById('resv-'+bill);
+ if(q.length<3){cont.innerHTML='';return;}
+ buscarTimer=setTimeout(function(){
+  rpc('buscar_votaciones_para_ley',{p_bill_id:bill,p_q:q}).then(function(rows){
+   rows=Array.isArray(rows)?rows:[];
+   if(!rows.length){cont.innerHTML='<div class="muted" style="font-size:12px;padding:6px">Sin resultados.</div>';return;}
+   cont.innerHTML=rows.map(function(v){return filaVotacion(bill,v);}).join('');
+  }).catch(function(){cont.innerHTML='<div class="muted" style="font-size:12px;padding:6px">No se pudo buscar.</div>';});
+ },300);
+}
+function linkearDesdeLey(bill,acta,camara){
+ rpc('linkear_manual',{p_acta:acta,p_camara:camara,p_bill_id:bill}).then(function(){
+  toast('✅ Linkeada y enviada a Destacadas');
+  feedSinLink=feedSinLink.filter(function(x){return x.bill_id!==bill;});
+  renderFeedSinLink();
+  var cp=$('#cntPend'); if(cp){ if(feedSinLink.length>0){cp.textContent=feedSinLink.length;} else cp.style.display='none'; }
+ }).catch(function(){toast('No se pudo linkear');});
+}
+
 function render(){
+ if(filtroActual==='feed'){ renderFeedSinLink(); return; }
  var lista=datos.filter(function(d){
   if(filtroActual==='todas')return true;
   if(filtroActual==='pendiente')return d.estado==='pendiente';
@@ -1057,7 +1125,9 @@ function render(){
     +'<span class="saved" id="sv-feed-'+key+'">guardado ✓</span>';
   } else {
    feedCol='<div class="lbl">📋 En el feed de Pnyx</div>'
-    +'<div class="vacio">Todavía sin emparejar. Buscá la ley:</div>'
+    +'<div class="vacio">Solo se puede linkear con leyes que estuvieron en el feed (plebiscito).</div>'
+    +'<button class="btn sec sm" style="margin:4px 0" onclick="sugerir(\''+cam+'\',\''+d.acta_id+'\')">💡 Ver sugerencia automática</button>'
+    +'<div id="sug-'+key+'"></div>'
     +'<input class="buscador" placeholder="Buscar por título o expediente…" oninput="buscarLey(this,\''+cam+'\',\''+d.acta_id+'\')">'
     +'<div class="resultados" id="res-'+key+'"></div>';
   }
@@ -1115,23 +1185,36 @@ function buscarLey(input,cam,acta){
  if(q.length<3){cont.innerHTML='';return;}
  buscarTimer=setTimeout(function(){
   var camara=(cam==='sen')?'Senado':'Diputados';
-  var url=SUPABASE_URL+'/rest/v1/leyes?select=bill_id,titulo,expediente,oracion_ia&camara=eq.'+camara
-   +'&or=(titulo.ilike.*'+encodeURIComponent(q)+'*,expediente.ilike.*'+encodeURIComponent(q)+'*)&limit=8';
-  fetch(url,{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token}})
-   .then(function(r){return r.json();})
+  // SOLO leyes que estuvieron en plebiscito (publicadas o ya votadas), ordenadas por parecido.
+  rpc('buscar_leyes_linkeo',{p_camara:camara,p_q:q})
    .then(function(rows){
-    if(!Array.isArray(rows)||rows.length===0){cont.innerHTML='<div class="muted" style="font-size:12px;padding:6px">Sin resultados.</div>';return;}
+    if(!Array.isArray(rows)||rows.length===0){cont.innerHTML='<div class="muted" style="font-size:12px;padding:6px">Sin resultados entre las leyes que estuvieron en el feed.</div>';return;}
     var h='';rows.forEach(function(l){
      var t=l.oracion_ia||l.titulo||'';
-     h+='<div class="res" onclick="linkear(\''+cam+'\',\''+acta+'\',\''+l.bill_id+'\')"><span class="exp">'+esc(l.expediente||l.bill_id)+'</span> — '+esc(t)+'</div>';
+     var conf=(l.sim!=null)?Math.round(l.sim*100):null;
+     var badge=conf!=null?'<span class="st '+(conf>=60?'link':(conf>=35?'pend':'desc'))+'" style="margin-right:6px">'+conf+'%</span>':'';
+     h+='<div class="res" onclick="linkear(\''+cam+'\',\''+acta+'\',\''+l.bill_id+'\')">'+badge+'<span class="exp">'+esc(l.expediente||l.bill_id)+'</span> — '+esc(t)+'</div>';
     });cont.innerHTML=h;
-   });
+   }).catch(function(){cont.innerHTML='<div class="muted" style="font-size:12px;padding:6px">No se pudo buscar.</div>';});
  },300);
+}
+function sugerir(cam,acta){
+ var camara=(cam==='sen')?'Senado':'Diputados';
+ var cont=document.getElementById('sug-'+cam+'-'+acta);if(cont)cont.innerHTML='<span class="muted" style="font-size:12px">Buscando…</span>';
+ rpc('sugerencia_linkeo',{p_acta:acta,p_camara:camara}).then(function(rows){
+  var s=(Array.isArray(rows)&&rows[0])?rows[0]:null;
+  if(!s){if(cont)cont.innerHTML='<span class="muted" style="font-size:12px">Sin candidata clara.</span>';return;}
+  var conf=(s.sim!=null)?Math.round(s.sim*100):0;
+  var t=s.oracion_ia||s.titulo||'';
+  if(cont)cont.innerHTML='<div class="res" style="border:1px solid var(--brand);border-radius:8px;padding:8px" onclick="linkear(\''+cam+'\',\''+acta+'\',\''+s.bill_id+'\')">'
+    +'<span class="st '+(conf>=60?'link':(conf>=35?'pend':'desc'))+'" style="margin-right:6px">'+conf+'% confianza</span>'
+    +'<span class="exp">'+esc(s.expediente||s.bill_id)+'</span> — '+esc(t)+'<div class="muted" style="font-size:11px;margin-top:3px">Tocá para linkear</div></div>';
+ }).catch(function(){if(cont)cont.innerHTML='<span class="muted" style="font-size:12px">No se pudo.</span>';});
 }
 function linkear(cam,acta,billId){
  var camara=(cam==='sen')?'Senado':'Diputados';
  rpc('linkear_manual',{p_acta:acta,p_camara:camara,p_bill_id:billId}).then(function(){
-  toast('✅ Emparejada con '+billId);cargar();
+  toast('✅ Linkeada y enviada a Destacadas');cargar();
  });
 }
 function desvincular(acta,camara){
