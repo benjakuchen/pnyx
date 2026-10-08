@@ -49,14 +49,16 @@ def normalizar_billid(nombre_archivo):
     Acepta varios formatos que puede traer el sitio del Senado:
       SENADO637-26   -> SENADO637-26   (ya correcto)
       S637_26PL      -> SENADO637-26
+      CD6_26PL       -> SENADO6-26     (proyecto en revisión venido de Diputados)
       637-26 / 637_26 / 637.26 -> SENADO637-26
       637            -> SENADO637-26   (asume anio 26)
     """
     base = os.path.splitext(nombre_archivo)[0].strip().upper()
     if base.startswith("SENADO"):
         return base
-    # S637_26PL  o  S637-26  etc.
-    m = re.match(r"^S?(\d+)[\-_\.]?(\d{2})?(?:PL)?$", base)
+    # Prefijos que usa el sitio del Senado: S (senado), CD/CDI (en revisión de Diputados),
+    # PE (poder ejecutivo). El bill_id en Pnyx siempre es SENADO<num>-<anio>.
+    m = re.match(r"^(?:S|CDI?|PE)?(\d+)[\-_\.]?(\d{2})?(?:PL)?$", base)
     if m:
         num = m.group(1)
         anio = m.group(2) or "26"
