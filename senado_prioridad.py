@@ -61,7 +61,7 @@ def traer_senado_sin_texto(sb):
     filas, desde = [], 0
     while True:
         r = (sb.table("leyes")
-             .select("bill_id,expediente,origen,titulo,oracion_ia,publicada")
+             .select("bill_id,expediente,origen,titulo,oracion_ia,publicada,media_sancion")
              .eq("camara", "Senado")
              .is_("texto_oficial", "null")
              .or_("texto_escaneado.is.null,texto_escaneado.eq.false")
@@ -115,20 +115,22 @@ def main():
             "origen": l.get("origen"),
             "titulo": l.get("titulo") or "",
             "publicada": l.get("publicada"),
+            "media_sancion": bool(l.get("media_sancion")),
             "n_diarios": n_diarios,
             "hits": hits,
             "diarios": ", ".join(sorted(diarios)),
             "link": ficha_url(l.get("expediente"), l.get("origen")),
         })
 
-    # Orden: primero las que mas suenan (n_diarios, luego hits); despues por expediente.
+    # Orden: PRIMERO las de MEDIA SANCIÓN (ya avanzaron, hay que tener su texto sí o sí),
+    # después las que más suenan en prensa (n_diarios, hits), después por expediente.
     def clave_exp(f):
         try:
             n, a = (f.get("expediente") or "0/0").split("/")
             return (int(a), int(n))
         except Exception:
             return (0, 0)
-    filas.sort(key=lambda f: (f["n_diarios"], f["hits"], clave_exp(f)), reverse=True)
+    filas.sort(key=lambda f: (1 if f["media_sancion"] else 0, f["n_diarios"], f["hits"], clave_exp(f)), reverse=True)
 
     con_prensa = [f for f in filas if f["n_diarios"] > 0]
     if SOLO_PRENSA:
@@ -152,8 +154,9 @@ def main():
         f.write("Baja el PDF y guardalo en senado_pdfs\\ con el nombre indicado.\n")
         f.write("=" * 72 + "\n\n")
         for r in filas:
-            estrella = ("  ⭐ x%d diarios" % r["n_diarios"]) if r["n_diarios"] else "  (sin prensa)"
-            f.write("Guardar como: %s.pdf%s\n" % (r["bill_id"], estrella))
+            ms = "  🔴 MEDIA SANCIÓN" if r["media_sancion"] else ""
+            estrella = ("  ⭐ x%d diarios" % r["n_diarios"]) if r["n_diarios"] else ("" if r["media_sancion"] else "  (sin prensa)")
+            f.write("Guardar como: %s.pdf%s%s\n" % (r["bill_id"], ms, estrella))
             if r["diarios"]:
                 f.write("  En: %s\n" % r["diarios"])
             f.write("  Exp: %s (%s)%s\n" % (r["expediente"], r["origen"] or "s/o",
@@ -161,6 +164,11 @@ def main():
             f.write("  Titulo: %s\n" % (r["titulo"][:150]))
             f.write("  Ficha:  %s\n\n" % r["link"])
 
+    ms_list = [r for r in filas if r["media_sancion"]]
+    if ms_list:
+        print("=== PRIMERO: MEDIA SANCIÓN (bajar sí o sí) ===", file=sys.stderr)
+        for r in ms_list:
+            print("  🔴 %s  %s" % (r["bill_id"], r["titulo"][:50]), file=sys.stderr)
     print("=== TOP por prensa ===", file=sys.stderr)
     for r in filas[:10]:
         if r["n_diarios"]:

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Pnyx - (c) 2026 Benjamin Kuchen. Obra protegida por la Ley 11.723 (Argentina).
+# Distribuido bajo la Licencia Publica General Affero de GNU v3 (AGPL-3.0). Ver LICENSE.
 """
 Pnyx · Obrero 14 — Curaduría del feed
 --------------------------------------
@@ -53,8 +55,28 @@ def es_peso(titulo):
     return any(p in t for p in PESO)
 
 
+def _bill_ids_con_texto():
+    """Set de bill_ids que YA tienen texto cargado. Consulta liviana:
+    pide solo bill_id filtrando server-side por texto_oficial no nulo."""
+    headers = {"apikey": SERVICE_KEY, "Authorization": "Bearer " + SERVICE_KEY}
+    ids = set()
+    offset = 0
+    while True:
+        url = (SUPABASE_URL + "/rest/v1/leyes?select=bill_id"
+               "&texto_oficial=not.is.null&limit=1000&offset=" + str(offset))
+        r = requests.get(url, headers=headers, timeout=30)
+        r.raise_for_status()
+        parte = r.json()
+        ids.update(p["bill_id"] for p in parte)
+        if len(parte) < 1000:
+            break
+        offset += 1000
+    return ids
+
+
 def traer_leyes():
     headers = {"apikey": SERVICE_KEY, "Authorization": "Bearer " + SERVICE_KEY}
+    con_texto = _bill_ids_con_texto()
     filas = []
     offset = 0
     while True:
@@ -64,6 +86,8 @@ def traer_leyes():
         r = requests.get(url, headers=headers, timeout=30)
         r.raise_for_status()
         parte = r.json()
+        for p in parte:
+            p["tiene_texto"] = p["bill_id"] in con_texto
         filas.extend(parte)
         if len(parte) < 1000:
             break
@@ -83,7 +107,23 @@ def clasificar(ley):
     titulo = ley.get("titulo")
     if es_ruido(titulo):
         return ("ruido", None, False)
-    if ley.get("media_sancion") or ley.get("importante_prensa"):
+
+    # MEDIA SANCIÓN: se publica SIEMPRE, tenga texto o no (ya avanzó en el Congreso).
+    if ley.get("media_sancion"):
+        return ("auto", None, True)
+
+    # REGLA DE BASE: nada se publica automáticamente SIN TEXTO. Sin texto no hay
+    # resumen, y el ciudadano no puede votar a ciegas. Se mete en la cola a la
+    # espera de que se cargue el texto (entonces una próxima corrida la publica).
+    if not ley.get("tiene_texto"):
+        if es_peso(titulo):
+            return ("cola", 1, False)
+        if ley.get("sugerida_prensa"):
+            return ("cola", 2, False)
+        return ("cola", 3, False)
+
+    # Con texto: lo relevante se publica solo; el resto va a la cola priorizada.
+    if ley.get("importante_prensa"):
         return ("auto", None, True)          # comprobadamente relevante -> al feed
     if es_peso(titulo):
         return ("cola", 1, False)            # tema de peso -> cola prioridad 1
