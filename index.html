@@ -944,7 +944,7 @@ function chipLabel(titulo){
 }
 
 var UMBRAL_BLOC_MENOR=0;  // mostrar todos los bloques con al menos 1 voto
-var UMBRAL_TENDENCIA=100; // votos minimos por ley para mostrar tendencia (anonimato)
+var UMBRAL_TENDENCIA=2; // TEMPORAL (testing): bajado de 100 a 2 para ver tendencias con pocos usuarios. VOLVER A 100 antes de abrir al publico (anonimato)
 var votes={},idx=0,curLaw='';
 /* estado del representante */
 var repState='none',selCargo='dipnac',cfg={escucha:true,ideo:true,foto:false},vidDone={};
@@ -1215,33 +1215,37 @@ function openExperts(){
   .catch(function(){var c=document.getElementById('expcuerpo');if(c)c.innerHTML='<span class="muted">No se pudieron cargar las opiniones. Probá de nuevo.</span>';});
 }
 
-var trendBusca={dip:'',sen:''};   // texto de búsqueda por cámara
+var trendCam='dip';   // cámara activa en Tendencias
+var trendQ='';        // búsqueda única
 function camaraDeBill(billId){ return (String(billId||'').toUpperCase().indexOf('SENADO')===0) ? 'sen' : 'dip'; }
 function renderTrend(){var el=$('#sc-trend');
  // Historial LOCAL (persiste en el dispositivo). El sentido del voto queda
- // solo acá (anonimato). Separamos por cámara según el bill_id.
+ // solo acá (anonimato). Selector de cámara arriba + buscador único.
  var hist=histLeer();
  if(!hist.length){el.innerHTML='<div style="text-align:center;padding:48px 12px"><div style="font-size:38px">📊</div><p class="muted">Votá proyectos para ver cómo va opinando la ciudadanía.</p></div>';return;}
+ var nDip=hist.filter(function(h){return camaraDeBill(h.billId)==='dip';}).length;
+ var nSen=hist.filter(function(h){return camaraDeBill(h.billId)==='sen';}).length;
  el.innerHTML='<div class="sech">TENDENCIA CIUDADANA · EN CURSO</div>'+
-   '<p class="muted" style="font-size:13px;margin:0 0 14px">Sobre lo que votaste. Datos reales y anónimos.</p>'+
-   '<div id="trendDip"></div><div id="trendSen"></div>';
- renderTrendCamara('dip','🏛️ Diputados',hist);
- renderTrendCamara('sen','🏛️ Senado',hist);
+   '<p class="muted" style="font-size:13px;margin:0 0 12px">Sobre lo que votaste. Datos reales y anónimos.</p>'+
+   '<div style="display:flex;gap:8px;margin-bottom:10px">'+
+     '<button class="cambtn'+(trendCam==='dip'?' on':'')+'" onclick="trendCam=\'dip\';renderTrend()" style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--line);background:'+(trendCam==='dip'?'var(--brand)':'transparent')+';color:'+(trendCam==='dip'?'#fff':'var(--ink)')+';font-weight:700;font-size:14px;font-family:inherit">🏛️ Diputados ('+nDip+')</button>'+
+     '<button class="cambtn'+(trendCam==='sen'?' on':'')+'" onclick="trendCam=\'sen\';renderTrend()" style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--line);background:'+(trendCam==='sen'?'var(--brand)':'transparent')+';color:'+(trendCam==='sen'?'#fff':'var(--ink)')+';font-weight:700;font-size:14px;font-family:inherit">🏛️ Senado ('+nSen+')</button>'+
+   '</div>'+
+   '<input type="text" value="'+escHtml(trendQ)+'" placeholder="🔎 Buscar en '+(trendCam==='dip'?'Diputados':'Senado')+'…" '+
+     'oninput="trendQ=this.value;renderTrendBody()" '+
+     'style="width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-size:13.5px;font-family:inherit;box-sizing:border-box;margin-bottom:10px">'+
+   '<div id="trendBody"></div>';
+ renderTrendBody();
 }
-function renderTrendCamara(cam,titulo,hist){
- var cont=$('#trend'+(cam==='dip'?'Dip':'Sen'));if(!cont)return;
- var items=hist.filter(function(h){return camaraDeBill(h.billId)===cam;});
- if(!items.length){cont.innerHTML='';return;}  // si no votaste nada de esa cámara, no muestra la sección
- var q=(trendBusca[cam]||'').toLowerCase();
+function renderTrendBody(){
+ var body=$('#trendBody');if(!body)return;
+ var hist=histLeer();
+ var items=hist.filter(function(h){return camaraDeBill(h.billId)===trendCam;});
+ var q=(trendQ||'').toLowerCase();
  var vis=items.filter(function(h){return !q || (String(h.titulo||h.billId).toLowerCase().indexOf(q)>=0);});
- var h='<div class="sech" style="margin-top:10px">'+titulo+' ('+items.length+')</div>'+
-   '<input type="text" value="'+escHtml(trendBusca[cam]||'')+'" placeholder="🔎 Buscar en '+(cam==='dip'?'Diputados':'Senado')+'…" '+
-   'oninput="trendBusca.'+cam+'=this.value;renderTrendCamara(\''+cam+'\',\''+titulo+'\',histLeer())" '+
-   'style="width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-size:13.5px;font-family:inherit;box-sizing:border-box;margin-bottom:10px">'+
-   '<div id="trendBody-'+cam+'"></div>';
- cont.innerHTML=h;
- var body=$('#trendBody-'+cam);
- if(!vis.length){body.innerHTML='<p class="muted" style="font-size:12.5px;margin:0 0 6px">Sin resultados'+(q?' para "'+escHtml(q)+'"':'')+'.</p>';return;}
+ if(!items.length){body.innerHTML='<p class="muted" style="font-size:12.5px;margin:0">Todavía no votaste proyectos de '+(trendCam==='dip'?'Diputados':'Senado')+'.</p>';return;}
+ if(!vis.length){body.innerHTML='<p class="muted" style="font-size:12.5px;margin:0">Sin resultados'+(q?' para "'+escHtml(q)+'"':'')+'.</p>';return;}
+ body.innerHTML='';
  vis.forEach(function(hh){
    var b={billId:hh.billId, n:(hh.titulo||hh.billId)};
    var mine=hh.voto;
@@ -1825,6 +1829,7 @@ function bloqueHistorial(){
   +'<div class="muted" style="font-size:11.5px">'+(n?(n+' ley'+(n!==1?'es':'')+' votada'+(n!==1?'s':'')+' · guardado en este dispositivo'):'Todavía no votaste ninguna ley')+'</div></div>'
   +'<div style="color:var(--muted);font-size:18px">›</div></div>';
 }
+var histoCam='dip', histoQ='';
 function openHistorial(){
  var lista=histLeer();
  var x=$('#histo');
@@ -1834,17 +1839,30 @@ function openHistorial(){
   h+='<p class="muted" style="font-size:13px;margin:8px 0">Todavía no votaste ninguna ley. Cuando lo hagas, vas a ver acá qué votaste.</p>';
   x.innerHTML=h;abrirOverlay(x);return;
  }
- h+='<p class="muted" style="font-size:12px;margin:6px 0 14px">Guardado solo en este dispositivo, para vos. No viaja a ningún servidor: tu voto sigue siendo secreto.</p>';
+ var nDip=lista.filter(function(v){return camaraDeBill(v.billId)==='dip';}).length;
+ var nSen=lista.filter(function(v){return camaraDeBill(v.billId)==='sen';}).length;
+ h+='<p class="muted" style="font-size:12px;margin:6px 0 12px">Guardado solo en este dispositivo, para vos. No viaja a ningún servidor: tu voto sigue siendo secreto.</p>'
+  +'<div style="display:flex;gap:8px;margin-bottom:10px">'+
+    '<button onclick="histoCam=\'dip\';openHistorial()" style="flex:1;padding:10px;border-radius:12px;border:1.5px solid var(--line);background:'+(histoCam==='dip'?'var(--brand)':'transparent')+';color:'+(histoCam==='dip'?'#fff':'var(--ink)')+';font-weight:700;font-size:13.5px;font-family:inherit">🏛️ Diputados ('+nDip+')</button>'+
+    '<button onclick="histoCam=\'sen\';openHistorial()" style="flex:1;padding:10px;border-radius:12px;border:1.5px solid var(--line);background:'+(histoCam==='sen'?'var(--brand)':'transparent')+';color:'+(histoCam==='sen'?'#fff':'var(--ink)')+';font-weight:700;font-size:13.5px;font-family:inherit">🏛️ Senado ('+nSen+')</button>'+
+  '</div>'+
+  '<input type="text" value="'+escHtml(histoQ)+'" placeholder="🔎 Buscar en '+(histoCam==='dip'?'Diputados':'Senado')+'…" oninput="histoQ=this.value;openHistorial()" style="width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-size:13.5px;font-family:inherit;box-sizing:border-box;margin-bottom:12px">';
  var etq={favor:['👍 A favor','var(--favor)','var(--favor-bg)'],contra:['👎 En contra','var(--contra)','var(--contra-bg)'],abst:['➖ Abstención','var(--muted)','var(--surface2)']};
- lista.forEach(function(v){
-  var e=etq[v.voto]||etq.abst;
-  var f=new Date(v.fecha);
-  var fecha=('0'+f.getDate()).slice(-2)+'/'+('0'+(f.getMonth()+1)).slice(-2)+'/'+f.getFullYear();
-  h+='<div style="display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line)">'
-   +'<div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:600;line-height:1.35">'+escHtml(v.titulo)+'</div>'
-   +'<div class="muted" style="font-size:11px;margin-top:3px">'+fecha+'</div></div>'
-   +'<span class="k" style="background:'+e[2]+';color:'+e[1]+';white-space:nowrap">'+e[0]+'</span></div>';
- });
+ var q=(histoQ||'').toLowerCase();
+ var vis=lista.filter(function(v){ return camaraDeBill(v.billId)===histoCam && (!q || String(v.titulo||v.billId).toLowerCase().indexOf(q)>=0); });
+ if(!vis.length){
+  h+='<p class="muted" style="font-size:12.5px;margin:0">'+(q?'Sin resultados para "'+escHtml(q)+'".':'Todavía no votaste proyectos de '+(histoCam==='dip'?'Diputados':'Senado')+'.')+'</p>';
+ } else {
+  vis.forEach(function(v){
+   var e=etq[v.voto]||etq.abst;
+   var f=new Date(v.fecha);
+   var fecha=('0'+f.getDate()).slice(-2)+'/'+('0'+(f.getMonth()+1)).slice(-2)+'/'+f.getFullYear();
+   h+='<div style="display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line)">'
+    +'<div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:600;line-height:1.35">'+escHtml(v.titulo)+'</div>'
+    +'<div class="muted" style="font-size:11px;margin-top:3px">'+fecha+'</div></div>'
+    +'<span class="k" style="background:'+e[2]+';color:'+e[1]+';white-space:nowrap">'+e[0]+'</span></div>';
+  });
+ }
  h+='<div style="text-align:center;margin-top:16px"><button style="border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:12px;padding:8px 16px;border-radius:20px;cursor:pointer" onclick="borrarHistorial()">Borrar mi historial local</button></div>';
  x.innerHTML=h;abrirOverlay(x);
 }
@@ -2147,19 +2165,25 @@ function abrirIniciativa(id){
   var it=null;rows.forEach(function(r){if(String(r.id)===String(id))it=r;});
   if(!it){alert('No se encontró la iniciativa.');return;}
   plazaDetalle=it;
-  // traer texto, enmiendas y si ya apoyé, en paralelo
+  // traer texto, aportes, apoyo, mi rol, equipo y propuestas, en paralelo
   Promise.all([
    rpcPlaza('iniciativa_texto',{p_iniciativa_id:id}),
    rpcPlaza('enmiendas_listar',{p_iniciativa_id:id}),
    rpcPlaza('ya_apoye',{p_usuario:usuarioActual.id,p_iniciativa_id:id}),
-   rpcPlaza('soy_curador',{p_user_id:usuarioActual.id,p_iniciativa_id:id}),
-   rpcPlaza('iniciativa_fundamentos',{p_iniciativa_id:id})
+   rpcPlaza('mi_rol',{p_user_id:usuarioActual.id,p_iniciativa_id:id}),
+   rpcPlaza('iniciativa_fundamentos',{p_iniciativa_id:id}),
+   rpcPlaza('propuestas_listar',{p_iniciativa_id:id,p_estado:null}),
+   rpcPlaza('equipo_listar',{p_iniciativa_id:id})
   ]).then(function(res){
    plazaDetalle._texto=Array.isArray(res[0])?res[0]:[];
    plazaDetalle._enm=Array.isArray(res[1])?res[1]:[];
    plazaDetalle._yaApoye=(res[2]===true);
-   plazaDetalle._soyCurador=(res[3]===true);
+   plazaDetalle._rol=(typeof res[3]==='string')?res[3]:'ninguno';   // fundador | coautor | curador | ninguno
+   plazaDetalle._soyCurador=(plazaDetalle._rol!=='ninguno');          // está en el equipo
+   plazaDetalle._soyAutoridad=(plazaDetalle._rol==='fundador'||plazaDetalle._rol==='coautor');
    plazaDetalle._fund=(typeof res[4]==='string')?res[4]:'';
+   plazaDetalle._props=Array.isArray(res[5])?res[5]:[];
+   plazaDetalle._equipo=Array.isArray(res[6])?res[6]:[];
    renderIniciativaDetalle();
   });
  });
@@ -2174,7 +2198,10 @@ function renderIniciativaDetalle(){
  if(it.propuesta)h+='<p style="font-size:13.5px;margin:0 0 12px"><b>Propuesta:</b> '+escHtml(it.propuesta)+'</p>';
 
  // El texto (proyecto de ley, estructurado por secciones)
- var editable=it._soyCurador && !it.texto_cerrado && (it.estado==='construccion'||it.estado==='aporte');
+ // MODELO: autor/co-autor editan directo (editable); curador solo PROPONE (puedeProponer).
+ var enObra = !it.texto_cerrado && (it.estado==='construccion'||it.estado==='aporte');
+ var editable = it._soyAutoridad && enObra;
+ var puedeProponer = it._soyCurador && !it._soyAutoridad && enObra;
  h+='<div class="sech" style="margin-top:6px">PROYECTO DE LEY · versión '+(it.version||1)+(it.texto_cerrado?' · 🔒 cerrado':'')+'</div>';
  // Fórmula de sanción (fija)
  h+='<p class="muted serif" style="font-size:12px;font-style:italic;margin:0 0 8px">El Senado y Cámara de Diputados de la Nación Argentina, reunidos en Congreso, sancionan con fuerza de Ley:</p>';
@@ -2184,7 +2211,9 @@ function renderIniciativaDetalle(){
   it._texto.forEach(function(a){
    var sl=secLbl[a.seccion]||'DISPOSICIONES';
    if(sl!==secActual){h+='<div style="font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.05em;margin:10px 0 4px">'+sl+'</div>';secActual=sl;}
-   var ed=editable?'<button class="chip" style="margin-top:6px" data-act="plazaEditArt" data-arg="'+it.id+'|'+a.numero+'">✏️</button> <button class="chip" style="margin-top:6px" data-act="plazaBorrarArt" data-arg="'+it.id+'|'+a.numero+'">🗑️</button>':'';
+   var ed='';
+   if(editable){ ed='<button class="chip" style="margin-top:6px" data-act="plazaEditArt" data-arg="'+it.id+'|'+a.numero+'">✏️</button> <button class="chip" style="margin-top:6px" data-act="plazaBorrarArt" data-arg="'+it.id+'|'+a.numero+'">🗑️</button>'; }
+   else if(puedeProponer){ ed='<button class="chip" style="margin-top:6px" data-act="plazaProponer" data-arg="'+it.id+'|'+a.numero+'|modificar">✍️ Proponer cambio</button>'; }
    h+='<div class="card" style="margin-bottom:6px;border-left:3px solid var(--brand);padding:11px 13px"><div style="font-size:10px;font-weight:700;color:var(--brand)">Artículo '+a.numero+'</div><p style="font-size:13px;margin:3px 0 0;line-height:1.45">'+escHtml(a.contenido)+'</p>'+ed+'</div>';
   });
  }else{
@@ -2209,9 +2238,41 @@ function renderIniciativaDetalle(){
   }
  }
 
+ // Curador (no autoridad): puede proponer un ARTÍCULO NUEVO
+ if(puedeProponer){
+  h+='<div class="sech" style="margin-top:12px">SOS CURADOR/A</div>'+
+     '<div class="note info" style="font-size:12px;margin:0 0 8px">Proponés cambios artículo por artículo. El autor/a los aprueba o rechaza.</div>'+
+     '<button class="chip" data-act="plazaProponer" data-arg="'+it.id+'|0|agregar">➕ Proponer artículo nuevo</button>';
+ }
+
+ // Bandeja de PROPUESTAS (la ve el equipo; la autoridad puede resolver)
+ if(it._soyCurador && enObra){
+  var pend=it._props.filter(function(p){return p.estado==='pendiente';});
+  h+='<div class="sech" style="margin-top:14px">PROPUESTAS DEL EQUIPO ('+pend.length+' pendientes)</div>';
+  if(!it._props.length){
+   h+='<p class="muted" style="font-size:12.5px">Todavía no hay propuestas de cambio.</p>';
+  }else{
+   h+=it._props.slice(0,30).map(function(p){
+    var tipoLbl={modificar:'Modificar art. '+p.numero_art,agregar:'Artículo nuevo',eliminar:'Eliminar art. '+p.numero_art}[p.tipo]||'Cambio';
+    var estTag={pendiente:['● pendiente','ab'],aprobada:['✓ aprobada','ok'],rechazada:['✕ rechazada','nt']}[p.estado]||['','nt'];
+    var cuerpo='<div class="card" style="margin-bottom:7px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:12px">'+escHtml(tipoLbl)+'</b>'+k(estTag[0],estTag[1])+'</div>'+
+      '<div class="muted" style="font-size:11px;margin:2px 0 4px">por '+escHtml(p.autor_seudo||'curador/a')+'</div>'+
+      (p.texto?'<p style="font-size:12.5px;margin:3px 0;line-height:1.4;white-space:pre-wrap">'+escHtml(p.texto)+'</p>':'')+
+      (p.motivo?'<p class="muted" style="font-size:11.5px;margin:2px 0 0"><i>Motivo: '+escHtml(p.motivo)+'</i></p>':'')+
+      (p.respuesta?'<p class="muted" style="font-size:11.5px;margin:4px 0 0">↳ '+escHtml(p.respuesta)+'</p>':'');
+    if(p.estado==='pendiente' && it._soyAutoridad){
+     cuerpo+='<div style="display:flex;gap:6px;margin-top:7px"><button class="chip" data-act="plazaAprobarProp" data-arg="'+it.id+'|'+p.id+'">✓ Aprobar</button><button class="chip" data-act="plazaRechazarProp" data-arg="'+it.id+'|'+p.id+'">✕ Rechazar</button></div>';
+    }
+    cuerpo+='</div>';
+    return cuerpo;
+   }).join('');
+  }
+ }
+
  // Acciones según estado
  if(it.estado==='construccion'||it.estado==='aporte'){
-  var botCurar = it._soyCurador ? '<span class="note ok" style="flex:1;margin:0;font-size:12px;text-align:center">✓ Sos curador/a</span>'
+  var botCurar = it._soyCurador ? '<span class="note ok" style="flex:1;margin:0;font-size:12px;text-align:center">✓ Sos '+(it._rol==='fundador'?'autor/a':(it._rol==='coautor'?'co-autor/a':'curador/a'))+'</span>'
     : '<button class="primary sm" style="flex:1" data-act="plazaSumarme" data-arg="'+it.id+'">👥 Sumarme a curar</button>';
   h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'+botCurar+
      '<button class="vbtn" style="flex:1;border:1.5px solid var(--line);border-radius:12px" data-act="plazaEnmienda" data-arg="'+it.id+'">✏️ Proponer mejora</button></div>';
@@ -2293,6 +2354,54 @@ function plazaBorrarArt(arg){
   if(r==='OK')abrirIniciativa(parseInt(id,10));else alert('No se pudo borrar.');
  });
 }
+/* ---- Propuestas (modelo curaduría) ---- */
+function plazaProponer(arg){
+ var p=String(arg).split('|');var id=parseInt(p[0],10),num=parseInt(p[1],10),tipo=p[2]||'modificar';
+ var actual='';
+ if(tipo==='modificar' && plazaDetalle&&plazaDetalle._texto){plazaDetalle._texto.forEach(function(a){if(a.numero===num)actual=a.contenido;});}
+ var txt;
+ if(tipo==='eliminar'){
+  if(!confirm('¿Proponer ELIMINAR el artículo '+num+'?'))return;
+  txt=null;
+ }else{
+  var cab=tipo==='agregar'?'Texto del artículo nuevo que proponés:':'Nueva redacción propuesta para el artículo '+num+':';
+  txt=prompt(cab,actual);
+  if(txt===null)return;txt=txt.trim();
+  if(!txt){alert('El texto no puede quedar vacío.');return;}
+ }
+ var motivo=prompt('¿Por qué proponés este cambio? (breve, ayuda al autor a decidir)','');
+ if(motivo===null)return;
+ rpcPlaza('proponer_cambio',{p_user_id:usuarioActual.id,p_iniciativa_id:id,p_numero_art:(tipo==='agregar'?null:num),p_tipo:tipo,p_seccion:'cuerpo',p_texto:txt,p_motivo:motivo.trim()})
+  .then(function(r){
+   if(r==='OK'){alert('Propuesta enviada. El autor/a la revisa.');abrirIniciativa(id);}
+   else if(r==='TEXTO_CERRADO')alert('El texto ya está cerrado.');
+   else if(r==='NO_SOS_DEL_EQUIPO')alert('Tenés que sumarte al equipo para proponer.');
+   else alert('No se pudo enviar la propuesta.');
+  });
+}
+function plazaAprobarProp(arg){
+ var p=String(arg).split('|');var id=parseInt(p[0],10),pid=parseInt(p[1],10);
+ var resp=prompt('Comentario al aprobar (opcional):','');
+ if(resp===null)return;
+ rpcPlaza('aprobar_propuesta',{p_user_id:usuarioActual.id,p_propuesta_id:pid,p_respuesta:resp.trim()||null})
+  .then(function(r){
+   if(r==='OK')abrirIniciativa(id);
+   else if(r==='NO_AUTORIZADO')alert('Solo el autor/a o co-autores aprueban.');
+   else if(r==='YA_RESUELTA')alert('Esa propuesta ya fue resuelta.');
+   else alert('No se pudo aprobar.');
+  });
+}
+function plazaRechazarProp(arg){
+ var p=String(arg).split('|');var id=parseInt(p[0],10),pid=parseInt(p[1],10);
+ var resp=prompt('¿Por qué la rechazás? (opcional, pero ayuda)','');
+ if(resp===null)return;
+ rpcPlaza('rechazar_propuesta',{p_user_id:usuarioActual.id,p_propuesta_id:pid,p_respuesta:resp.trim()||null})
+  .then(function(r){
+   if(r==='OK')abrirIniciativa(id);
+   else if(r==='YA_RESUELTA')alert('Esa propuesta ya fue resuelta.');
+   else alert('No se pudo rechazar.');
+  });
+}
 function plazaFund(id){
  var actual=(plazaDetalle&&plazaDetalle._fund)||'';
  var txt=prompt('Fundamentos (el "por qué" de la ley): problema, antecedentes, qué se busca lograr.',actual);
@@ -2331,6 +2440,9 @@ document.addEventListener('click',function(e){var el=e.target.closest('[data-act
  else if(a==='plazaEditArt')plazaEditArt(arg);
  else if(a==='plazaAddArt')plazaAddArt(arg);
  else if(a==='plazaBorrarArt')plazaBorrarArt(arg);
+ else if(a==='plazaProponer')plazaProponer(arg);
+ else if(a==='plazaAprobarProp')plazaAprobarProp(arg);
+ else if(a==='plazaRechazarProp')plazaRechazarProp(arg);
  else if(a==='plazaFund')plazaFund(arg);
  else if(a==='plazaCerrar')plazaCerrar(arg);
  else if(a==='vote')flyAndVote(arg);
