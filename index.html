@@ -2120,17 +2120,19 @@ function filaIniciativa(it){
 }
 
 /* ---- Proponer una iniciativa (con anti-duplicados) ---- */
+var AREAS_PLAZA=['Salud','Educación','Ambiente','Trabajo','Transporte','Seguridad','Vivienda','Economía y producción','Derechos y géneros','Ciencia y tecnología','Cultura','Discapacidad','Niñez y familia','Adultos mayores','Animales','Deporte','Transparencia y Estado','Otra'];
 function plazaNueva(){
  var c=$('#sc-plaza');if(!c)return;
+ var ops=AREAS_PLAZA.map(function(a){return '<option value="'+escHtml(a)+'">'+escHtml(a)+'</option>';}).join('');
  c.innerHTML='<button class="back" data-act="plazaVolver">← Volver a la plaza</button>'+
-  '<h2 class="serif" style="font-size:20px;margin:6px 0 10px">Nueva iniciativa</h2>'+
+  '<h2 class="serif" style="font-size:20px;margin:6px 0 4px">Nueva iniciativa</h2>'+
+  '<p class="muted" style="font-size:12.5px;margin:0 0 10px">Vas a construir un proyecto de ley ciudadano. Empecemos por lo básico; después armás el texto paso a paso.</p>'+
   '<div class="card" style="gap:10px">'+
-   campoPlaza('titulo','Título','Ej: Etiquetado en comedores escolares')+
-   campoPlaza('problema','El problema','¿Qué pasa hoy que habría que cambiar?',true)+
-   campoPlaza('propuesta','Qué proponés','En una o dos frases',true)+
-   campoPlaza('tema','Tema','Ej: Salud, Ambiente, Transporte')+
+   campoPlaza('titulo','Título de la iniciativa','Ej: Etiquetado nutricional en comedores escolares')+
+   '<div><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Área temática</div>'+
+     '<select id="pz-area" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:11px;font-size:14px;font-family:inherit;box-sizing:border-box;background:var(--card)">'+ops+'</select></div>'+
    '<div id="dupBox"></div>'+
-   '<div class="note info" style="font-size:12px;margin:0">⚖️ Quedan fuera por ley los temas de impuestos, penal, presupuesto y tratados.</div>'+
+   '<div class="note warn" style="font-size:12px;margin:0">⚖️ <b>Por ley (24.747, art. 3) NO puede tratar sobre:</b> reforma constitucional, tratados internacionales, impuestos/tributos, presupuesto, ni materia penal. Si tu idea es sobre eso, no puede ser iniciativa popular.</div>'+
    '<button class="primary" data-act="plazaChequearDup">Continuar →</button>'+
   '</div>';
 }
@@ -2152,8 +2154,10 @@ function plazaChequearDup(){
  }).catch(function(){crearIniciativaFinal();});
 }
 function crearIniciativaFinal(){
- var g=function(id){var e=$('#pz-'+id);return e?e.value.trim():'';};
- rpcPlaza('crear_iniciativa',{p_user_id:usuarioActual.id,p_titulo:g('titulo'),p_problema:g('problema'),p_propuesta:g('propuesta'),p_tema:g('tema')})
+ var tit=($('#pz-titulo')||{}).value;tit=(tit||'').trim();
+ var area=($('#pz-area')||{}).value||'';
+ if(tit.length<4){alert('Poné un título un poco más largo.');return;}
+ rpcPlaza('crear_iniciativa2',{p_user_id:usuarioActual.id,p_titulo:tit,p_area:area})
   .then(function(id){ plazaFiltro='construccion'; abrirIniciativa(id); })
   .catch(function(){alert('No se pudo crear. Probá de nuevo.');});
 }
@@ -2171,7 +2175,7 @@ function abrirIniciativa(id){
    rpcPlaza('enmiendas_listar',{p_iniciativa_id:id}),
    rpcPlaza('ya_apoye',{p_usuario:usuarioActual.id,p_iniciativa_id:id}),
    rpcPlaza('mi_rol',{p_user_id:usuarioActual.id,p_iniciativa_id:id}),
-   rpcPlaza('iniciativa_fundamentos',{p_iniciativa_id:id}),
+   rpcPlaza('iniciativa_completa',{p_iniciativa_id:id}),
    rpcPlaza('propuestas_listar',{p_iniciativa_id:id,p_estado:null}),
    rpcPlaza('equipo_listar',{p_iniciativa_id:id})
   ]).then(function(res){
@@ -2181,7 +2185,12 @@ function abrirIniciativa(id){
    plazaDetalle._rol=(typeof res[3]==='string')?res[3]:'ninguno';   // fundador | coautor | curador | ninguno
    plazaDetalle._soyCurador=(plazaDetalle._rol!=='ninguno');          // está en el equipo
    plazaDetalle._soyAutoridad=(plazaDetalle._rol==='fundador'||plazaDetalle._rol==='coautor');
-   plazaDetalle._fund=(typeof res[4]==='string')?res[4]:'';
+   var comp=(Array.isArray(res[4])&&res[4][0])?res[4][0]:{};
+   plazaDetalle._fundP=comp.fund_problema||'';
+   plazaDetalle._fundPq=comp.fund_porque||'';
+   plazaDetalle._fundL=comp.fund_lograr||'';
+   plazaDetalle._promotores=comp.promotores||'';
+   plazaDetalle._origen=comp.origen_fondos||'';
    plazaDetalle._props=Array.isArray(res[5])?res[5]:[];
    plazaDetalle._equipo=Array.isArray(res[6])?res[6]:[];
    renderIniciativaDetalle();
@@ -2206,7 +2215,7 @@ function renderIniciativaDetalle(){
  // Fórmula de sanción (fija)
  h+='<p class="muted serif" style="font-size:12px;font-style:italic;margin:0 0 8px">El Senado y Cámara de Diputados de la Nación Argentina, reunidos en Congreso, sancionan con fuerza de Ley:</p>';
  if(it._texto.length){
-  var secLbl={objeto:'OBJETO',definiciones:'DEFINICIONES / ÁMBITO',cuerpo:'DISPOSICIONES',autoridad:'AUTORIDAD DE APLICACIÓN',vigencia:'DISPOSICIONES FINALES'};
+  var secLbl={objeto:'OBJETO',definiciones:'DEFINICIONES / ÁMBITO',cuerpo:'DISPOSICIONES',autoridad:'AUTORIDAD DE APLICACIÓN',sancion:'SANCIONES',financiamiento:'FINANCIAMIENTO',vigencia:'DISPOSICIONES FINALES',transitoria:'DISPOSICIONES TRANSITORIAS'};
   var secActual=null;
   it._texto.forEach(function(a){
    var sl=secLbl[a.seccion]||'DISPOSICIONES';
@@ -2221,21 +2230,56 @@ function renderIniciativaDetalle(){
  }
  // Artículo de forma (fijo)
  if(it._texto.length)h+='<p class="muted serif" style="font-size:12px;font-style:italic;margin:6px 0 0">Comuníquese al Poder Ejecutivo.</p>';
- // Fundamentos
- h+='<div class="sech" style="margin-top:14px">FUNDAMENTOS</div>';
- h+='<div class="card" style="margin-bottom:6px"><p style="font-size:12.5px;margin:0;line-height:1.5;white-space:pre-wrap">'+(it._fund?escHtml(it._fund):'<span class="muted">Todavía sin fundamentos. Explican el problema, los antecedentes y qué se busca lograr.</span>')+'</p>'+
-   (editable?'<button class="chip" style="margin-top:8px" data-act="plazaFund" data-arg="'+it.id+'">✏️ Editar fundamentos</button>':'')+'</div>';
+ // Fundamentos (exposición de motivos, estructurados en 3 preguntas)
+ h+='<div class="sech" style="margin-top:14px">FUNDAMENTOS <span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0">· por qué esta ley</span></div>';
+ var fp=it._fundP,fpq=it._fundPq,fl=it._fundL;
+ if(fp||fpq||fl){
+  h+='<div class="card" style="margin-bottom:6px;font-size:12.5px;line-height:1.5">';
+  if(fp)h+='<p style="margin:0 0 7px"><b>El problema:</b> '+escHtml(fp)+'</p>';
+  if(fpq)h+='<p style="margin:0 0 7px"><b>Por qué importa:</b> '+escHtml(fpq)+'</p>';
+  if(fl)h+='<p style="margin:0"><b>Qué se busca lograr:</b> '+escHtml(fl)+'</p>';
+  h+=(editable?'<button class="chip" style="margin-top:8px" data-act="plazaFund" data-arg="'+it.id+'">✏️ Editar fundamentos</button>':'')+'</div>';
+ }else{
+  h+='<div class="card" style="margin-bottom:6px"><p class="muted" style="font-size:12.5px;margin:0">Todavía sin fundamentos. Explican el problema, por qué importa y qué se busca lograr.</p>'+
+     (editable?'<button class="chip" style="margin-top:8px" data-act="plazaFund" data-arg="'+it.id+'">✏️ Escribir fundamentos</button>':'')+'</div>';
+ }
 
- // Herramientas de curador: agregar artículo por sección + cerrar texto
+ // Herramientas de autor/co-autor: agregar artículo por TIPO + transparencia + cerrar
  if(editable){
   var proximo=(it._texto.length? Math.max.apply(null,it._texto.map(function(a){return a.numero;}))+1 : 1);
-  h+='<div class="sech" style="margin-top:12px">AGREGAR ARTÍCULO (elegí la sección)</div>'+
+  h+='<div class="sech" style="margin-top:14px">AGREGAR ARTÍCULO <span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0">· elegí qué hace</span></div>'+
+     '<p class="muted" style="font-size:11.5px;margin:0 0 6px">Cada artículo hace una sola cosa. Elegí el tipo y te aparece un ejemplo para editar.</p>'+
      '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-     ['objeto|Objeto','definiciones|Definiciones','cuerpo|Disposición','autoridad|Autoridad','vigencia|Vigencia'].map(function(s){var p=s.split('|');
-       return '<button class="chip" data-act="plazaAddArt" data-arg="'+it.id+'|'+proximo+'|'+p[0]+'">+ '+p[1]+'</button>';}).join('')+'</div>';
+     ['objeto','ambito','definicion','obliga','prohibe','permite','crea','autoridad','sancion','financiamiento','vigencia','transitoria','libre'].map(function(k){
+       return '<button class="chip" data-act="plazaAddArt" data-arg="'+it.id+'|'+proximo+'|'+k+'">+ '+escHtml(TIPOS_ART[k].lbl)+'</button>';}).join('')+'</div>';
+  // Transparencia (art. 5.c y 5.d)
+  h+='<div class="sech" style="margin-top:14px">TRANSPARENCIA <span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0">· lo pide la ley (art. 5)</span></div>'+
+     '<div class="card" style="margin-bottom:6px;font-size:12px">'+
+     '<p style="margin:0 0 5px"><b>Promotores:</b> '+(it._promotores?escHtml(it._promotores):'<span class="muted">tu nombre y domicilio (de tu identidad verificada)</span>')+'</p>'+
+     '<p style="margin:0"><b>Origen de los fondos:</b> '+(it._origen?escHtml(it._origen):'<span class="muted">¿con qué recursos se armó? ¿alguien la financió?</span>')+'</p>'+
+     '<button class="chip" style="margin-top:8px" data-act="plazaTransp" data-arg="'+it.id+'">✏️ Completar transparencia</button></div>';
   if(it._texto.length){
    h+='<div class="note warn" style="font-size:12px;margin:10px 0 0">🔒 <b>Cerrar el texto</b> congela esta versión y pasa a juntar apoyo. <button class="chip" style="margin-top:6px" data-act="plazaCerrar" data-arg="'+it.id+'">Cerrar texto y pasar a apoyo</button></div>';
   }
+ }
+
+ // Panel de EQUIPO (lo ve la autoridad): gestionar co-autores y curadores
+ if(it._soyAutoridad && Array.isArray(it._equipo)){
+  var nCo=it._equipo.filter(function(m){return m.rol==='coautor';}).length;
+  var cupoCo=3; // tope de co-autores (coincide con cupo_coautores en la base)
+  h+='<div class="sech" style="margin-top:14px">EQUIPO <span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0">· '+nCo+'/'+cupoCo+' co-autores</span></div>';
+  h+=it._equipo.map(function(m){
+   var rolLbl={fundador:'autor/a fundador/a',coautor:'co-autor/a',curador:'curador/a'}[m.rol]||m.rol;
+   var rolTag={fundador:'ok',coautor:'ci',curador:'nt'}[m.rol]||'nt';
+   var acc='';
+   var yo=(m.user_id===usuarioActual.id);
+   if(!yo){
+    if(m.rol==='curador' && nCo<cupoCo) acc+='<button class="chip" data-act="plazaSubirCo" data-arg="'+it.id+'|'+m.user_id+'">↑ Hacer co-autor</button> ';
+    if(m.rol==='coautor') acc+='<button class="chip" data-act="plazaBajarCo" data-arg="'+it.id+'|'+m.user_id+'">↓ Bajar a curador</button> ';
+    if(m.rol!=='fundador') acc+='<button class="chip" data-act="plazaSacarCur" data-arg="'+it.id+'|'+m.user_id+'">✕ Sacar</button>';
+   }
+   return '<div class="card" style="margin-bottom:6px;padding:9px 11px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="font-size:12.5px"><b>'+escHtml(m.seudonimo||'—')+'</b>'+(yo?' <span class="muted">(vos)</span>':'')+'</span>'+k(rolLbl,rolTag)+'</div>'+(acc?'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:7px">'+acc+'</div>':'')+'</div>';
+  }).join('');
  }
 
  // Curador (no autoridad): puede proponer un ARTÍCULO NUEVO
@@ -2323,18 +2367,47 @@ function plazaApoyar(id){
   else alert('No se pudo apoyar. Probá de nuevo.');
  });
 }
-var AYUDA_SEC={objeto:'OBJETO (Art. 1): qué crea o establece la ley, en una frase. Ej: "La presente ley tiene por objeto…"',
- definiciones:'DEFINICIONES / ÁMBITO: a quién/qué alcanza, términos clave.',
- cuerpo:'DISPOSICIÓN DE FONDO: lo que la ley realmente ordena, prohíbe o regula.',
- autoridad:'AUTORIDAD DE APLICACIÓN: qué organismo la hace cumplir.',
- vigencia:'DISPOSICIÓN FINAL / VIGENCIA: desde cuándo rige, plazos, derogaciones.'};
-function guardarArt(id,num,sec,actual){
- var txt=prompt((AYUDA_SEC[sec]||'')+'\n\nArtículo '+num+':',actual||'');
+// Tipos de artículo: qué hace + sección legal + plantilla editable + ayuda.
+// El ciudadano elige "qué quiero que diga" y aparece la plantilla ya escrita para editar.
+var TIPOS_ART={
+ objeto:     {sec:'objeto',      lbl:'Objeto de la ley',     ayuda:'Qué crea o establece la ley, en una frase (Art. 1).',
+              tpl:'La presente ley tiene por objeto …'},
+ ambito:     {sec:'definiciones',lbl:'A quién alcanza',       ayuda:'Destinatarios y territorio donde aplica.',
+              tpl:'Esta ley se aplica a … en todo el territorio …'},
+ definicion: {sec:'definiciones',lbl:'Definición',            ayuda:'Aclarar una palabra clave que se usa en la ley.',
+              tpl:'A los efectos de esta ley, se entiende por «…»: …'},
+ obliga:     {sec:'cuerpo',      lbl:'Obliga a algo',         ayuda:'Alguien queda obligado a hacer algo. Un sujeto claro.',
+              tpl:'… debe …'},
+ prohibe:    {sec:'cuerpo',      lbl:'Prohíbe algo',          ayuda:'Algo queda prohibido.',
+              tpl:'Queda prohibido …'},
+ permite:    {sec:'cuerpo',      lbl:'Permite / habilita',    ayuda:'Se habilita o reconoce un derecho.',
+              tpl:'… puede …'},
+ crea:       {sec:'cuerpo',      lbl:'Crea algo',             ayuda:'Crea un organismo, programa, registro, etc.',
+              tpl:'Créase el/la … que tendrá como función …'},
+ autoridad:  {sec:'autoridad',  lbl:'Autoridad de aplicación',ayuda:'Qué organismo hace cumplir la ley.',
+              tpl:'La autoridad de aplicación de la presente ley es … , que tendrá a su cargo …'},
+ sancion:    {sec:'sancion',    lbl:'Sanción',               ayuda:'Qué pasa si no se cumple (multas, etc.).',
+              tpl:'El incumplimiento de … será sancionado con …'},
+ financiamiento:{sec:'financiamiento',lbl:'Financiamiento', ayuda:'Si la ley crea gastos, de dónde salen los recursos. (No puede asignar partidas: solo indicar la fuente — art. 3 excluye el presupuesto.)',
+              tpl:'Los gastos que demande el cumplimiento de la presente ley se atenderán con las partidas presupuestarias correspondientes / los recursos que determine la reglamentación.'},
+ vigencia:   {sec:'vigencia',   lbl:'Vigencia',              ayuda:'Desde cuándo rige la ley.',
+              tpl:'La presente ley entra en vigencia a los … días de su publicación en el Boletín Oficial.'},
+ transitoria:{sec:'transitoria',lbl:'Disposición transitoria',ayuda:'Algo especial solo para el período de arranque.',
+              tpl:'Durante el primer … , …'},
+ libre:      {sec:'cuerpo',     lbl:'Artículo libre',        ayuda:'Escribilo como quieras.', tpl:''}
+};
+// Guardar artículo. Si viene tipo y está vacío, precarga la plantilla editable.
+function guardarArt(id,num,sec,actual,tipoKey){
+ var t=tipoKey?TIPOS_ART[tipoKey]:null;
+ var ayuda=t?(t.lbl+' — '+t.ayuda):'';
+ var base=(actual&&actual.length)?actual:(t?t.tpl:'');
+ var txt=prompt((ayuda?ayuda+'\n\n':'')+'Escribí el Artículo '+num+' (borrá el ejemplo y poné lo tuyo):',base||'');
  if(txt===null)return;txt=txt.trim();if(!txt){alert('El artículo no puede quedar vacío.');return;}
- rpcPlaza('guardar_articulo2',{p_user_id:usuarioActual.id,p_iniciativa_id:parseInt(id,10),p_numero:num,p_seccion:sec,p_contenido:txt}).then(function(r){
+ var secFinal=(t?t.sec:sec)||'cuerpo';
+ rpcPlaza('guardar_articulo2',{p_user_id:usuarioActual.id,p_iniciativa_id:parseInt(id,10),p_numero:num,p_seccion:secFinal,p_contenido:txt}).then(function(r){
   if(r==='OK')abrirIniciativa(parseInt(id,10));
   else if(r==='TEXTO_CERRADO')alert('El texto ya está cerrado.');
-  else if(r==='NO_SOS_CURADOR')alert('Solo el equipo curador puede editar.');
+  else if(r==='NO_AUTORIZADO')alert('Solo el autor/a o co-autores editan el texto directo.');
   else alert('No se pudo guardar.');
  });
 }
@@ -2345,7 +2418,8 @@ function plazaEditArt(arg){
  guardarArt(id,num,sec,actual);
 }
 function plazaAddArt(arg){
- var p=String(arg).split('|');guardarArt(p[0],parseInt(p[1],10),p[2],'');
+ var p=String(arg).split('|');var id=p[0],num=parseInt(p[1],10),tipoKey=p[2]||'libre';
+ guardarArt(id,num,null,'',tipoKey);
 }
 function plazaBorrarArt(arg){
  var p=String(arg).split('|');var id=p[0],num=parseInt(p[1],10);
@@ -2403,11 +2477,58 @@ function plazaRechazarProp(arg){
   });
 }
 function plazaFund(id){
- var actual=(plazaDetalle&&plazaDetalle._fund)||'';
- var txt=prompt('Fundamentos (el "por qué" de la ley): problema, antecedentes, qué se busca lograr.',actual);
- if(txt===null)return;
- rpcPlaza('guardar_fundamentos',{p_user_id:usuarioActual.id,p_iniciativa_id:parseInt(id,10),p_texto:txt.trim()}).then(function(r){
-  if(r==='OK')abrirIniciativa(parseInt(id,10));else alert('No se pudo guardar.');
+ var d=plazaDetalle||{};
+ var p=prompt('1/3 — EL PROBLEMA\n¿Qué pasa hoy que habría que cambiar?',d._fundP||'');
+ if(p===null)return;
+ var pq=prompt('2/3 — POR QUÉ IMPORTA\n¿Por qué es importante? ¿Qué pasa si no se hace? (antecedentes)',d._fundPq||'');
+ if(pq===null)return;
+ var l=prompt('3/3 — QUÉ SE BUSCA LOGRAR\n¿Cuál es el resultado esperado?',d._fundL||'');
+ if(l===null)return;
+ rpcPlaza('guardar_fundamentos_3',{p_user_id:usuarioActual.id,p_iniciativa_id:parseInt(id,10),p_problema:p.trim(),p_porque:pq.trim(),p_lograr:l.trim()}).then(function(r){
+  if(r==='OK')abrirIniciativa(parseInt(id,10));
+  else if(r==='NO_AUTORIZADO')alert('Solo el autor/a o co-autores editan los fundamentos.');
+  else alert('No se pudo guardar.');
+ });
+}
+function plazaTransp(id){
+ var d=plazaDetalle||{};
+ var prom=prompt('PROMOTORES (lo pide la Ley 24.747, art. 5)\nNombre y domicilio de quién/es impulsan la iniciativa.\n(Podés usar los datos de tu identidad verificada.)',d._promotores||'');
+ if(prom===null)return;
+ var fondos=prompt('ORIGEN DE LOS FONDOS (art. 5)\n¿Con qué recursos se armó esta iniciativa? ¿Alguien la financió? Si no hubo gastos, aclaralo.',d._origen||'');
+ if(fondos===null)return;
+ rpcPlaza('guardar_transparencia',{p_user_id:usuarioActual.id,p_iniciativa_id:parseInt(id,10),p_promotores:prom.trim(),p_origen_fondos:fondos.trim()}).then(function(r){
+  if(r==='OK')abrirIniciativa(parseInt(id,10));
+  else if(r==='NO_AUTORIZADO')alert('Solo el autor/a o co-autores completan esto.');
+  else alert('No se pudo guardar.');
+ });
+}
+/* ---- Gestión de equipo ---- */
+function plazaSubirCo(arg){
+ var p=String(arg).split('|');var id=parseInt(p[0],10),target=p[1];
+ if(!confirm('¿Hacer co-autor/a a esta persona? Va a poder editar el texto y aprobar propuestas.'))return;
+ rpcPlaza('sumar_coautor',{p_user_id:usuarioActual.id,p_iniciativa_id:id,p_target:target}).then(function(r){
+  if(r==='OK')abrirIniciativa(id);
+  else if(r==='CUPO_COAUTORES_LLENO')alert('Ya llegaste al máximo de co-autores (3).');
+  else if(r==='NO_AUTORIZADO')alert('Solo el autor/a o co-autores pueden hacer esto.');
+  else alert('No se pudo.');
+ });
+}
+function plazaBajarCo(arg){
+ var p=String(arg).split('|');var id=parseInt(p[0],10),target=p[1];
+ if(!confirm('¿Bajar a curador/a? Deja de poder editar y aprobar.'))return;
+ rpcPlaza('quitar_coautor',{p_user_id:usuarioActual.id,p_iniciativa_id:id,p_target:target}).then(function(r){
+  if(r==='OK')abrirIniciativa(id);
+  else if(r==='NO_SE_PUEDE_AL_FUNDADOR')alert('Al autor/a fundador/a no se lo puede bajar.');
+  else alert('No se pudo.');
+ });
+}
+function plazaSacarCur(arg){
+ var p=String(arg).split('|');var id=parseInt(p[0],10),target=p[1];
+ if(!confirm('¿Sacar a esta persona del equipo?'))return;
+ rpcPlaza('quitar_curador',{p_user_id:usuarioActual.id,p_iniciativa_id:id,p_target:target}).then(function(r){
+  if(r==='OK')abrirIniciativa(id);
+  else if(r==='NO_SE_PUEDE_AL_FUNDADOR')alert('Al autor/a fundador/a no se lo puede sacar.');
+  else alert('No se pudo.');
  });
 }
 function plazaCerrar(id){
@@ -2444,6 +2565,10 @@ document.addEventListener('click',function(e){var el=e.target.closest('[data-act
  else if(a==='plazaAprobarProp')plazaAprobarProp(arg);
  else if(a==='plazaRechazarProp')plazaRechazarProp(arg);
  else if(a==='plazaFund')plazaFund(arg);
+ else if(a==='plazaTransp')plazaTransp(arg);
+ else if(a==='plazaSubirCo')plazaSubirCo(arg);
+ else if(a==='plazaBajarCo')plazaBajarCo(arg);
+ else if(a==='plazaSacarCur')plazaSacarCur(arg);
  else if(a==='plazaCerrar')plazaCerrar(arg);
  else if(a==='vote')flyAndVote(arg);
  else if(a==='skip')flyAndSkip();

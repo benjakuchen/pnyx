@@ -193,6 +193,10 @@ h1{font-size:20px;margin:0 0 4px}
    <div id="videosLista"><div class="empty">Cargando…</div></div>
   </div>
 
+  <div id="tab-equiv" style="display:none">
+   <p class="muted" style="font-size:13px;margin:0 0 10px">Proyectos de la Plaza que se parecen entre sí (misma área + texto similar). El obrero los detecta a las 4 AM. Revisá y decidí si avisar a los autores para que se fusionen, o descartá el par si no corresponde.</p>
+   <div id="equivLista"><div class="empty">Cargando…</div></div>
+  </div>
   <div id="tab-proximo" style="display:none">
    <div class="card"><div class="empty">Próximos módulos: carga de opiniones de expertos (link a YouTube), validación de bancas, gestión de curadores y controles sensibles (pisos, regla del 60%).<br>Se conectan a medida que existan sus tablas.</div></div>
   </div>
@@ -280,11 +284,14 @@ var GRUPOS=[
    {panel:'videos',    label:'🎙️ Videos', cnt:'cntVideos'},
    {panel:'bancasLeg', label:'🏛️ Legisladores'},
  ]},
+ {g:'plaza', label:'🏛️ Plaza', subs:[
+   {panel:'equiv',     label:'🔎 Equivalencias', cnt:'cntEquiv'},
+ ]},
  {g:'sistema', label:'⚙️ Sistema', subs:[
    {panel:'proximo',   label:'🎬 Próximamente'},
  ]},
 ];
-var PANELES=['comp','feed','prensa','bancasVal','bancasLeg','curaduria','votadas','videos','proximo'];
+var PANELES=['comp','feed','prensa','bancasVal','bancasLeg','curaduria','votadas','videos','equiv','proximo'];
 var grupoActual='feedvotar', panelActual='curaduria';
 
 function pintarGrupos(){
@@ -322,10 +329,40 @@ function mostrarPanel(p){
  if(p==='curaduria'&&curaDatos.length===0)cargarCuraduria();
  if(p==='votadas'&&votadasCura.length===0)cargarVotadasCura();
  if(p==='videos'&&videosDatos.length===0)cargarVideosAdmin();
+ if(p==='equiv')cargarEquivalencias();
 }
 
 // Compatibilidad: si algo viejo llama tab('X'), lo redirigimos al panel nuevo.
 function tab(t){ var map={bancas:'bancasVal'}; irPanel(map[t]||t); }
+
+/* ===== PLAZA: EQUIVALENCIAS ENTRE PROYECTOS ===== */
+function cargarEquivalencias(){
+ var cont=document.getElementById('equivLista'); if(!cont)return;
+ cont.innerHTML='<div class="empty">Cargando…</div>';
+ rpc('equivalencias_listar',{p_estado:'detectada'}).then(function(r){return r.json();}).then(function(rows){
+  rows=Array.isArray(rows)?rows:[];
+  var cnt=document.getElementById('cntEquiv');
+  if(cnt){ if(rows.length){cnt.style.display='';cnt.textContent=rows.length;} else cnt.style.display='none'; }
+  if(!rows.length){ cont.innerHTML='<div class="empty">No hay pares equivalentes detectados. (El obrero 20 los busca a las 4 AM.)</div>'; return; }
+  cont.innerHTML=rows.map(function(e){
+   var pct=Math.round((e.similitud||0)*100);
+   var col=pct>=60?'#1a8a3c':(pct>=40?'#8a6d00':'#888');
+   return '<div class="card" style="margin-bottom:10px">'+
+     '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">'+
+       '<span class="chip" style="background:'+col+';color:#fff">'+pct+'% parecidos</span>'+
+       '<span class="muted" style="font-size:12px">'+esc(e.area||'')+'</span></div>'+
+     '<div style="font-size:13.5px;line-height:1.4"><b>A.</b> '+esc(e.titulo_a)+'</div>'+
+     '<div style="font-size:13.5px;line-height:1.4;margin-top:3px"><b>B.</b> '+esc(e.titulo_b)+'</div>'+
+     '<div style="display:flex;gap:8px;margin-top:10px">'+
+       '<button class="chip on" onclick="marcarEquiv('+e.id+',\'avisada\')">✓ Marcar como avisada</button>'+
+       '<button class="chip" onclick="marcarEquiv('+e.id+',\'descartada\')">✕ No corresponde</button>'+
+     '</div></div>';
+  }).join('');
+ }).catch(function(){ cont.innerHTML='<div class="empty">No se pudo cargar. ¿Corriste sql_comparar_iniciativas.sql?</div>'; });
+}
+function marcarEquiv(id,estado){
+ rpc('equivalencia_marcar',{p_id:id,p_estado:estado}).then(function(){ cargarEquivalencias(); });
+}
 
 /* ===== CURADURIA DE VOTADAS (destacadas) ===== */
 var votadasCura=[];

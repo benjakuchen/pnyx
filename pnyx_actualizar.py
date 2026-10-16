@@ -52,6 +52,7 @@ PASOS = [
     ("18_caducar.py", [], False),                                      # archivar lo viejo de la cola (+60 dias)
     ("9_mezclar_ordenar.py", [], False),                              # puntuar y ordenar
     ("17_labor.py", [], False),                                        # labor parlamentaria (no gasta API)
+    ("20_comparar_iniciativas.py", [], False),                        # Plaza: detectar proyectos equivalentes (sin IA)
     # LINKEO: ya NO corre automatico. El linkeo es 100% MANUAL desde el admin
     # (panel Linkeo), con candidatas SOLO de leyes que estuvieron en plebiscito,
     # ordenadas por confianza (RPC buscar_leyes_linkeo / sugerencia_linkeo).
