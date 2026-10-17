@@ -1217,28 +1217,63 @@ function openExperts(){
 
 var trendCam='dip';   // cámara activa en Tendencias
 var trendQ='';        // búsqueda única
+var trendModo='mias'; // 'mias' = las que voté | 'todas' = lo más votado por la comunidad
+var _masVotadas=null; // cache de leyes_mas_votadas
 function camaraDeBill(billId){ return (String(billId||'').toUpperCase().indexOf('SENADO')===0) ? 'sen' : 'dip'; }
 function renderTrend(){var el=$('#sc-trend');
- // Historial LOCAL (persiste en el dispositivo). El sentido del voto queda
- // solo acá (anonimato). Selector de cámara arriba + buscador único.
+ // Dos modos: "Mis votos" (historial local, anónimo) y "Lo más votado" (comunidad).
  var hist=histLeer();
- if(!hist.length){el.innerHTML='<div style="text-align:center;padding:48px 12px"><div style="font-size:38px">📊</div><p class="muted">Votá proyectos para ver cómo va opinando la ciudadanía.</p></div>';return;}
  var nDip=hist.filter(function(h){return camaraDeBill(h.billId)==='dip';}).length;
  var nSen=hist.filter(function(h){return camaraDeBill(h.billId)==='sen';}).length;
+ var tabBtn=function(m,txt){return '<button onclick="trendModo=\''+m+'\';trendQ=\'\';renderTrend()" style="flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--line);background:'+(trendModo===m?'var(--brand)':'transparent')+';color:'+(trendModo===m?'#fff':'var(--ink)')+';font-weight:700;font-size:13px;font-family:inherit">'+txt+'</button>';};
+ var subt=trendModo==='mias'?'Sobre lo que votaste. Datos reales y anónimos.':'Las leyes más votadas por la comunidad. Datos agregados y anónimos.';
  el.innerHTML='<div class="sech">TENDENCIA CIUDADANA · EN CURSO</div>'+
-   '<p class="muted" style="font-size:13px;margin:0 0 12px">Sobre lo que votaste. Datos reales y anónimos.</p>'+
+   '<div style="display:flex;gap:8px;margin-bottom:10px">'+tabBtn('mias','🗳️ Mis votos')+tabBtn('todas','🔥 Lo más votado')+'</div>'+
+   '<p class="muted" style="font-size:12.5px;margin:0 0 12px">'+subt+'</p>'+
    '<div style="display:flex;gap:8px;margin-bottom:10px">'+
-     '<button class="cambtn'+(trendCam==='dip'?' on':'')+'" onclick="trendCam=\'dip\';renderTrend()" style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--line);background:'+(trendCam==='dip'?'var(--brand)':'transparent')+';color:'+(trendCam==='dip'?'#fff':'var(--ink)')+';font-weight:700;font-size:14px;font-family:inherit">🏛️ Diputados ('+nDip+')</button>'+
-     '<button class="cambtn'+(trendCam==='sen'?' on':'')+'" onclick="trendCam=\'sen\';renderTrend()" style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--line);background:'+(trendCam==='sen'?'var(--brand)':'transparent')+';color:'+(trendCam==='sen'?'#fff':'var(--ink)')+';font-weight:700;font-size:14px;font-family:inherit">🏛️ Senado ('+nSen+')</button>'+
+     '<button class="cambtn'+(trendCam==='dip'?' on':'')+'" onclick="trendCam=\'dip\';renderTrend()" style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--line);background:'+(trendCam==='dip'?'var(--brand)':'transparent')+';color:'+(trendCam==='dip'?'#fff':'var(--ink)')+';font-weight:700;font-size:14px;font-family:inherit">🏛️ Diputados'+(trendModo==='mias'?' ('+nDip+')':'')+'</button>'+
+     '<button class="cambtn'+(trendCam==='sen'?' on':'')+'" onclick="trendCam=\'sen\';renderTrend()" style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--line);background:'+(trendCam==='sen'?'var(--brand)':'transparent')+';color:'+(trendCam==='sen'?'#fff':'var(--ink)')+';font-weight:700;font-size:14px;font-family:inherit">🏛️ Senado'+(trendModo==='mias'?' ('+nSen+')':'')+'</button>'+
    '</div>'+
    '<input type="text" value="'+escHtml(trendQ)+'" placeholder="🔎 Buscar en '+(trendCam==='dip'?'Diputados':'Senado')+'…" '+
      'oninput="trendQ=this.value;renderTrendBody()" '+
      'style="width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font-size:13.5px;font-family:inherit;box-sizing:border-box;margin-bottom:10px">'+
    '<div id="trendBody"></div>';
- renderTrendBody();
+ if(trendModo==='todas' && _masVotadas===null){
+  var body=$('#trendBody');if(body)body.innerHTML='<p class="muted" style="font-size:13px">Cargando lo más votado…</p>';
+  rpcPlaza('leyes_mas_votadas',{p_umbral:UMBRAL_TENDENCIA,p_limite:60}).then(function(rows){
+   _masVotadas=Array.isArray(rows)?rows:[]; renderTrendBody();
+  }).catch(function(){ _masVotadas=[]; renderTrendBody(); });
+ }else{
+  renderTrendBody();
+ }
 }
 function renderTrendBody(){
  var body=$('#trendBody');if(!body)return;
+ // MODO "lo más votado": lista desde la comunidad (ya trae conteos).
+ if(trendModo==='todas'){
+  var rows=_masVotadas||[];
+  var q0=(trendQ||'').toLowerCase();
+  var vis0=rows.filter(function(r){
+   var cam=(r.camara&&/senado/i.test(r.camara))||/^SENADO/i.test(r.bill_id)?'sen':'dip';
+   if(cam!==trendCam)return false;
+   return !q0 || String(r.titulo||r.bill_id).toLowerCase().indexOf(q0)>=0;
+  });
+  if(!rows.length){body.innerHTML='<p class="muted" style="font-size:12.5px;margin:0">Todavía no hay leyes con suficientes votos para mostrar.</p>';return;}
+  if(!vis0.length){body.innerHTML='<p class="muted" style="font-size:12.5px;margin:0">Sin resultados en '+(trendCam==='dip'?'Diputados':'Senado')+(q0?' para "'+escHtml(trendQ)+'"':'')+'.</p>';return;}
+  // ¿voté esta ley? (para marcar "tu voto" si está en el historial local)
+  var hmap={}; histLeer().forEach(function(h){hmap[h.billId]=h.voto;});
+  body.innerHTML=vis0.map(function(r){
+   var n=r.total||0; var pf=Math.round(r.a_favor/n*100),pc=Math.round(r.en_contra/n*100),pa=Math.round(r.abstencion/n*100);
+   var top=Math.max(pf,pc,pa),clear=top>=60;
+   var tag=k(clear?(pf===top?'Tiende a favor':pc===top?'Tiende en contra':'Tiende a abst.'):'Dividido',clear?(pf===top?'ok':pc===top?'con':'ab'):'nt');
+   var mine=hmap[r.bill_id]; var mineTxt=(mine&&C[mine])?('Tu voto: '+C[mine].t):(mine?('Tu voto: '+mine):'No la votaste');
+   return '<div class="card" style="gap:7px;padding:14px;margin-bottom:10px">'+
+     '<div style="display:flex;justify-content:space-between;gap:8px;align-items:start"><div style="font-weight:700;font-size:14px">'+escHtml(r.titulo)+'</div>'+tag+'</div>'+
+     '<div class="bar">'+seg(pf,'var(--favor)')+seg(pa,'var(--abst)')+seg(pc,'var(--contra)')+'</div>'+
+     '<div style="display:flex;justify-content:space-between;font-size:11px"><span class="muted">'+mineTxt+'</span><span class="muted">'+n+' votos · '+pf+'% a favor · '+pc+'% en contra'+(pa>0?' · '+pa+'% abst.':'')+'</span></div></div>';
+  }).join('');
+  return;
+ }
  var hist=histLeer();
  var items=hist.filter(function(h){return camaraDeBill(h.billId)===trendCam;});
  var q=(trendQ||'').toLowerCase();
