@@ -2280,6 +2280,13 @@ function renderIniciativaDetalle(){
    }
    return '<div class="card" style="margin-bottom:6px;padding:9px 11px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span style="font-size:12.5px"><b>'+escHtml(m.seudonimo||'—')+'</b>'+(yo?' <span class="muted">(vos)</span>':'')+'</span>'+k(rolLbl,rolTag)+'</div>'+(acc?'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:7px">'+acc+'</div>':'')+'</div>';
   }).join('');
+  // Eliminar la iniciativa (solo el fundador, y solo si aún se puede)
+  if(it._rol==='fundador'){
+   var puedeBorrar=(it.estado==='construccion'||it.estado==='aporte');
+   h+='<div class="note warn" style="font-size:12px;margin:12px 0 0">🗑️ <b>Eliminar esta iniciativa.</b> '+
+      (puedeBorrar?'Se borra todo su contenido. No se puede deshacer.':'Ya pasó a juntar apoyo: no se puede eliminar (hay respaldo ciudadano detrás).')+
+      (puedeBorrar?'<br><button class="chip" style="margin-top:6px" data-act="plazaBorrarIni" data-arg="'+it.id+'">Eliminar iniciativa</button>':'')+'</div>';
+  }
  }
 
  // Curador (no autoridad): puede proponer un ARTÍCULO NUEVO
@@ -2515,6 +2522,17 @@ function plazaTranspPaso2(id,d,sugeridoProm){
   else alert('No se pudo guardar.');
  });
 }
+function plazaBorrarIni(id){
+ id=parseInt(id,10);
+ if(!confirm('¿Eliminar esta iniciativa y todo su contenido? No se puede deshacer.'))return;
+ rpcPlaza('borrar_iniciativa',{p_user_id:usuarioActual.id,p_iniciativa_id:id}).then(function(r){
+  if(r==='OK'){ plazaDetalle=null; renderPlazaHome(); }
+  else if(r==='TIENE_APOYOS')alert('No se puede: ya tiene apoyos de ciudadanos.');
+  else if(r==='YA_EN_APOYO')alert('No se puede: ya pasó a juntar apoyo.');
+  else if(r==='NO_AUTORIZADO')alert('Solo el autor/a fundador/a puede eliminarla.');
+  else alert('No se pudo eliminar.');
+ });
+}
 /* ---- Gestión de equipo ---- */
 function plazaSubirCo(arg){
  var p=String(arg).split('|');var id=parseInt(p[0],10),target=p[1];
@@ -2582,6 +2600,7 @@ document.addEventListener('click',function(e){var el=e.target.closest('[data-act
  else if(a==='plazaSubirCo')plazaSubirCo(arg);
  else if(a==='plazaBajarCo')plazaBajarCo(arg);
  else if(a==='plazaSacarCur')plazaSacarCur(arg);
+ else if(a==='plazaBorrarIni')plazaBorrarIni(arg);
  else if(a==='plazaCerrar')plazaCerrar(arg);
  else if(a==='vote')flyAndVote(arg);
  else if(a==='skip')flyAndSkip();
