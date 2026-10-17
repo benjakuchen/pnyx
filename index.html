@@ -2492,7 +2492,20 @@ function plazaFund(id){
 }
 function plazaTransp(id){
  var d=plazaDetalle||{};
- var prom=prompt('PROMOTORES (lo pide la Ley 24.747, art. 5)\nNombre y domicilio de quién/es impulsan la iniciativa.\n(Podés usar los datos de tu identidad verificada.)',d._promotores||'');
+ // Si no hay promotores cargados, intento precargar con los datos verificados del usuario.
+ if(!d._promotores){
+  rpcPlaza('mis_datos_plaza',{p_user_id:usuarioActual.id}).then(function(rows){
+   var r=(Array.isArray(rows)&&rows[0])?rows[0]:null;
+   var sugerido='';
+   if(r){ sugerido=[r.nombre,r.domicilio,(r.distrito?('Distrito: '+r.distrito):'')].filter(Boolean).join(' — '); }
+   plazaTranspPaso2(id,d,sugerido);
+  }).catch(function(){ plazaTranspPaso2(id,d,''); });
+ }else{
+  plazaTranspPaso2(id,d,'');
+ }
+}
+function plazaTranspPaso2(id,d,sugeridoProm){
+ var prom=prompt('PROMOTORES (lo pide la Ley 24.747, art. 5)\nNombre y domicilio de quién/es impulsan la iniciativa.'+(sugeridoProm?'\n\n(Precargamos tus datos verificados; editá si hace falta.)':'\n(Podés usar los datos de tu identidad verificada.)'),d._promotores||sugeridoProm||'');
  if(prom===null)return;
  var fondos=prompt('ORIGEN DE LOS FONDOS (art. 5)\n¿Con qué recursos se armó esta iniciativa? ¿Alguien la financió? Si no hubo gastos, aclaralo.',d._origen||'');
  if(fondos===null)return;
