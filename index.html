@@ -2048,18 +2048,20 @@ function plazaCargarNick(cb){
 /* ---- Cartel de bienvenida: aviso de anonimato + elegir nick ---- */
 /* Versión del consentimiento de la Plaza. Si cambia el texto, subí este
    número y a cada persona se le vuelve a pedir el consentimiento. */
-var CONSENT_PLAZA_VERSION='1';
+var CONSENT_PLAZA_VERSION='2';
 function renderPlazaBienvenida(){
  var c=$('#sc-plaza');if(!c)return;
  // NOTA: texto BORRADOR de consentimiento. Revisar/ajustar con abogado antes de abrir al público.
  c.innerHTML='<h2 class="serif" style="font-size:22px;margin:4px 0 10px">Entrar a la plaza</h2>'+
   '<div class="card" style="gap:11px">'+
-   '<div style="font-size:13.5px;line-height:1.55">La plaza es un espacio aparte del voto. Acá se <b>construyen y se impulsan</b> iniciativas ciudadanas. Antes de entrar, leé y aceptá estas condiciones, que son <b>distintas</b> de las que aceptaste al crear tu cuenta.</div>'+
-   '<div class="note warn" style="font-size:12px;margin:0;line-height:1.5">⚠️ <b>Identidad visible.</b> A diferencia del voto (siempre anónimo), al participar (proponer, redactar, objetar) usás un <b>nick</b> visible. Mostrarte puede conectarte con gente afín, pero también expone tu figura a <b>acoso por tu posición política</b>. Tu apoyo a una iniciativa sí sigue siendo anónimo.</div>'+
-   '<div class="note info" style="font-size:12px;margin:0;line-height:1.5">📋 <b>Uso cívico y responsabilidad.</b> La plaza es solo para construir propuestas legislativas por vías pacíficas y democráticas. No se permite usarla para convocar a la violencia, hostigar personas, ni actividades ilegales. <b>Cada participante es responsable</b> de lo que escribe, propone u organiza. Pnyx es una herramienta de intermediación: no es autora de las iniciativas ni responsable de las acciones que las personas decidan tomar fuera de la app.</div>'+
-   '<div class="chk" id="kPlaza" data-act="chkPlaza" style="display:flex;gap:9px;align-items:flex-start;cursor:pointer"><div class="box" id="boxPlaza" style="flex-shrink:0"></div><div class="muted" style="color:var(--ink);font-size:12.5px">Leí y acepto las condiciones de la plaza. Entiendo que soy responsable de mi participación.</div></div>'+
-   '<div><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Tu nick en la plaza</div>'+
-   '<input id="nickInput" type="text" maxlength="30" value="'+escHtml(window._plazaNickPrevio||'')+'" placeholder="Ej: Vecina_del_Sur, JuanaC, Ciudadano22…" style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:11px;font-size:14px;font-family:inherit;box-sizing:border-box"></div>'+
+   '<div style="font-size:13.5px;line-height:1.55">La plaza es un espacio aparte del voto. Acá se <b>construyen y se impulsan</b> iniciativas ciudadanas (iniciativas populares, Ley 24.747). Antes de entrar, leé y aceptá estas condiciones, que son <b>distintas y adicionales</b> a las que aceptaste al crear tu cuenta.</div>'+
+   '<div class="note info" style="font-size:12px;margin:0;line-height:1.5">🔐 <b>Qué cambia respecto del voto.</b> Para <b>votar</b>, Pnyx usa solo tu <b>correo y tu distrito</b>, y tu voto es anónimo. En la <b>plaza</b>, en cambio, autorizás a Pnyx a usar los datos de tu <b>identidad ya verificada</b>: se <b>mostrará públicamente tu nombre completo y tu distrito</b> en lo que construís. Tu documento y domicilio se guardan protegidos y <b>no se muestran</b>: se usan solo para los datos que la ley pide de los promotores.</div>'+
+   '<div class="note warn" style="font-size:12px;margin:0;line-height:1.5">⚠️ <b>Exposición pública.</b> Proponer o redactar una iniciativa es un acto público: tu nombre queda visible. Esto puede exponerte a <b>crítica u hostigamiento por tu posición política</b> por parte de terceros ajenos a Pnyx. Tu <b>apoyo (firma)</b> a una iniciativa sigue siendo anónimo hasta que la iniciativa se presente formalmente.</div>'+
+   '<div class="note info" style="font-size:12px;margin:0;line-height:1.5">📋 <b>Uso cívico y responsabilidad.</b> La plaza es solo para construir propuestas legislativas por vías pacíficas y democráticas. No se permite convocar a la violencia, hostigar personas, ni actividades ilegales. <b>Cada participante es responsable</b> de lo que escribe, propone u organiza. Pnyx es un intermediario: no es autor de las iniciativas ni responsable de las acciones que las personas tomen fuera de la app.</div>'+
+   '<div class="chk" id="kPlaza" data-act="chkPlaza" style="display:flex;gap:9px;align-items:flex-start;cursor:pointer"><div class="box" id="boxPlaza" style="flex-shrink:0"></div><div class="muted" style="color:var(--ink);font-size:12.5px">Leí y acepto las condiciones de la plaza. <b>Autorizo</b> a Pnyx a usar mis datos de identidad verificada para mi participación, como se explica arriba, y entiendo que soy responsable de lo que hago en la plaza. (Ver <a href="terminos.html" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--brand);text-decoration:underline">Términos, Parte III</a>.)</div></div>'+
+   '<div><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Nombre visible en la plaza</div>'+
+   '<input id="nickInput" type="text" maxlength="60" value="'+escHtml(window._plazaNickPrevio||'')+'" placeholder="Tu nombre y apellido" style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:11px;font-size:14px;font-family:inherit;box-sizing:border-box">'+
+   '<div class="muted" style="font-size:11px;margin-top:4px">Para una iniciativa popular, la ley pide tu nombre real. Usá tu nombre y apellido.</div></div>'+
    '<button class="primary" id="btnPlazaEntrar" data-act="plazaGuardarNick" disabled style="opacity:.5">Aceptar y entrar</button>'+
   '</div>';
 }
@@ -2177,7 +2179,8 @@ function abrirIniciativa(id){
    rpcPlaza('mi_rol',{p_user_id:usuarioActual.id,p_iniciativa_id:id}),
    rpcPlaza('iniciativa_completa',{p_iniciativa_id:id}),
    rpcPlaza('propuestas_listar',{p_iniciativa_id:id,p_estado:null}),
-   rpcPlaza('equipo_listar',{p_iniciativa_id:id})
+   rpcPlaza('equipo_listar',{p_iniciativa_id:id}),
+   rpcPlaza('notas_listar',{p_user_id:usuarioActual.id,p_iniciativa_id:id})
   ]).then(function(res){
    plazaDetalle._texto=Array.isArray(res[0])?res[0]:[];
    plazaDetalle._enm=Array.isArray(res[1])?res[1]:[];
@@ -2193,6 +2196,7 @@ function abrirIniciativa(id){
    plazaDetalle._origen=comp.origen_fondos||'';
    plazaDetalle._props=Array.isArray(res[5])?res[5]:[];
    plazaDetalle._equipo=Array.isArray(res[6])?res[6]:[];
+   plazaDetalle._notas=Array.isArray(res[7])?res[7]:[];
    renderIniciativaDetalle();
   });
  });
@@ -2287,6 +2291,21 @@ function renderIniciativaDetalle(){
       (puedeBorrar?'Se borra todo su contenido. No se puede deshacer.':'Ya pasó a juntar apoyo: no se puede eliminar (hay respaldo ciudadano detrás).')+
       (puedeBorrar?'<br><button class="chip" style="margin-top:6px" data-act="plazaBorrarIni" data-arg="'+it.id+'">Eliminar iniciativa</button>':'')+'</div>';
   }
+ }
+
+ // MURO DEL EQUIPO (taller interno: solo lo ve el equipo) ----------
+ if(it._soyCurador){
+  h+='<div class="sech" style="margin-top:14px">MURO DEL EQUIPO <span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0">· solo lo ve el equipo</span></div>';
+  if(it._notas && it._notas.length){
+   h+=it._notas.slice(-50).map(function(n){
+    var f=n.created_at?new Date(n.created_at).toLocaleString('es-AR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
+    var borrar=n.es_mia||it._rol==='fundador'?' <button class="chip" style="padding:1px 6px;font-size:10px" data-act="plazaBorrarNota" data-arg="'+it.id+'|'+n.id+'">✕</button>':'';
+    return '<div class="card" style="margin-bottom:5px;padding:8px 11px"><div style="font-size:11px;color:var(--muted)"><b>'+escHtml(n.seudonimo||'—')+'</b> · '+f+borrar+'</div><p style="font-size:12.5px;margin:3px 0 0;line-height:1.4;white-space:pre-wrap">'+escHtml(n.texto)+'</p></div>';
+   }).join('');
+  }else{
+   h+='<p class="muted" style="font-size:12.5px">Todavía no hay mensajes. Usá el muro para coordinar la construcción.</p>';
+  }
+  h+='<button class="chip" style="margin-top:6px" data-act="plazaNota" data-arg="'+it.id+'">✍️ Escribir en el muro</button>';
  }
 
  // Curador (no autoridad): puede proponer un ARTÍCULO NUEVO
@@ -2522,6 +2541,24 @@ function plazaTranspPaso2(id,d,sugeridoProm){
   else alert('No se pudo guardar.');
  });
 }
+/* ---- Muro del equipo ---- */
+function plazaNota(id){
+ id=parseInt(id,10);
+ var txt=prompt('Escribí tu mensaje para el equipo:');
+ if(txt===null)return;txt=txt.trim();if(!txt)return;
+ rpcPlaza('nota_publicar',{p_user_id:usuarioActual.id,p_iniciativa_id:id,p_texto:txt}).then(function(r){
+  if(r==='OK')abrirIniciativa(id);
+  else if(r==='NO_SOS_DEL_EQUIPO')alert('Solo el equipo puede escribir en el muro.');
+  else alert('No se pudo publicar.');
+ });
+}
+function plazaBorrarNota(arg){
+ var p=String(arg).split('|');var id=parseInt(p[0],10),nid=parseInt(p[1],10);
+ if(!confirm('¿Borrar este mensaje?'))return;
+ rpcPlaza('nota_borrar',{p_user_id:usuarioActual.id,p_nota_id:nid}).then(function(r){
+  if(r==='OK')abrirIniciativa(id);else alert('No se pudo borrar.');
+ });
+}
 function plazaBorrarIni(id){
  id=parseInt(id,10);
  if(!confirm('¿Eliminar esta iniciativa y todo su contenido? No se puede deshacer.'))return;
@@ -2601,6 +2638,8 @@ document.addEventListener('click',function(e){var el=e.target.closest('[data-act
  else if(a==='plazaBajarCo')plazaBajarCo(arg);
  else if(a==='plazaSacarCur')plazaSacarCur(arg);
  else if(a==='plazaBorrarIni')plazaBorrarIni(arg);
+ else if(a==='plazaNota')plazaNota(arg);
+ else if(a==='plazaBorrarNota')plazaBorrarNota(arg);
  else if(a==='plazaCerrar')plazaCerrar(arg);
  else if(a==='vote')flyAndVote(arg);
  else if(a==='skip')flyAndSkip();
