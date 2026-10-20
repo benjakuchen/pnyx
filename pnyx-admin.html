@@ -215,6 +215,44 @@ var datos=[];
 var feedSinLink=[];   // leyes publicadas sin linkear (modo invertido)
 var $=function(s){return document.querySelector(s);};
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* ===== ORDENAMIENTO REUTILIZABLE (en pantalla) =====
+   Cada panel define su estado {campo, dir} y sus criterios. */
+var ordenEstado={}; // por panel: {campo:'puntaje', dir:'desc'}
+// Dibuja la barra de orden. panelKey identifica el panel; crit = [[valor,label,tipo], ...]
+// tipo: 'num' (número) | 'txt' (texto) | 'fecha' (fecha/texto ISO)
+function barraOrden(panelKey, crit){
+ var e=ordenEstado[panelKey]||(ordenEstado[panelKey]={campo:crit[0][0],dir:crit[0][2]==='txt'?'asc':'desc'});
+ var ops=crit.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===e.campo?' selected':'')+'>'+esc(c[1])+'</option>';}).join('');
+ return '<div style="display:flex;gap:7px;align-items:center;margin-bottom:10px;flex-wrap:wrap">'+
+   '<span style="font-size:12px;color:var(--muted);font-weight:700">Ordenar por</span>'+
+   '<select onchange="setOrden(\''+panelKey+'\',this.value)" style="padding:6px 9px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit">'+ops+'</select>'+
+   '<button class="btn sec sm" onclick="toggleOrdenDir(\''+panelKey+'\')" title="Cambiar sentido">'+(e.dir==='desc'?'↓ Mayor a menor':'↑ Menor a mayor')+'</button>'+
+   '</div>';
+}
+function setOrden(panelKey,campo){ ordenEstado[panelKey].campo=campo; _reRenderPanel(panelKey); }
+function toggleOrdenDir(panelKey){ var e=ordenEstado[panelKey]; e.dir=(e.dir==='desc')?'asc':'desc'; _reRenderPanel(panelKey); }
+// Ordena un array según el estado del panel y el tipo de cada criterio.
+function aplicarOrden(panelKey, arr, tipos){
+ var e=ordenEstado[panelKey]; if(!e)return arr;
+ var tipo=tipos[e.campo]||'txt'; var dir=(e.dir==='asc')?1:-1;
+ return arr.slice().sort(function(a,b){
+  var va=a[e.campo], vb=b[e.campo];
+  if(va==null&&vb==null)return 0; if(va==null)return 1; if(vb==null)return -1; // nulls al final
+  var r;
+  if(tipo==='num'){ r=(Number(va)||0)-(Number(vb)||0); }
+  else if(tipo==='fecha'){ r=String(va).localeCompare(String(vb)); }
+  else { r=String(va).toLowerCase().localeCompare(String(vb).toLowerCase()); }
+  return r*dir;
+ });
+}
+// Re-renderiza el panel que cambió de orden (cada panel registra su render).
+function _reRenderPanel(panelKey){
+ if(panelKey==='feedPub' && typeof renderFeed==='function') renderFeed();
+ else if(panelKey==='cura' && typeof renderCuraduria==='function') renderCuraduria(curaHayMas);
+ else if(panelKey==='votadas' && typeof renderVotadasCura==='function') renderVotadasCura();
+ else if(panelKey==='linkeo' && typeof renderFeedSinLink==='function') renderFeedSinLink();
+}
 function toast(t){var el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(function(){el.classList.remove('show');},2400);}
 
 // Verifica contra la base que el usuario logueado es admin (tabla admins,
@@ -322,7 +360,9 @@ function irPanel(p){ panelActual=p; pintarSubtabs(); mostrarPanel(p); }
 function mostrarPanel(p){
  PANELES.forEach(function(x){var el=$('#tab-'+x); if(el)el.style.display=(x===p)?'block':'none';});
  // carga perezosa (misma lógica de antes)
- if(p==='feed'&&feedDatos.length===0)cargarFeed();
+ // Linkeo: SIEMPRE recarga al entrar (depende de qué se publicó/despublicó/linkeó en otras pantallas).
+ if(p==='comp')cargarFeedSinLink();
+ if(p==='feed')cargarFeed();
  if(p==='prensa'&&prensaDatos.length===0)cargarPrensa();
  if(p==='bancasVal'&&solicDatos.length===0)cargarSolicitudes();
  if(p==='bancasLeg'&&bancasDatos.length===0)cargarBancas();
@@ -377,9 +417,9 @@ function cargarVotadasCura(){
 }
 function renderVotadasCura(){
  if(!votadasCura.length){$('#votadasLista').innerHTML='<div class="card"><div class="empty">No hay leyes votadas para curar.</div></div>';return;}
- var h='';
+ var h=barraOrden('votadas',[['votada_en','Fecha de tratamiento','fecha'],['dias_destacada','Días en destacadas','num'],['titulo','Título','txt']]);
  ['Senado','Diputados'].forEach(function(cam){
-  var fs=votadasCura.filter(function(v){return v.camara===cam;});
+  var fs=aplicarOrden('votadas', votadasCura.filter(function(v){return v.camara===cam;}), {votada_en:'fecha',dias_destacada:'num',titulo:'txt'});
   if(!fs.length)return;
   h+='<div style="font-size:12px;font-weight:700;color:var(--muted);margin:14px 0 4px;letter-spacing:.04em">'+cam.toUpperCase()+'</div>';
   fs.forEach(function(v){
@@ -589,12 +629,15 @@ function esLeyReal(d){
  for(var i=0;i<ruido.length;i++){if(ruido[i].test(t))return false;}
  return true;
 }
+var curaHayMas=false;
 function renderCuraduria(hayMas){
+ if(arguments.length) curaHayMas=hayMas; else hayMas=curaHayMas;
  if(!curaDatos.length){$('#curaLista').innerHTML='<div class="card"><div class="empty">No hay leyes pendientes de revisión. 🎉</div></div>';$('#curaMas').innerHTML='';return;}
  // Separar: leyes de verdad (cola visible) vs. todo lo demás (oculto, buscable)
  var leyes=[], otros=[];
  curaDatos.forEach(function(d){(esLeyReal(d)?leyes:otros).push(d);});
  curaOtros=otros;
+ leyes=aplicarOrden('cura', leyes, {puntaje_pnyx:'num',fecha:'fecha',camara:'txt',curaduria_orden:'num'});
  var btnOtros='';
  if(otros.length){
   btnOtros='<div style="text-align:center;margin:14px 0 2px">'
@@ -608,7 +651,7 @@ function renderCuraLista(lista, hayMas, extra){
  if(!lista.length){$('#curaLista').innerHTML='<div class="card"><div class="empty">No hay leyes pendientes de revisión. 🎉</div></div>'+extra;$('#curaMas').innerHTML='';return;}
  var curaDatos=lista; // sombra local para reusar el render de abajo
  var etqOrden={1:'⚖️ Tema de peso',2:'📰 En prensa',3:'· Otras'};
- var h='';
+ var h=barraOrden('cura',[['curaduria_orden','Prioridad de cola','num'],['puntaje_pnyx','Puntaje','num'],['fecha','Fecha de subida','fecha'],['camara','Cámara','txt']]);
  curaDatos.forEach(function(d){
   var titulo=esc(d.oracion_ia||d.titulo||d.bill_id);
   var meta=esc(d.bill_id)+(d.camara?(' · '+esc(d.camara)):'')+(d.autor?(' · '+esc(d.autor)):'');
@@ -803,11 +846,16 @@ function renderFeed(){
   return true;
  });
  if(lista.length===0){$('#feedLista').innerHTML='<div class="card"><div class="empty">No hay leyes en esta vista.</div></div>';return;}
- // El reordenamiento manual solo tiene sentido en "Publicadas" y sin búsqueda
- // (si no, lo que ves no es el orden real del feed).
- var ordenable=(feedFiltro==='pub' && !q);
+ // Barra de orden. "feed" = orden real del feed (con flechas manuales); el resto es solo vista.
+ var ordEst=ordenEstado['feedPub']||(ordenEstado['feedPub']={campo:'feed',dir:'desc'});
+ var barra=barraOrden('feedPub',[['feed','Orden del feed','num'],['puntaje_pnyx','Puntaje','num'],['fecha','Fecha','fecha'],['camara','Cámara','txt'],['media_sancion','Media sanción','num']]);
+ if(ordEst.campo!=='feed'){
+  lista=aplicarOrden('feedPub', lista, {puntaje_pnyx:'num',fecha:'fecha',camara:'txt',media_sancion:'num'});
+ }
+ // El reordenamiento manual (flechas) solo cuando se ve el orden real del feed.
+ var ordenable=(feedFiltro==='pub' && !q && ordEst.campo==='feed');
  feedVisible=lista;  // guardo la lista visible para las flechas
- var h='';
+ var h=barra;
  if(ordenable){
   h+='<div class="card" style="padding:9px 14px;background:var(--brand-soft,#eef4ff)"><span style="font-size:12px;color:var(--brand);font-weight:700">↕ Orden del feed: usá las flechas para subir/bajar. Lo que ordenás a mano queda fijo (ningún proceso automático lo cambia).</span></div>';
  }
@@ -1084,15 +1132,16 @@ function cargarFeedSinLink(){
 }
 function renderFeedSinLink(){
  if(!feedSinLink.length){$('#lista').innerHTML='<div class="card"><div class="empty">🎉 Todas las leyes publicadas ya tienen su votación del Congreso linkeada.</div></div>';return;}
- var h='';
- feedSinLink.forEach(function(l){
+ var h=barraOrden('linkeo',[['puntaje_pnyx','Puntaje','num'],['fecha','Fecha','fecha'],['camara','Cámara','txt'],['titulo','Título','txt']]);
+ var lista=aplicarOrden('linkeo', feedSinLink, {puntaje_pnyx:'num',fecha:'fecha',camara:'txt',titulo:'txt'});
+ lista.forEach(function(l){
   var t=esc(l.oracion_ia||l.titulo||l.bill_id);
   var cam=(l.camara||'').toLowerCase().indexOf('sen')>=0?'sen':'dip';
-  var resumenLey=esc(l.oracion_ia||'');
+  var resumenLey=esc(l.resumen_ia||l.oracion_ia||'');
   h+='<div class="card" id="fl-'+l.bill_id+'" style="padding:14px">'
    +'<div style="display:flex;gap:7px;align-items:center;margin-bottom:5px"><span class="pill '+cam+'">'+esc(l.camara)+'</span><span class="exp" style="color:var(--brand);font-size:11.5px;font-weight:700">'+esc(l.expediente||l.bill_id)+'</span></div>'
    +'<div style="font-weight:700;font-size:14px;line-height:1.35;margin-bottom:6px">'+esc(l.titulo||l.bill_id)+'</div>'
-   +(resumenLey?'<div style="font-size:12.5px;line-height:1.45;color:var(--ink);background:var(--surface,#f6f6f8);border-left:3px solid var(--brand);padding:7px 10px;border-radius:6px;margin-bottom:10px"><b style="font-size:10px;text-transform:uppercase;color:var(--muted)">Resumen del proyecto en Votar</b><br>'+resumenLey+'</div>':'')
+   +(resumenLey?'<div style="font-size:12.5px;line-height:1.5;color:var(--ink);background:var(--surface,#f6f6f8);border-left:3px solid var(--brand);padding:8px 11px;border-radius:6px;margin-bottom:10px;white-space:pre-wrap"><b style="font-size:10px;text-transform:uppercase;color:var(--muted)">Resumen del proyecto en Votar</b><br>'+resumenLey+'</div>':'')
    +'<div class="lbl" style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase">Buscar su votación en el Congreso</div>'
    +'<button class="btn sec sm" style="margin:6px 0" onclick="sugerirVot(\''+l.bill_id+'\')">💡 Ver sugerencia automática</button>'
    +'<div id="sugv-'+l.bill_id+'"></div>'
@@ -1112,8 +1161,10 @@ function filaVotacion(bill, v){
   nums='<span class="muted" style="font-size:11px">👍 '+(v.afirmativos||0)+' · 👎 '+(v.negativos||0)+(v.abstenciones?' · ➖ '+v.abstenciones:'')+'</span>';
  }
  var orden=(v.orden_del_dia && v.orden_del_dia!==v.titulo)?'<div class="muted" style="font-size:11.5px;line-height:1.4;margin-top:3px">'+esc(v.orden_del_dia)+'</div>':'';
+ var camv=(v.camara||'').toLowerCase().indexOf('sen')>=0?'sen':'dip';
+ var pillCam='<span class="pill '+camv+'" style="margin-right:6px">'+esc(v.camara||'')+'</span>';
  return '<div class="res" style="display:block;padding:9px 10px" onclick="linkearDesdeLey(\''+bill+'\',\''+v.acta_id+'\',\''+esc(v.camara)+'\')">'
-   +'<div style="margin-bottom:2px">'+badge+'<b>'+esc(v.resultado||'')+'</b> '+(f?'<span class="muted" style="font-size:11px">· '+f+'</span>':'')+'</div>'
+   +'<div style="margin-bottom:3px">'+pillCam+badge+'<b>'+esc(v.resultado||'')+'</b> '+(f?'<span class="muted" style="font-size:11px">· '+f+'</span>':'')+'</div>'
    +'<div style="font-size:12.5px;line-height:1.4;font-weight:600">'+esc(v.titulo||'')+'</div>'
    +orden
    +(nums?'<div style="margin-top:3px">'+nums+'</div>':'')
