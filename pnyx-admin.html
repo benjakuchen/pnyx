@@ -1088,9 +1088,11 @@ function renderFeedSinLink(){
  feedSinLink.forEach(function(l){
   var t=esc(l.oracion_ia||l.titulo||l.bill_id);
   var cam=(l.camara||'').toLowerCase().indexOf('sen')>=0?'sen':'dip';
+  var resumenLey=esc(l.oracion_ia||'');
   h+='<div class="card" id="fl-'+l.bill_id+'" style="padding:14px">'
    +'<div style="display:flex;gap:7px;align-items:center;margin-bottom:5px"><span class="pill '+cam+'">'+esc(l.camara)+'</span><span class="exp" style="color:var(--brand);font-size:11.5px;font-weight:700">'+esc(l.expediente||l.bill_id)+'</span></div>'
-   +'<div style="font-weight:700;font-size:14px;line-height:1.35;margin-bottom:8px">'+t+'</div>'
+   +'<div style="font-weight:700;font-size:14px;line-height:1.35;margin-bottom:6px">'+esc(l.titulo||l.bill_id)+'</div>'
+   +(resumenLey?'<div style="font-size:12.5px;line-height:1.45;color:var(--ink);background:var(--surface,#f6f6f8);border-left:3px solid var(--brand);padding:7px 10px;border-radius:6px;margin-bottom:10px"><b style="font-size:10px;text-transform:uppercase;color:var(--muted)">Resumen del proyecto en Votar</b><br>'+resumenLey+'</div>':'')
    +'<div class="lbl" style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase">Buscar su votación en el Congreso</div>'
    +'<button class="btn sec sm" style="margin:6px 0" onclick="sugerirVot(\''+l.bill_id+'\')">💡 Ver sugerencia automática</button>'
    +'<div id="sugv-'+l.bill_id+'"></div>'
@@ -1103,10 +1105,19 @@ function renderFeedSinLink(){
 function filaVotacion(bill, v){
  var conf=(v.sim!=null)?Math.round(v.sim*100):null;
  var badge=conf!=null?'<span class="st '+(conf>=60?'link':(conf>=35?'pend':'desc'))+'" style="margin-right:6px">'+conf+'%</span>':'';
- var f=v.votada_en?(' · '+new Date(v.votada_en).toLocaleDateString('es-AR')):'';
- return '<div class="res" onclick="linkearDesdeLey(\''+bill+'\',\''+v.acta_id+'\',\''+esc(v.camara)+'\')">'
-   +badge+'<b>'+esc(v.resultado||'')+'</b> '+esc(v.titulo||'').slice(0,90)
-   +'<span class="muted" style="font-size:11px">'+f+'</span></div>';
+ var f=v.votada_en?(new Date(v.votada_en).toLocaleDateString('es-AR')):'';
+ // conteo de votos del Congreso (si vienen)
+ var nums='';
+ if(v.afirmativos!=null||v.negativos!=null||v.abstenciones!=null){
+  nums='<span class="muted" style="font-size:11px">👍 '+(v.afirmativos||0)+' · 👎 '+(v.negativos||0)+(v.abstenciones?' · ➖ '+v.abstenciones:'')+'</span>';
+ }
+ var orden=(v.orden_del_dia && v.orden_del_dia!==v.titulo)?'<div class="muted" style="font-size:11.5px;line-height:1.4;margin-top:3px">'+esc(v.orden_del_dia)+'</div>':'';
+ return '<div class="res" style="display:block;padding:9px 10px" onclick="linkearDesdeLey(\''+bill+'\',\''+v.acta_id+'\',\''+esc(v.camara)+'\')">'
+   +'<div style="margin-bottom:2px">'+badge+'<b>'+esc(v.resultado||'')+'</b> '+(f?'<span class="muted" style="font-size:11px">· '+f+'</span>':'')+'</div>'
+   +'<div style="font-size:12.5px;line-height:1.4;font-weight:600">'+esc(v.titulo||'')+'</div>'
+   +orden
+   +(nums?'<div style="margin-top:3px">'+nums+'</div>':'')
+   +'</div>';
 }
 function sugerirVot(bill){
  var cont=document.getElementById('sugv-'+bill);if(cont)cont.innerHTML='<span class="muted" style="font-size:12px">Buscando…</span>';
