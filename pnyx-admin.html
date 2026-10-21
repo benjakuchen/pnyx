@@ -406,7 +406,7 @@ function tab(t){ var map={bancas:'bancasVal'}; irPanel(map[t]||t); }
 var inicDatos=[];
 function cargarInicAdmin(){
  var cont=document.getElementById('inicLista'); if(cont)cont.innerHTML='<div class="empty">Cargando…</div>';
- rpc('admin_iniciativas',{p_estado:null}).then(function(r){return r.json();}).then(function(rows){
+ rpc('admin_iniciativas',{p_estado:null}).then(function(rows){
   inicDatos=Array.isArray(rows)?rows:[];
   var cn=document.getElementById('cntInic');
   if(cn){ if(inicDatos.length){cn.style.display='inline-block';cn.textContent=inicDatos.length;} else cn.style.display='none'; }
@@ -451,7 +451,7 @@ function renderInicAdmin(){
 function cargarEquivalencias(){
  var cont=document.getElementById('equivLista'); if(!cont)return;
  cont.innerHTML='<div class="empty">Cargando…</div>';
- rpc('equivalencias_listar',{p_estado:'detectada'}).then(function(r){return r.json();}).then(function(rows){
+ rpc('equivalencias_listar',{p_estado:'detectada'}).then(function(rows){
   rows=Array.isArray(rows)?rows:[];
   var cnt=document.getElementById('cntEquiv');
   if(cnt){ if(rows.length){cnt.style.display='';cnt.textContent=rows.length;} else cnt.style.display='none'; }
