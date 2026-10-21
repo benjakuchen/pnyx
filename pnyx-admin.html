@@ -193,6 +193,10 @@ h1{font-size:20px;margin:0 0 4px}
    <div id="videosLista"><div class="empty">Cargando…</div></div>
   </div>
 
+  <div id="tab-inic" style="display:none">
+   <p class="muted" style="font-size:13px;margin:0 0 10px">Iniciativas ciudadanas de La Plaza: en qué etapa están, cuánto avanzaron y cuánto apoyo tienen. Solo monitoreo (Pnyx no edita el contenido).</p>
+   <div id="inicLista"><div class="empty">Cargando…</div></div>
+  </div>
   <div id="tab-equiv" style="display:none">
    <p class="muted" style="font-size:13px;margin:0 0 10px">Proyectos de la Plaza que se parecen entre sí (misma área + texto similar). El obrero los detecta a las 4 AM. Revisá y decidí si avisar a los autores para que se fusionen, o descartá el par si no corresponde.</p>
    <div id="equivLista"><div class="empty">Cargando…</div></div>
@@ -272,6 +276,7 @@ function _reRenderPanel(panelKey){
  else if(panelKey==='cura' && typeof renderCuraduria==='function') renderCuraduria(curaHayMas);
  else if(panelKey==='votadas' && typeof renderVotadasCura==='function') renderVotadasCura();
  else if(panelKey==='linkeo' && typeof renderFeedSinLink==='function') renderFeedSinLink();
+ else if(panelKey==='inic' && typeof renderInicAdmin==='function') renderInicAdmin();
 }
 function toast(t){var el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(function(){el.classList.remove('show');},2400);}
 
@@ -343,13 +348,14 @@ var GRUPOS=[
    {panel:'bancasLeg', label:'🏛️ Legisladores'},
  ]},
  {g:'plaza', label:'🏛️ Plaza', subs:[
+   {panel:'inic',      label:'📋 Iniciativas', cnt:'cntInic'},
    {panel:'equiv',     label:'🔎 Equivalencias', cnt:'cntEquiv'},
  ]},
  {g:'sistema', label:'⚙️ Sistema', subs:[
    {panel:'proximo',   label:'🎬 Próximamente'},
  ]},
 ];
-var PANELES=['comp','feed','prensa','bancasVal','bancasLeg','curaduria','votadas','videos','equiv','proximo'];
+var PANELES=['comp','feed','prensa','bancasVal','bancasLeg','curaduria','votadas','videos','inic','equiv','proximo'];
 var grupoActual='feedvotar', panelActual='curaduria';
 
 function pintarGrupos(){
@@ -389,11 +395,57 @@ function mostrarPanel(p){
  if(p==='curaduria'&&curaDatos.length===0)cargarCuraduria();
  if(p==='votadas'&&votadasCura.length===0)cargarVotadasCura();
  if(p==='videos'&&videosDatos.length===0)cargarVideosAdmin();
+ if(p==='inic')cargarInicAdmin();
  if(p==='equiv')cargarEquivalencias();
 }
 
 // Compatibilidad: si algo viejo llama tab('X'), lo redirigimos al panel nuevo.
 function tab(t){ var map={bancas:'bancasVal'}; irPanel(map[t]||t); }
+
+/* ===== PLAZA: MONITOREO DE INICIATIVAS ===== */
+var inicDatos=[];
+function cargarInicAdmin(){
+ var cont=document.getElementById('inicLista'); if(cont)cont.innerHTML='<div class="empty">Cargando…</div>';
+ rpc('admin_iniciativas',{p_estado:null}).then(function(r){return r.json();}).then(function(rows){
+  inicDatos=Array.isArray(rows)?rows:[];
+  var cn=document.getElementById('cntInic');
+  if(cn){ if(inicDatos.length){cn.style.display='inline-block';cn.textContent=inicDatos.length;} else cn.style.display='none'; }
+  renderInicAdmin();
+ }).catch(function(){ if(cont)cont.innerHTML='<div class="empty">No se pudo cargar. ¿Corriste sql_admin_plaza.sql?</div>'; });
+}
+var INIC_ESTADO={construccion:['🔨 En construcción','pend'],aporte:['✏️ En aporte','link'],apoyo:['🤝 Juntando apoyo','on'],presentada:['🏛️ Presentada','link']};
+function renderInicAdmin(){
+ var cont=document.getElementById('inicLista'); if(!cont)return;
+ if(!inicDatos.length){cont.innerHTML='<div class="card"><div class="empty">Todavía no hay iniciativas en La Plaza.</div></div>';return;}
+ var h=barraOrden('inic',[['created_at','Fecha de creación','fecha'],['apoyos','Apoyos','num'],['n_articulos','Artículos','num'],['propuestas_pend','Propuestas pendientes','num'],['estado','Etapa','txt'],['titulo','Título','txt']]);
+ var lista=aplicarBusca('inic', inicDatos, ['titulo','area','autor_seudo','estado']);
+ lista=aplicarOrden('inic', lista, {created_at:'fecha',apoyos:'num',n_articulos:'num',propuestas_pend:'num',estado:'txt',titulo:'txt'});
+ if(!lista.length){cont.innerHTML=h+'<div class="card"><div class="empty">Sin resultados.</div></div>';return;}
+ h+=lista.map(function(i){
+  var et=INIC_ESTADO[i.estado]||[i.estado,'desc'];
+  var f=i.created_at?new Date(i.created_at).toLocaleDateString('es-AR'):'';
+  // "en qué punto está": avance del texto
+  var avance='';
+  if(i.estado==='construccion'||i.estado==='aporte'){
+   avance='<span class="muted" style="font-size:11.5px">📝 '+(i.n_articulos||0)+' art.'+(i.tiene_fund?' · fundamentos ✓':' · sin fundamentos')+(i.propuestas_pend>0?' · <b style="color:#8a6d00">'+i.propuestas_pend+' propuestas pendientes</b>':'')+'</span>';
+  }else if(i.estado==='apoyo'||i.estado==='presentada'){
+   avance='<span class="muted" style="font-size:11.5px">🤝 <b>'+(i.apoyos||0)+' apoyos</b> · '+(i.provincias||0)+' provincias'+(i.version?' · v'+i.version:'')+'</span>';
+  }
+  return '<div class="card" style="margin-bottom:9px;padding:12px 14px">'+
+    '<div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:4px">'+
+      '<span class="st '+et[1]+'">'+et[0]+'</span>'+
+      (i.area?'<span class="muted" style="font-size:11px">· '+esc(i.area)+'</span>':'')+
+      '<span class="muted" style="font-size:11px">· 👤 '+esc(i.autor_seudo||'—')+'</span>'+
+      '<span class="muted" style="font-size:11px">· 👥 '+(i.curadores||0)+'/'+(i.cupo||9)+'</span>'+
+      '<span class="muted" style="font-size:11px">· '+f+'</span>'+
+    '</div>'+
+    '<div style="font-weight:700;font-size:14px;line-height:1.35;margin-bottom:5px">'+esc(i.titulo)+'</div>'+
+    avance+
+    (i.presentada_por?'<div class="muted" style="font-size:11.5px;margin-top:3px">🏛️ Presentada por '+esc(i.presentada_por)+'</div>':'')+
+    '</div>';
+ }).join('');
+ cont.innerHTML=h;
+}
 
 /* ===== PLAZA: EQUIVALENCIAS ENTRE PROYECTOS ===== */
 function cargarEquivalencias(){
