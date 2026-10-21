@@ -118,9 +118,9 @@ def traer_leyes():
     filas = []
     offset = 0
     sel = "bill_id,titulo,oracion_ia,area,area_manual"
-    # Nunca tocar las editadas a mano (area_manual=true). is.not.true cubre false y null.
+    # Nunca tocar las editadas a mano (area_manual=true). not.is.true cubre false y null.
     # Sin --todas: solo las que aun no tienen area. Con --todas: todas menos las manuales.
-    filtro = "&area_manual=is.not.true" if TODAS else "&area=is.null&area_manual=is.not.true"
+    filtro = "&area_manual=not.is.true" if TODAS else "&area=is.null&area_manual=not.is.true"
     while True:
         url = (SUPABASE_URL + "/rest/v1/leyes?select=" + sel +
                filtro + "&limit=1000&offset=" + str(offset))
