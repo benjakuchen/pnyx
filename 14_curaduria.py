@@ -81,7 +81,7 @@ def traer_leyes():
     offset = 0
     while True:
         url = (SUPABASE_URL + "/rest/v1/leyes?select=bill_id,titulo,media_sancion,"
-               "importante_prensa,sugerida_prensa,curaduria_estado,estado_tramite"
+               "importante_prensa,sugerida_prensa,curaduria_estado,estado_tramite,decidido_manual"
                "&limit=1000&offset=" + str(offset))
         r = requests.get(url, headers=headers, timeout=30)
         r.raise_for_status()
@@ -96,37 +96,35 @@ def traer_leyes():
 
 
 def clasificar(ley):
-    """Devuelve (nivel, orden, publicada) o None si no hay que tocarla."""
-    # No tocar lo ya sancionado (lo maneja el obrero 13) ni lo ya decidido por el admin
+    """Devuelve (nivel, orden, publicada) o None si no hay que tocarla.
+    MODELO B (control total manual): el obrero NUNCA publica solo. Todo lo
+    que sugiere va a la COLA (publicada=False) para que el admin lo publique
+    a mano. La media sanción va a la cola pero en prioridad 0 (arriba de todo).
+    """
+    # CANDADO MANUAL: si el admin ya decidió algo sobre esta ley, no se toca NUNCA.
+    if ley.get("decidido_manual"):
+        return None
+    # No tocar lo ya sancionado (lo maneja el obrero 13) ni lo ya decidido por estado.
     if ley.get("estado_tramite") == "sancionada":
         return None
     est = ley.get("curaduria_estado")
-    if est in ("publicada", "descartada"):
-        return None  # respeta la decisión humana
+    if est in ("publicada", "descartada", "votada"):
+        return None  # respeta la decisión humana / el linkeo
 
     titulo = ley.get("titulo")
     if es_ruido(titulo):
         return ("ruido", None, False)
 
-    # MEDIA SANCIÓN: se publica SIEMPRE, tenga texto o no (ya avanzó en el Congreso).
+    # MEDIA SANCIÓN: a la cola PRIORIDAD 0 (arriba de todo), para publicar primero.
+    # Ya NO se publica sola: el admin la publica a mano.
     if ley.get("media_sancion"):
-        return ("auto", None, True)
+        return ("cola", 0, False)
 
-    # REGLA DE BASE: nada se publica automáticamente SIN TEXTO. Sin texto no hay
-    # resumen, y el ciudadano no puede votar a ciegas. Se mete en la cola a la
-    # espera de que se cargue el texto (entonces una próxima corrida la publica).
-    if not ley.get("tiene_texto"):
-        if es_peso(titulo):
-            return ("cola", 1, False)
-        if ley.get("sugerida_prensa"):
-            return ("cola", 2, False)
-        return ("cola", 3, False)
-
-    # Con texto: lo relevante se publica solo; el resto va a la cola priorizada.
-    if ley.get("importante_prensa"):
-        return ("auto", None, True)          # comprobadamente relevante -> al feed
+    # El resto, a la cola priorizada (nada se publica solo).
     if es_peso(titulo):
         return ("cola", 1, False)            # tema de peso -> cola prioridad 1
+    if ley.get("importante_prensa"):
+        return ("cola", 1, False)            # prensa alta -> también prioridad 1
     if ley.get("sugerida_prensa"):
         return ("cola", 2, False)            # prensa media -> cola prioridad 2
     return ("cola", 3, False)                # resto -> cola prioridad 3
@@ -142,16 +140,14 @@ def main():
     print("Leyes traídas: %d" % len(leyes), file=sys.stderr)
 
     cambios = []
-    cont = {"auto": 0, "cola1": 0, "cola2": 0, "cola3": 0, "ruido": 0, "intactas": 0}
+    cont = {"cola0": 0, "cola1": 0, "cola2": 0, "cola3": 0, "ruido": 0, "intactas": 0}
     for ley in leyes:
         r = clasificar(ley)
         if r is None:
             cont["intactas"] += 1
             continue
         nivel, orden, publicada = r
-        if nivel == "auto":
-            cont["auto"] += 1
-        elif nivel == "ruido":
+        if nivel == "ruido":
             cont["ruido"] += 1
         else:
             cont["cola%d" % orden] += 1
@@ -163,8 +159,8 @@ def main():
             "publicada": publicada,
         })
 
-    print("\n=== REPARTO ===", file=sys.stderr)
-    print("Feed automático (auto):        %d" % cont["auto"], file=sys.stderr)
+    print("\n=== REPARTO (modelo B: nada se publica solo) ===", file=sys.stderr)
+    print("Cola 0 (MEDIA SANCIÓN, arriba):%d" % cont["cola0"], file=sys.stderr)
     print("Cola 1 (tema de peso):         %d" % cont["cola1"], file=sys.stderr)
     print("Cola 2 (prensa media):         %d" % cont["cola2"], file=sys.stderr)
     print("Cola 3 (resto):                %d" % cont["cola3"], file=sys.stderr)
