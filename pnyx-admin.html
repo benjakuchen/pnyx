@@ -219,19 +219,39 @@ function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replac
 /* ===== ORDENAMIENTO REUTILIZABLE (en pantalla) =====
    Cada panel define su estado {campo, dir} y sus criterios. */
 var ordenEstado={}; // por panel: {campo:'puntaje', dir:'desc'}
-// Dibuja la barra de orden. panelKey identifica el panel; crit = [[valor,label,tipo], ...]
+var buscaEstado={}; // por panel: texto de búsqueda
+// Dibuja la barra de orden + buscador. panelKey identifica el panel; crit = [[valor,label,tipo], ...]
 // tipo: 'num' (número) | 'txt' (texto) | 'fecha' (fecha/texto ISO)
-function barraOrden(panelKey, crit){
+// conBuscador: si true, agrega el input de búsqueda al lado.
+function barraOrden(panelKey, crit, conBuscador){
  var e=ordenEstado[panelKey]||(ordenEstado[panelKey]={campo:crit[0][0],dir:crit[0][2]==='txt'?'asc':'desc'});
  var ops=crit.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===e.campo?' selected':'')+'>'+esc(c[1])+'</option>';}).join('');
+ var busca='';
+ if(conBuscador!==false){
+  var q=buscaEstado[panelKey]||'';
+  busca='<input id="busca-'+panelKey+'" type="text" value="'+esc(q)+'" placeholder="🔎 Buscar…" oninput="setBusca(\''+panelKey+'\',this.value)" style="flex:1;min-width:130px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit">';
+ }
  return '<div style="display:flex;gap:7px;align-items:center;margin-bottom:10px;flex-wrap:wrap">'+
    '<span style="font-size:12px;color:var(--muted);font-weight:700">Ordenar por</span>'+
    '<select onchange="setOrden(\''+panelKey+'\',this.value)" style="padding:6px 9px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit">'+ops+'</select>'+
    '<button class="btn sec sm" onclick="toggleOrdenDir(\''+panelKey+'\')" title="Cambiar sentido">'+(e.dir==='desc'?'↓ Mayor a menor':'↑ Menor a mayor')+'</button>'+
+   busca+
    '</div>';
 }
 function setOrden(panelKey,campo){ ordenEstado[panelKey].campo=campo; _reRenderPanel(panelKey); }
 function toggleOrdenDir(panelKey){ var e=ordenEstado[panelKey]; e.dir=(e.dir==='desc')?'asc':'desc'; _reRenderPanel(panelKey); }
+function setBusca(panelKey,val){
+ buscaEstado[panelKey]=val; _reRenderPanel(panelKey);
+ // devolver foco al input tras el re-render
+ setTimeout(function(){var el=document.getElementById('busca-'+panelKey); if(el){el.focus();var n=el.value.length;el.setSelectionRange(n,n);}},0);
+}
+// Filtra un array por el texto del panel, mirando los campos dados.
+function aplicarBusca(panelKey, arr, campos){
+ var q=(buscaEstado[panelKey]||'').trim().toLowerCase(); if(!q)return arr;
+ return arr.filter(function(d){
+  return campos.some(function(c){ return String(d[c]||'').toLowerCase().indexOf(q)>=0; });
+ });
+}
 // Ordena un array según el estado del panel y el tipo de cada criterio.
 function aplicarOrden(panelKey, arr, tipos){
  var e=ordenEstado[panelKey]; if(!e)return arr;
@@ -418,8 +438,9 @@ function cargarVotadasCura(){
 function renderVotadasCura(){
  if(!votadasCura.length){$('#votadasLista').innerHTML='<div class="card"><div class="empty">No hay leyes votadas para curar.</div></div>';return;}
  var h=barraOrden('votadas',[['votada_en','Fecha de tratamiento','fecha'],['dias_destacada','Días en destacadas','num'],['titulo','Título','txt']]);
+ var base=aplicarBusca('votadas', votadasCura, ['titulo','camara']);
  ['Senado','Diputados'].forEach(function(cam){
-  var fs=aplicarOrden('votadas', votadasCura.filter(function(v){return v.camara===cam;}), {votada_en:'fecha',dias_destacada:'num',titulo:'txt'});
+  var fs=aplicarOrden('votadas', base.filter(function(v){return v.camara===cam;}), {votada_en:'fecha',dias_destacada:'num',titulo:'txt'});
   if(!fs.length)return;
   h+='<div style="font-size:12px;font-weight:700;color:var(--muted);margin:14px 0 4px;letter-spacing:.04em">'+cam.toUpperCase()+'</div>';
   fs.forEach(function(v){
@@ -637,6 +658,7 @@ function renderCuraduria(hayMas){
  var leyes=[], otros=[];
  curaDatos.forEach(function(d){(esLeyReal(d)?leyes:otros).push(d);});
  curaOtros=otros;
+ leyes=aplicarBusca('cura', leyes, ['titulo','oracion_ia','bill_id','camara','autor']);
  leyes=aplicarOrden('cura', leyes, {puntaje_pnyx:'num',fecha:'fecha',camara:'txt',curaduria_orden:'num'});
  var btnOtros='';
  if(otros.length){
@@ -842,13 +864,13 @@ function renderFeed(){
  var lista=feedDatos.filter(function(d){
   if(feedFiltro==='pub'&&!d.publicada)return false;
   if(feedFiltro==='desp'&&d.publicada)return false;
-  if(q){var hay=((d.oracion_ia||'')+' '+(d.titulo||'')+' '+(d.expediente||'')).toLowerCase();if(hay.indexOf(q)<0)return false;}
+  if(q){var hay=((d.oracion_ia||'')+' '+(d.titulo||'')+' '+(d.expediente||'')+' '+(d.autor||'')).toLowerCase();if(hay.indexOf(q)<0)return false;}
   return true;
  });
  if(lista.length===0){$('#feedLista').innerHTML='<div class="card"><div class="empty">No hay leyes en esta vista.</div></div>';return;}
  // Barra de orden. "feed" = orden real del feed (con flechas manuales); el resto es solo vista.
  var ordEst=ordenEstado['feedPub']||(ordenEstado['feedPub']={campo:'feed',dir:'desc'});
- var barra=barraOrden('feedPub',[['feed','Orden del feed','num'],['puntaje_pnyx','Puntaje','num'],['fecha','Fecha','fecha'],['camara','Cámara','txt'],['media_sancion','Media sanción','num']]);
+ var barra=barraOrden('feedPub',[['feed','Orden del feed','num'],['puntaje_pnyx','Puntaje','num'],['fecha','Fecha','fecha'],['camara','Cámara','txt'],['autor','Autor','txt'],['media_sancion','Media sanción','num']], false);
  if(ordEst.campo!=='feed'){
   lista=aplicarOrden('feedPub', lista, {puntaje_pnyx:'num',fecha:'fecha',camara:'txt',media_sancion:'num'});
  }
@@ -880,7 +902,7 @@ function renderFeed(){
    +estado+ms+manu
    +'<span class="pill '+cam+'" style="margin-left:8px">'+esc(d.camara)+'</span>'
    +'<span class="exp" style="color:var(--brand);font-size:11.5px;font-weight:700;margin-left:6px">'+esc(d.expediente||d.bill_id)+'</span>'
-   +'<span style="font-size:11px;color:var(--muted);margin-left:6px">'+esc(d.fecha||'')+' · '+(d.puntaje_pnyx||0)+' pts</span>'
+   +'<span style="font-size:11px;color:var(--muted);margin-left:6px">'+esc(d.fecha||'')+' · '+(d.puntaje_pnyx||0)+' pts'+(d.autor?' · 👤 '+esc(d.autor):'')+'</span>'
    +'<span style="margin-left:auto"></span>'+pubBtn
    +'</div>'
    +'<div style="padding:14px">'
@@ -1132,14 +1154,16 @@ function cargarFeedSinLink(){
 }
 function renderFeedSinLink(){
  if(!feedSinLink.length){$('#lista').innerHTML='<div class="card"><div class="empty">🎉 Todas las leyes publicadas ya tienen su votación del Congreso linkeada.</div></div>';return;}
- var h=barraOrden('linkeo',[['puntaje_pnyx','Puntaje','num'],['fecha','Fecha','fecha'],['camara','Cámara','txt'],['titulo','Título','txt']]);
- var lista=aplicarOrden('linkeo', feedSinLink, {puntaje_pnyx:'num',fecha:'fecha',camara:'txt',titulo:'txt'});
+ var h=barraOrden('linkeo',[['puntaje_pnyx','Puntaje','num'],['fecha','Fecha','fecha'],['camara','Cámara','txt'],['autor','Autor','txt'],['titulo','Título','txt']]);
+ var lista=aplicarBusca('linkeo', feedSinLink, ['titulo','oracion_ia','resumen_ia','expediente','bill_id','camara','autor']);
+ lista=aplicarOrden('linkeo', lista, {puntaje_pnyx:'num',fecha:'fecha',camara:'txt',autor:'txt',titulo:'txt'});
+ if(!lista.length){$('#lista').innerHTML=h+'<div class="card"><div class="empty">Sin resultados para la búsqueda.</div></div>';return;}
  lista.forEach(function(l){
   var t=esc(l.oracion_ia||l.titulo||l.bill_id);
   var cam=(l.camara||'').toLowerCase().indexOf('sen')>=0?'sen':'dip';
   var resumenLey=esc(l.resumen_ia||l.oracion_ia||'');
   h+='<div class="card" id="fl-'+l.bill_id+'" style="padding:14px">'
-   +'<div style="display:flex;gap:7px;align-items:center;margin-bottom:5px"><span class="pill '+cam+'">'+esc(l.camara)+'</span><span class="exp" style="color:var(--brand);font-size:11.5px;font-weight:700">'+esc(l.expediente||l.bill_id)+'</span></div>'
+   +'<div style="display:flex;gap:7px;align-items:center;margin-bottom:5px;flex-wrap:wrap"><span class="pill '+cam+'">'+esc(l.camara)+'</span><span class="exp" style="color:var(--brand);font-size:11.5px;font-weight:700">'+esc(l.expediente||l.bill_id)+'</span>'+(l.autor?'<span style="font-size:11.5px;color:var(--muted)">· 👤 '+esc(l.autor)+'</span>':'')+'</div>'
    +'<div style="font-weight:700;font-size:14px;line-height:1.35;margin-bottom:6px">'+esc(l.titulo||l.bill_id)+'</div>'
    +(resumenLey?'<div style="font-size:12.5px;line-height:1.5;color:var(--ink);background:var(--surface,#f6f6f8);border-left:3px solid var(--brand);padding:8px 11px;border-radius:6px;margin-bottom:10px;white-space:pre-wrap"><b style="font-size:10px;text-transform:uppercase;color:var(--muted)">Resumen del proyecto en Votar</b><br>'+resumenLey+'</div>':'')
    +'<div class="lbl" style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase">Buscar su votación en el Congreso</div>'
