@@ -157,6 +157,7 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
       <button class="fullbtn" style="margin-top:10px" onclick="entrarComoDemo()">Ver un ejemplo (sin cuenta)</button>
     </div>
     <div class="ob" id="oC">
+      <button class="back" data-act="goto" data-arg="o0">← Volver</button>
       <div style="text-align:center;margin-top:4px;font-size:40px">🌐</div>
       <h2 class="serif" style="font-size:24px;text-align:center;margin:12px 0 4px">¿Desde qué país participás?</h2>
       <p class="muted" style="text-align:center;font-size:13px;margin:0 0 18px">Empezamos por Argentina. Vamos sumando países.</p>
@@ -188,6 +189,7 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
     </div>
 
     <div class="ob" id="oVer">
+      <button class="back" data-act="goto" data-arg="oRen">← Volver</button>
       <div style="text-align:center;margin-top:14px;font-size:46px">🪪</div>
       <h2 class="serif" style="font-size:23px;text-align:center;margin:12px 0 10px">Antes de continuar</h2>
       <p class="muted" style="margin:0 0 12px;font-size:13.5px;line-height:1.55">Para que cada persona pueda votar una sola vez, una aplicación externa <b>(no es de Pnyx)</b> va a verificar que sos una persona real, con tu documento y una selfie.</p>
@@ -582,6 +584,21 @@ var LEYES_DEMO=[
   sub:'Aprueba el plan de gastos y recursos del Estado para el año, con las prioridades del gobierno.', tieneIA:true,
   camara:'Diputados', estado:'En tramite', urgente:false, autor:'Comisión de Presupuesto y Hacienda', ini:'PH',
   resumen:'Define en qué gasta el Estado y de dónde saca los recursos durante el año. A favor: ordena las cuentas y da previsibilidad. En discusión: la oposición cuestiona las prioridades y los recortes en algunas áreas.',
+  tieneTexto:false, escaneada:false, nat:{favor:0,contra:0,abst:0,n:0}},
+ {billId:'DEMO3', n:'Obliga a etiquetar con sellos negros los alimentos con exceso de azúcar, grasas y sodio.',
+  sub:'Obliga a etiquetar con sellos negros los alimentos con exceso de azúcar, grasas y sodio.', tieneIA:true,
+  camara:'Diputados', estado:'Media sancion - por tratarse', urgente:true, autor:'Comisión de Salud', ini:'CS',
+  resumen:'Exige sellos de advertencia en el frente de los envases de alimentos con exceso de nutrientes críticos. A favor: ayuda a la gente a elegir mejor y previene enfermedades. En discusión: la industria alega sobrecostos y posible impacto en el empleo.',
+  tieneTexto:false, escaneada:false, nat:{favor:0,contra:0,abst:0,n:0}},
+ {billId:'DEMO4', n:'Crea un régimen de licencias por paternidad más extensas para los trabajadores.',
+  sub:'Crea un régimen de licencias por paternidad más extensas para los trabajadores.', tieneIA:true,
+  camara:'Senado', estado:'En tramite', urgente:false, autor:'Comisión de Trabajo y Previsión Social', ini:'TP',
+  resumen:'Amplía los días de licencia por nacimiento o adopción para el padre o la pareja no gestante. A favor: promueve la corresponsabilidad en el cuidado y la igualdad de género. En discusión: se debate el costo para las empresas y quién lo financia.',
+  tieneTexto:false, escaneada:false, nat:{favor:0,contra:0,abst:0,n:0}},
+ {billId:'DEMO5', n:'Establece la boleta única de papel para las elecciones nacionales.',
+  sub:'Establece la boleta única de papel para las elecciones nacionales.', tieneIA:true,
+  camara:'Diputados', estado:'En tramite', urgente:false, autor:'Comisión de Asuntos Constitucionales', ini:'AC',
+  resumen:'Reemplaza las boletas partidarias por una única boleta con todos los candidatos. A favor: reduce el robo de boletas, ordena el cuarto oscuro y baja costos. En discusión: algunos partidos chicos temen perder visibilidad frente a los grandes.',
   tieneTexto:false, escaneada:false, nat:{favor:0,contra:0,abst:0,n:0}}
 ];
 // Expertos mock por ley (imagen de "persona hablando" en vez de video real)
