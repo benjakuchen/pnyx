@@ -107,6 +107,38 @@ h1,h2,h3,h4{margin:0;font-weight:700}button{font-family:inherit;cursor:pointer}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px}
 .chip{white-space:nowrap;font-size:12.5px;padding:7px 13px;border-radius:20px;border:2px solid var(--line);background:var(--surface);color:var(--muted);font-weight:700}
 .chip.on{border-color:var(--brand);color:var(--brand);background:var(--brand-soft)}
+/* ---- La Plaza: tarjetas por área ---- */
+.pz-hero{border:1px solid var(--line);border-radius:20px;padding:18px 18px 16px;margin-bottom:16px;background:
+  radial-gradient(130% 100% at 100% 0,var(--brand-soft) 0,var(--surface) 62%);position:relative;overflow:hidden}
+.pz-hero .seal{position:absolute;right:-18px;top:-18px;font-size:92px;opacity:.07;line-height:1;transform:rotate(-8deg);pointer-events:none}
+.pz-hero h2{font-family:var(--serif);font-size:23px;margin:0 0 7px;line-height:1.1;letter-spacing:-.01em}
+.pz-hero p{font-size:13.5px;line-height:1.5;margin:0 0 4px;color:var(--ink)}
+.pz-hero .ley{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:11.5px;font-weight:700;color:var(--brand);background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:5px 11px}
+.pz-ini{position:relative;display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);
+  border-left:5px solid var(--ar,#64748b);border-radius:14px;padding:13px 15px 13px 15px;margin-bottom:9px;cursor:pointer;transition:transform .12s,box-shadow .12s}
+.pz-ini:active{transform:scale(.99)}
+.pz-ini .top{display:flex;align-items:center;gap:7px;margin-bottom:6px;flex-wrap:wrap}
+.pz-ini .area{font-size:10.5px;font-weight:800;letter-spacing:.02em;color:var(--ar,#64748b);background:var(--arbg,#eef1f5);padding:3px 9px;border-radius:7px;text-transform:uppercase}
+.pz-ini .et{font-size:10.5px;font-weight:700;color:var(--muted)}
+.pz-ini .tit{font-family:var(--serif);font-weight:700;font-size:15.5px;line-height:1.28;color:var(--ink);margin:0}
+.pz-ini .meta{display:flex;align-items:center;gap:5px;margin-top:8px;font-size:11.5px;color:var(--muted)}
+.pz-ini .bar{height:5px;border-radius:4px;background:var(--surface2);overflow:hidden;margin-top:7px}
+.pz-ini .bar>i{display:block;height:100%;border-radius:4px;background:var(--ar,#64748b)}
+/* ---- Construcción: artículos tipo asistente ---- */
+.art{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:8px}
+.art.nuevo{border-style:dashed;border-color:var(--celeste)}
+.art .n{font-size:10.5px;font-weight:800;letter-spacing:.03em;color:var(--brand);text-transform:uppercase}
+.art .cuerpo{font-size:13px;line-height:1.5;margin:4px 0 0;color:var(--ink)}
+.art .acc{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.art-ed textarea{width:100%;border:1px solid var(--line);border-radius:11px;padding:11px 13px;font-size:13.5px;font-family:inherit;line-height:1.5;box-sizing:border-box;resize:vertical;color:var(--ink);background:var(--surface2)}
+.art-ed textarea:focus{outline:none;border-color:var(--celeste);background:var(--surface)}
+.art-ed .ghost{color:var(--faint)}
+.art-ed .ayuda{display:flex;gap:8px;align-items:flex-start;background:var(--ia-bg);color:var(--ia);border-radius:11px;padding:9px 11px;font-size:12px;line-height:1.45;margin:0 0 9px}
+.art-ed .ayuda .sp{font-size:14px;line-height:1.2}
+.art-ed .tipo{font-size:11px;font-weight:800;color:var(--ia);text-transform:uppercase;letter-spacing:.03em;margin-bottom:7px}
+.art-pal{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 4px}
+.art-pal .chip{border-color:var(--line)}
+.art-add{width:100%;border:1.5px dashed var(--celeste);background:var(--brand-soft);color:var(--brand);border-radius:13px;padding:13px;font-size:14px;font-weight:700;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px}
 .storybanner{width:100%;border:none;border-radius:var(--r);padding:13px 15px;margin-bottom:14px;display:flex;align-items:center;gap:11px;color:#fff;background:linear-gradient(120deg,var(--brand),var(--celeste));text-align:left}
 .cham{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px;margin-bottom:12px}
 .tbar{height:11px;border-radius:6px;overflow:hidden;display:flex;margin:9px 0 6px}
@@ -2133,18 +2165,50 @@ function plazaGuardarNick(){
  }).catch(function(){alert('No se pudo guardar. Probá de nuevo.');});
 }
 
-/* ---- Home de la plaza: filtros por etapa + lista ---- */
+/* ---- Áreas temáticas: color + ícono por área (para las tarjetas) ---- */
+/* Cada área tiene un color sólido (borde/texto) y uno suave (fondo de la etiqueta).
+   Legibles en claro. El fallback es "Otra" (gris pizarra). */
+var AREA_COLOR={
+ 'Salud':               {c:'#1C8F6B',bg:'#E2F2EC',ic:'🩺'},
+ 'Educación':           {c:'#2563C9',bg:'#E4EDFB',ic:'📚'},
+ 'Ambiente':            {c:'#4B9A2E',bg:'#E9F3E1',ic:'🌿'},
+ 'Trabajo':             {c:'#C06A1B',bg:'#F7EBDC',ic:'🛠️'},
+ 'Transporte':          {c:'#2B7A8C',bg:'#E0EFF2',ic:'🚆'},
+ 'Seguridad':           {c:'#B23A48',bg:'#F7E4E6',ic:'⚖️'},
+ 'Vivienda':            {c:'#9A6A2E',bg:'#F2EADD',ic:'🏠'},
+ 'Economía y producción':{c:'#4659B8',bg:'#E7E9F7',ic:'📈'},
+ 'Derechos y géneros':  {c:'#B14FA0',bg:'#F5E6F2',ic:'🤝'},
+ 'Ciencia y tecnología':{c:'#6B4FB0',bg:'#ECE6F7',ic:'🔬'},
+ 'Cultura':             {c:'#C0472F',bg:'#F7E6E1',ic:'🎭'},
+ 'Discapacidad':        {c:'#2E8BA6',bg:'#E1EFF3',ic:'♿'},
+ 'Niñez y familia':     {c:'#D08A1E',bg:'#F8EED8',ic:'👪'},
+ 'Adultos mayores':     {c:'#7A6A9E',bg:'#EDEAF4',ic:'🧓'},
+ 'Animales':            {c:'#8A7A2E',bg:'#F1EED9',ic:'🐾'},
+ 'Deporte':             {c:'#1E8C57',bg:'#E2F0E7',ic:'🏅'},
+ 'Transparencia y Estado':{c:'#3C6E9E',bg:'#E3ECF5',ic:'🏛️'},
+ 'Otra':                {c:'#64748B',bg:'#EEF1F5',ic:'💡'}
+};
+function areaDe(it){ return it.area||it.tema||'Otra'; }
+function areaInfo(nombre){ return AREA_COLOR[nombre]||AREA_COLOR['Otra']; }
+
+/* ---- Home de la plaza: entrada + filtros + lista ---- */
 function renderPlazaHome(){
  var c=$('#sc-plaza');if(!c)return;
  var fils=[['apoyo','🤝 Apoyar'],['aporte','✏️ En aporte'],['construccion','🔨 En construcción'],['presentada','🏛️ Presentadas']];
  var chips=fils.map(function(f){return '<button class="chip'+(plazaFiltro===f[0]?' on':'')+'" data-act="plazaFil" data-arg="'+f[0]+'">'+f[1]+'</button>';}).join('');
- c.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0 4px">'+
-   '<h2 class="serif" style="font-size:22px;margin:0">🏛️ La plaza</h2>'+
-   '<span class="muted" style="font-size:12px">como <b>'+escHtml(miNick)+'</b></span></div>'+
-  '<p class="muted" style="font-size:12.5px;margin:0 0 12px">Buscá una causa antes de crear una nueva: sumarse es más fuerte que dispersar.</p>'+
+ c.innerHTML=
+  '<div class="pz-hero">'+
+    '<div class="seal">🏛️</div>'+
+    '<h2>Acá la gente escribe la ley</h2>'+
+    '<p>La Constitución te da un poder real: con <b>firmas suficientes</b>, un grupo de ciudadanos puede meter su propio proyecto en el Congreso, y los diputados <b>están obligados a tratarlo</b>.</p>'+
+    '<p class="muted" style="font-size:12.5px;margin-top:6px">Redactá una iniciativa, sumate a un equipo que ya está en eso, o apoyá la que te representa.</p>'+
+    '<span class="ley">⚖️ Iniciativa popular · Ley 24.747</span>'+
+  '</div>'+
+  '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 2px 8px">'+
+    '<span class="muted" style="font-size:12px">entrás como <b>'+escHtml(miNick)+'</b></span></div>'+
   '<div class="filtros" style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px">'+chips+'</div>'+
   '<div id="plazaLista"><p class="muted" style="font-size:13px">Cargando…</p></div>'+
-  '<button class="primary" style="margin-top:14px" data-act="plazaNueva">+ Proponer una nueva</button>';
+  '<button class="primary" style="margin-top:14px" data-act="plazaNueva">+ Proponer una iniciativa</button>';
  cargarPlazaLista();
 }
 
@@ -2153,7 +2217,8 @@ function cargarPlazaLista(){
   plazaLista=Array.isArray(rows)?rows:[];
   var cont=$('#plazaLista');if(!cont)return;
   if(!plazaLista.length){
-   cont.innerHTML='<div class="card" style="text-align:center;gap:8px;padding:22px"><div style="font-size:30px">🌱</div><div class="serif" style="font-weight:700;font-size:15px">Todavía no hay iniciativas acá</div><div class="muted" style="font-size:12.5px">Sé la primera persona en encender una.</div></div>';
+   var vacio={apoyo:'Todavía no hay iniciativas juntando apoyo.',aporte:'Nada en aporte por ahora.',construccion:'Ningún equipo está redactando todavía.',presentada:'Todavía ninguna llegó al Congreso.'}[plazaFiltro]||'Todavía no hay iniciativas acá.';
+   cont.innerHTML='<div class="card" style="text-align:center;gap:8px;padding:24px"><div style="font-size:30px">🌱</div><div class="serif" style="font-weight:700;font-size:15px">'+vacio+'</div><div class="muted" style="font-size:12.5px">Encendé la primera: proponé una abajo.</div></div>';
    return;
   }
   cont.innerHTML=plazaLista.map(filaIniciativa).join('');
@@ -2161,16 +2226,20 @@ function cargarPlazaLista(){
 }
 
 function filaIniciativa(it){
- var estadoTag={construccion:['🔨 En construcción','nt'],aporte:['✏️ En aporte','ci'],apoyo:['🤝 Apoyar','fav'],presentada:['🏛️ Presentada','ok']}[it.estado]||['·','nt'];
- var barra='';
+ var ai=areaInfo(areaDe(it));
+ var etLbl={construccion:'🔨 En construcción',aporte:'✏️ En aporte',apoyo:'🤝 Juntando apoyo',presentada:'🏛️ Presentada'}[it.estado]||'';
+ var meta='';
  if(it.estado==='apoyo'||it.estado==='presentada'){
-  barra='<div class="muted" style="font-size:11.5px;margin-top:5px">🤝 '+(it.apoyos||0)+' apoyos · '+(it.provincias||0)+' provincias</div>';
+  meta='<div class="meta">🤝 <b style="color:var(--ink)">'+(it.apoyos||0)+'</b> apoyos · '+(it.provincias||0)+' provincias</div>';
  }else if(it.estado==='construccion'){
-  barra='<div class="muted" style="font-size:11.5px;margin-top:5px">👥 equipo curador: '+(it.curadores||0)+'/'+(it.cupo||9)+'</div>';
+  var cur=it.curadores||0,cupo=it.cupo||9,pct=Math.max(8,Math.round(cur/cupo*100));
+  meta='<div class="meta">👥 equipo '+cur+'/'+cupo+'</div><div class="bar"><i style="width:'+pct+'%"></i></div>';
+ }else if(it.estado==='aporte'){
+  meta='<div class="meta">✏️ abierta a aportes de la comunidad</div>';
  }
- return '<div class="card" style="margin-bottom:10px;cursor:pointer" data-act="plazaAbrir" data-arg="'+it.id+'">'+
-   '<div style="display:flex;gap:7px;align-items:center;margin-bottom:5px">'+k(estadoTag[0],estadoTag[1])+(it.tema?'<span class="muted" style="font-size:11px">· '+escHtml(it.tema)+'</span>':'')+'</div>'+
-   '<div class="serif" style="font-weight:700;font-size:15px;line-height:1.3">'+escHtml(it.titulo)+'</div>'+barra+'</div>';
+ return '<button class="pz-ini" style="--ar:'+ai.c+';--arbg:'+ai.bg+'" data-act="plazaAbrir" data-arg="'+it.id+'">'+
+   '<div class="top"><span class="area">'+ai.ic+' '+escHtml(areaDe(it))+'</span><span class="et">'+etLbl+'</span></div>'+
+   '<div class="tit">'+escHtml(it.titulo)+'</div>'+meta+'</button>';
 }
 
 /* ---- Proponer una iniciativa (con anti-duplicados) ---- */
@@ -2275,14 +2344,14 @@ function renderIniciativaDetalle(){
   var secActual=null;
   it._texto.forEach(function(a){
    var sl=secLbl[a.seccion]||'DISPOSICIONES';
-   if(sl!==secActual){h+='<div style="font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.05em;margin:10px 0 4px">'+sl+'</div>';secActual=sl;}
+   if(sl!==secActual){h+='<div style="font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.05em;margin:12px 0 5px">'+sl+'</div>';secActual=sl;}
    var ed='';
-   if(editable){ ed='<button class="chip" style="margin-top:6px" data-act="plazaEditArt" data-arg="'+it.id+'|'+a.numero+'">✏️</button> <button class="chip" style="margin-top:6px" data-act="plazaBorrarArt" data-arg="'+it.id+'|'+a.numero+'">🗑️</button>'; }
-   else if(puedeProponer){ ed='<button class="chip" style="margin-top:6px" data-act="plazaProponer" data-arg="'+it.id+'|'+a.numero+'|modificar">✍️ Proponer cambio</button>'; }
-   h+='<div class="card" style="margin-bottom:6px;border-left:3px solid var(--brand);padding:11px 13px"><div style="font-size:10px;font-weight:700;color:var(--brand)">Artículo '+a.numero+'</div><p style="font-size:13px;margin:3px 0 0;line-height:1.45">'+escHtml(a.contenido)+'</p>'+ed+'</div>';
+   if(editable){ ed='<div class="acc"><button class="chip" data-act="plazaEditArt" data-arg="'+it.id+'|'+a.numero+'">✏️ Editar</button><button class="chip" data-act="plazaBorrarArt" data-arg="'+it.id+'|'+a.numero+'">🗑️ Borrar</button></div>'; }
+   else if(puedeProponer){ ed='<div class="acc"><button class="chip" data-act="plazaProponer" data-arg="'+it.id+'|'+a.numero+'|modificar">✍️ Proponer cambio</button></div>'; }
+   h+='<div class="art" id="art-'+a.numero+'"><div class="n">Artículo '+a.numero+'</div><p class="cuerpo">'+escHtml(a.contenido)+'</p>'+ed+'</div>';
   });
  }else{
-  h+='<div class="card" style="margin-bottom:6px"><p class="muted" style="font-size:12.5px;margin:0">Todavía no hay artículos'+(editable?'. Usá el formulario de abajo para construir la ley paso a paso.':'. El equipo curador los irá escribiendo.')+'</p></div>';
+  h+='<div class="art" style="border-style:dashed"><p class="muted" style="font-size:12.5px;margin:0">'+(editable?'Todavía sin artículos. Abajo elegís qué querés que diga cada uno y te aparece un ejemplo para editar.':'Todavía sin artículos. El equipo curador los irá escribiendo.')+'</p></div>';
  }
  // Artículo de forma (fijo)
  if(it._texto.length)h+='<p class="muted serif" style="font-size:12px;font-style:italic;margin:6px 0 0">Comuníquese al Poder Ejecutivo.</p>';
@@ -2303,11 +2372,12 @@ function renderIniciativaDetalle(){
  // Herramientas de autor/co-autor: agregar artículo por TIPO + transparencia + cerrar
  if(editable){
   var proximo=(it._texto.length? Math.max.apply(null,it._texto.map(function(a){return a.numero;}))+1 : 1);
-  h+='<div class="sech" style="margin-top:14px">AGREGAR ARTÍCULO <span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0">· elegí qué hace</span></div>'+
-     '<p class="muted" style="font-size:11.5px;margin:0 0 6px">Cada artículo hace una sola cosa. Elegí el tipo y te aparece un ejemplo para editar.</p>'+
-     '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+  h+='<div class="sech" style="margin-top:16px">AGREGAR ARTÍCULO '+proximo+' <span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0">· ¿qué querés que diga?</span></div>'+
+     '<p class="muted" style="font-size:11.5px;margin:0 0 8px">Cada artículo hace una sola cosa. Elegí el tipo y te armo un borrador para que lo edites.</p>'+
+     '<div class="art-pal">'+
      ['objeto','ambito','definicion','obliga','prohibe','permite','crea','autoridad','sancion','financiamiento','vigencia','transitoria','libre'].map(function(k){
-       return '<button class="chip" data-act="plazaAddArt" data-arg="'+it.id+'|'+proximo+'|'+k+'">+ '+escHtml(TIPOS_ART[k].lbl)+'</button>';}).join('')+'</div>';
+       return '<button class="chip" data-act="plazaAddArt" data-arg="'+it.id+'|'+proximo+'|'+k+'">'+escHtml(TIPOS_ART[k].lbl)+'</button>';}).join('')+'</div>'+
+     '<div id="art-editor"></div>';
   // Transparencia (art. 5.c y 5.d)
   h+='<div class="sech" style="margin-top:14px">TRANSPARENCIA <span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0">· lo pide la ley (art. 5)</span></div>'+
      '<div class="card" style="margin-bottom:6px;font-size:12px">'+
@@ -2474,30 +2544,55 @@ var TIPOS_ART={
               tpl:'Durante el primer … , …'},
  libre:      {sec:'cuerpo',     lbl:'Artículo libre',        ayuda:'Escribilo como quieras.', tpl:''}
 };
-// Guardar artículo. Si viene tipo y está vacío, precarga la plantilla editable.
-function guardarArt(id,num,sec,actual,tipoKey){
- var t=tipoKey?TIPOS_ART[tipoKey]:null;
- var ayuda=t?(t.lbl+' — '+t.ayuda):'';
- var base=(actual&&actual.length)?actual:(t?t.tpl:'');
- var txt=prompt((ayuda?ayuda+'\n\n':'')+'Escribí el Artículo '+num+' (borrá el ejemplo y poné lo tuyo):',base||'');
- if(txt===null)return;txt=txt.trim();if(!txt){alert('El artículo no puede quedar vacío.');return;}
- var secFinal=(t?t.sec:sec)||'cuerpo';
- rpcPlaza('guardar_articulo2',{p_user_id:usuarioActual.id,p_iniciativa_id:parseInt(id,10),p_numero:num,p_seccion:secFinal,p_contenido:txt}).then(function(r){
-  if(r==='OK')abrirIniciativa(parseInt(id,10));
-  else if(r==='TEXTO_CERRADO')alert('El texto ya está cerrado.');
-  else if(r==='NO_AUTORIZADO')alert('Solo el autor/a o co-autores editan el texto directo.');
-  else alert('No se pudo guardar.');
- });
+/* Editor inline de artículo (estética asistente): muestra el tipo, una ayuda
+   contextual y un borrador editable. Reemplaza al viejo prompt() nativo. */
+var _artEdit=null; // {id,num,sec,tipoKey,modo:'add'|'edit'}
+function escAttr(s){return String(s==null?'':s).replace(/"/g,'&quot;');}
+function abrirEditorArt(destinoId){
+ if(!_artEdit)return;
+ var e=_artEdit, t=e.tipoKey?TIPOS_ART[e.tipoKey]:null;
+ var base=(e.actual&&e.actual.length)?e.actual:(t?t.tpl:'');
+ var titulo=e.modo==='edit'?('Editar artículo '+e.num):('Artículo '+e.num+' · nuevo');
+ var ayuda=t?('<div class="ayuda"><span class="sp">✨</span><div><b>'+escHtml(t.lbl)+'.</b> '+escHtml(t.ayuda)+'</div></div>'):'';
+ var html='<div class="art '+(e.modo==='add'?'nuevo':'')+' art-ed" id="art-ed-box">'+
+   '<div class="tipo">'+escHtml(titulo)+'</div>'+ayuda+
+   '<textarea id="art-ta" rows="4" placeholder="Escribí el texto del artículo…">'+escHtml(base)+'</textarea>'+
+   (base&&e.modo==='add'?'<div class="muted" style="font-size:11px;margin-top:5px">Es un ejemplo para orientarte: editalo con lo tuyo.</div>':'')+
+   '<div class="acc"><button class="primary sm" style="flex:1" data-act="plazaGuardarArtEd">Guardar artículo</button>'+
+   '<button class="chip" data-act="plazaCancelarArtEd">Cancelar</button></div></div>';
+ var cont=destinoId?$('#'+destinoId):null;
+ if(cont){ cont.innerHTML=html; }
+ var ta=$('#art-ta'); if(ta){ ta.focus(); try{ta.setSelectionRange(ta.value.length,ta.value.length);}catch(_){}
+   var box=$('#art-ed-box'); if(box)box.scrollIntoView({behavior:'smooth',block:'center'}); }
+}
+function plazaAddArt(arg){
+ var p=String(arg).split('|');var id=p[0],num=parseInt(p[1],10),tipoKey=p[2]||'libre';
+ var t=TIPOS_ART[tipoKey];
+ _artEdit={id:id,num:num,sec:(t?t.sec:'cuerpo'),tipoKey:tipoKey,actual:'',modo:'add'};
+ abrirEditorArt('art-editor');
 }
 function plazaEditArt(arg){
  var p=String(arg).split('|');var id=p[0],num=parseInt(p[1],10);
  var actual='',sec='cuerpo';
  if(plazaDetalle&&plazaDetalle._texto){plazaDetalle._texto.forEach(function(a){if(a.numero===num){actual=a.contenido;sec=a.seccion||'cuerpo';}});}
- guardarArt(id,num,sec,actual);
+ _artEdit={id:id,num:num,sec:sec,tipoKey:null,actual:actual,modo:'edit'};
+ // en edición, el editor reemplaza al artículo en su lugar
+ var art=$('#art-'+num);
+ if(art){ art.outerHTML='<div id="art-editor-edit"></div>'; abrirEditorArt('art-editor-edit'); }
+ else abrirEditorArt('art-editor');
 }
-function plazaAddArt(arg){
- var p=String(arg).split('|');var id=p[0],num=parseInt(p[1],10),tipoKey=p[2]||'libre';
- guardarArt(id,num,null,'',tipoKey);
+function plazaCancelarArtEd(){ _artEdit=null; if(plazaDetalle)abrirIniciativa(plazaDetalle.id); }
+function plazaGuardarArtEd(){
+ if(!_artEdit)return;
+ var e=_artEdit, ta=$('#art-ta'); var txt=(ta&&ta.value||'').trim();
+ if(!txt){alert('El artículo no puede quedar vacío.');return;}
+ rpcPlaza('guardar_articulo2',{p_user_id:usuarioActual.id,p_iniciativa_id:parseInt(e.id,10),p_numero:e.num,p_seccion:e.sec||'cuerpo',p_contenido:txt}).then(function(r){
+  _artEdit=null;
+  if(r==='OK')abrirIniciativa(parseInt(e.id,10));
+  else if(r==='TEXTO_CERRADO')alert('El texto ya está cerrado.');
+  else if(r==='NO_AUTORIZADO')alert('Solo el autor/a o co-autores editan el texto directo.');
+  else alert('No se pudo guardar.');
+ });
 }
 function plazaBorrarArt(arg){
  var p=String(arg).split('|');var id=p[0],num=parseInt(p[1],10);
@@ -2680,6 +2775,8 @@ document.addEventListener('click',function(e){var el=e.target.closest('[data-act
  else if(a==='plazaApoyar')plazaApoyar(arg);
  else if(a==='plazaEditArt')plazaEditArt(arg);
  else if(a==='plazaAddArt')plazaAddArt(arg);
+ else if(a==='plazaGuardarArtEd')plazaGuardarArtEd();
+ else if(a==='plazaCancelarArtEd')plazaCancelarArtEd();
  else if(a==='plazaBorrarArt')plazaBorrarArt(arg);
  else if(a==='plazaProponer')plazaProponer(arg);
  else if(a==='plazaAprobarProp')plazaAprobarProp(arg);
