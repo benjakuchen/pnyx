@@ -102,6 +102,8 @@ h1{font-size:20px;margin:0 0 4px}
   <button class="btn sec" onclick="adminLogout()">Salir</button>
  </div>
  <div class="wrap">
+  <!-- Salud de los obreros: estado del pipeline, arriba de todo -->
+  <div id="saludObreros" style="margin-bottom:12px"></div>
   <!-- Nivel 1: grupos. Nivel 2: sub-pestañas (se arman por JS). -->
   <div class="tabs" id="grupos"></div>
   <div class="tabs" id="subtabs" style="margin-top:6px"></div>
@@ -305,7 +307,7 @@ async function adminLogin(){
  }
  $('#admWho').textContent=email;
  $('#login').style.display='none';$('#consola').style.display='block';
- initNav(); cargar();
+ initNav(); cargar(); cargarSalud();
 }
 async function adminLogout(){await supabase.auth.signOut();location.reload();}
 (async function(){
@@ -316,7 +318,7 @@ async function adminLogout(){await supabase.auth.signOut();location.reload();}
    var ok=await chequearEsAdmin();
    if(ok){
      $('#admWho').textContent=session.user.email;
-     $('#login').style.display='none';$('#consola').style.display='block';initNav();cargar();
+     $('#login').style.display='none';$('#consola').style.display='block';initNav();cargar();cargarSalud();
      return;
    }
    // sesión sin permisos: cerrar y pedir login
@@ -728,10 +730,11 @@ function renderCuraLista(lista, hayMas, extra){
  var h=barraOrden('cura',[['curaduria_orden','Prioridad de cola','num'],['puntaje_pnyx','Puntaje','num'],['fecha','Fecha de subida','fecha'],['camara','Cámara','txt']]);
  curaDatos.forEach(function(d){
   var titulo=esc(d.oracion_ia||d.titulo||d.bill_id);
+  var fechaTxt=d.fecha?('📅 '+esc(String(d.fecha).slice(0,10))):'📅 sin fecha';
   var meta=esc(d.bill_id)+(d.camara?(' · '+esc(d.camara)):'')+(d.autor?(' · '+esc(d.autor)):'');
   var etq=etqOrden[d.curaduria_orden]||'';
   h+='<div class="card" id="cura-'+d.bill_id+'" style="padding:12px 14px">'
-   +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px"><span class="muted" style="font-size:11px;font-weight:700">'+etq+'</span></div>'
+   +'<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:6px"><span class="muted" style="font-size:11px;font-weight:700">'+etq+'</span><span class="muted" style="font-size:11px;font-weight:700;white-space:nowrap">'+fechaTxt+'</span></div>'
    +'<div class="lbl" style="font-size:10px;font-weight:800;color:var(--muted);margin-bottom:4px">TÍTULO (editable · lo ve el ciudadano)</div>'
    +'<textarea class="edit" style="min-height:44px;width:100%" onblur="guardarFeedTitulo(this,\''+d.bill_id+'\')">'+esc(d.oracion_ia||d.titulo||'')+'</textarea>'
    +'<div style="font-size:11px;color:var(--faint);margin-top:4px">Oficial: '+esc(d.titulo||'')+'</div>'
@@ -1187,6 +1190,52 @@ function toggleLeyVotada(votId){
   .catch(function(){box.innerHTML='<span class="muted" style="font-size:12px">No se pudo cargar. Probá de nuevo.</span>';});
 }
 
+/* ===== SALUD DE LOS OBREROS (panel de estado, arriba del admin) ===== */
+function fmtHace(horas){
+ if(horas==null)return '—';
+ horas=Number(horas);
+ if(horas<1)return 'hace minutos';
+ if(horas<48)return 'hace '+Math.round(horas)+' h';
+ return 'hace '+Math.round(horas/24)+' días';
+}
+function cargarSalud(){
+ var c=$('#saludObreros'); if(!c)return;
+ rpc('admin_salud_obreros',{}).then(function(filas){
+  var d=(Array.isArray(filas)&&filas[0])?filas[0]:filas;
+  if(!d){c.innerHTML='';return;}
+  var h=Number(d.horas_desde);
+  // semáforo según cuánto hace que no entra una ley
+  var est = h==null ? ['#64748b','?','Sin datos']
+          : h<=30  ? ['#1E8C57','✓','Los obreros están trayendo leyes']
+          : h<=54  ? ['#B07F20','!','Hace más de un día que no entra nada']
+          :          ['#C03A2B','✕','Hace días que no entran leyes nuevas'];
+  function cel(lbl,val,sub){
+   return '<div style="flex:1;min-width:120px"><div style="font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.03em">'+lbl+'</div>'
+     +'<div style="font-size:17px;font-weight:800;color:var(--ink);line-height:1.2;margin-top:2px">'+val+'</div>'
+     +(sub?'<div style="font-size:11px;color:var(--faint);margin-top:1px">'+sub+'</div>':'')+'</div>';
+  }
+  var alerta='';
+  if(Number(d.en_cola)>0 && Number(d.publicadas)<8){
+   alerta='<div style="background:#F6ECD6;color:#7d5a14;border-radius:10px;padding:9px 12px;font-size:12.5px;margin-top:10px;line-height:1.45">'
+     +'⚠️ El feed tiene <b>'+d.publicadas+'</b> leyes publicadas y hay <b>'+d.en_cola+'</b> esperando en Curaduría. Publicá algunas para que la gente tenga qué votar.</div>';
+  }
+  c.innerHTML='<div class="card" style="padding:14px 16px;border-left:5px solid '+est[0]+'">'
+   +'<div style="display:flex;align-items:center;gap:9px;margin-bottom:12px">'
+     +'<span style="display:inline-flex;width:22px;height:22px;border-radius:50%;background:'+est[0]+';color:#fff;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0">'+est[1]+'</span>'
+     +'<span style="font-size:13.5px;font-weight:700;color:var(--ink)">'+est[2]+'</span>'
+     +'<button class="chip" style="margin-left:auto" onclick="cargarSalud()">↻</button></div>'
+   +'<div style="display:flex;gap:16px;flex-wrap:wrap">'
+     +cel('Última ley', fmtHace(d.horas_desde), d.altas_7d+' en 7 días')
+     +cel('En cola', d.en_cola, 'para publicar')
+     +cel('Publicadas', d.publicadas, 'en el feed')
+     +cel('Sin resumen', d.sin_resumen, 'pendientes')
+     +cel('Última Senado', fmtHace(d.horas_senado), 'carga manual')
+     +cel('Caducadas', d.caducadas, '+60 días')
+   +'</div>'+alerta+'</div>';
+ }).catch(function(e){
+  c.innerHTML='<div class="card" style="padding:10px 14px"><span class="muted" style="font-size:12px">No se pudo cargar el estado de los obreros ('+esc(String(e))+'). ¿Corriste sql_salud_obreros.sql?</span></div>';
+ });
+}
 function cargar(){
  if(filtroActual==='feed'){ cargarFeedSinLink(); return; }
  rpc('admin_comparativa',{}).then(function(filas){

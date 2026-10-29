@@ -118,6 +118,12 @@ def main():
         return e and e.get("tiene_texto")
 
     faltan = [p for p in leyes if not tiene_texto_nube(p)]
+    # ORDEN DE DESCARGA: las mas nuevas suelen NO tener el PDF subido todavia
+    # en HCDN (proyecto recien presentado), asi que bajarlas primero desperdicia
+    # la corrida ("sin texto"). Procesamos de MAS VIEJA a mas nueva: esas ya
+    # tienen el PDF publicado, asi cada corrida consigue textos reales en vez
+    # de chocar siempre contra las nuevas sin adjunto.
+    faltan.sort(key=lambda p: p.get("fecha") or "")   # ascendente: vieja -> nueva
     objetivo = faltan if todos else faltan[:limite]
 
     if not objetivo:

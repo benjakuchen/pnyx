@@ -47,11 +47,14 @@ PASOS = [
     ("11_autores.py", [], False),                                      # autores / firmantes
     ("12_bancas.py", [], False),                                       # lista de legisladores
     ("13_sanciones.py", [], False),                                    # media sancion / sancion
+    # IMPORTANTE: el 9 va ANTES del 14 y del 18. El 9 calcula media_sancion;
+    # la curaduria (14) y el caducar (18) dependen de ese dato. Si corriera
+    # despues, el 18 podia caducar leyes con media sancion aun no marcada.
+    ("9_mezclar_ordenar.py", [], False),                              # puntuar y marcar media_sancion
     ("1_consultar_supabase.py", [], True),                             # refrescar estado
     ("14_curaduria.py", [], False),                                    # clasificar auto / cola / ruido
     ("21_areas.py", [], False),                                        # area tematica por palabras clave (sin IA)
     ("18_caducar.py", [], False),                                      # archivar lo viejo de la cola (+60 dias)
-    ("9_mezclar_ordenar.py", [], False),                              # puntuar y ordenar
     ("17_labor.py", [], False),                                        # labor parlamentaria (no gasta API)
     ("20_comparar_iniciativas.py", [], False),                        # Plaza: detectar proyectos equivalentes (sin IA)
     # LINKEO: ya NO corre automatico. El linkeo es 100% MANUAL desde el admin
