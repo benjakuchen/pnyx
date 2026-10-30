@@ -692,7 +692,8 @@ function _curaOrdenBackend(){
 }
 function traerMasCura(){
  var o=_curaOrdenBackend();
- rpc('admin_cola_curaduria',{p_limit:curaLimit,p_offset:curaOffset,p_orden:o.p_orden,p_dir:o.p_dir}).then(function(filas){
+ var cam=camaraFiltro['cura']||'todas';
+ rpc('admin_cola_curaduria',{p_limit:curaLimit,p_offset:curaOffset,p_orden:o.p_orden,p_dir:o.p_dir,p_camara:cam}).then(function(filas){
   filas=Array.isArray(filas)?filas:[];
   curaDatos=curaDatos.concat(filas);
   curaOffset+=filas.length;
@@ -746,7 +747,8 @@ function renderCuraLista(lista, hayMas, extra){
  if(!lista.length){$('#curaLista').innerHTML='<div class="card"><div class="empty">No hay leyes pendientes de revisión. 🎉</div></div>'+extra;$('#curaMas').innerHTML='';return;}
  var curaDatos=lista; // sombra local para reusar el render de abajo
  var etqOrden={1:'⚖️ Tema de peso',2:'📰 En prensa',3:'· Otras'};
- var h=barraOrden('cura',[['curaduria_orden','Prioridad de cola','num'],['puntaje_pnyx','Puntaje','num'],['fecha','Fecha de subida','fecha'],['camara','Cámara','txt']]);
+ var h=barraCamara('cura')
+   +barraOrden('cura',[['curaduria_orden','Prioridad de cola','num'],['puntaje_pnyx','Puntaje','num'],['fecha','Fecha de subida','fecha'],['camara','Cámara','txt']]);
  curaDatos.forEach(function(d){
   var titulo=esc(d.oracion_ia||d.titulo||d.bill_id);
   var fechaTxt=d.fecha?('📅 '+esc(String(d.fecha).slice(0,10))):'📅 sin fecha';
@@ -1220,7 +1222,7 @@ function toggleLeyVotada(votId){
 function _cam(x){ return String(x||'').toLowerCase().indexOf('sen')>=0 ? 'sen' : 'dip'; }
 
 /* Filtro de cámara por panel: 'todas' | 'dip' | 'sen'. */
-var camaraFiltro={feedPub:'todas', votadas:'todas', linkeo:'todas'};
+var camaraFiltro={feedPub:'todas', votadas:'todas', linkeo:'todas', cura:'todas'};
 function setCamara(panelKey,val){
  camaraFiltro[panelKey]=val;
  document.querySelectorAll('.chip[data-cf="'+panelKey+'"]').forEach(function(c){
