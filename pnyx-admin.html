@@ -275,7 +275,7 @@ function aplicarOrden(panelKey, arr, tipos){
 // Re-renderiza el panel que cambió de orden (cada panel registra su render).
 function _reRenderPanel(panelKey){
  if(panelKey==='feedPub' && typeof renderFeed==='function') renderFeed();
- else if(panelKey==='cura' && typeof renderCuraduria==='function') renderCuraduria(curaHayMas);
+ else if(panelKey==='cura'){ if(typeof recargarCuraOrden==='function') recargarCuraOrden(); else if(typeof renderCuraduria==='function') renderCuraduria(curaHayMas); }
  else if(panelKey==='votadas' && typeof renderVotadasCura==='function') renderVotadasCura();
  else if(panelKey==='linkeo' && typeof renderFeedSinLink==='function') renderFeedSinLink();
  else if(panelKey==='inic' && typeof renderInicAdmin==='function') renderInicAdmin();
@@ -491,8 +491,10 @@ function cargarVotadasCura(){
 }
 function renderVotadasCura(){
  if(!votadasCura.length){$('#votadasLista').innerHTML='<div class="card"><div class="empty">No hay leyes votadas para curar.</div></div>';return;}
- var h=barraOrden('votadas',[['votada_en','Fecha de tratamiento','fecha'],['dias_destacada','Días en destacadas','num'],['titulo','Título','txt']]);
- var base=aplicarBusca('votadas', votadasCura, ['titulo','camara']);
+ var h=barraCamara('votadas')
+   +barraOrden('votadas',[['votada_en','Fecha de tratamiento','fecha'],['dias_destacada','Días en destacadas','num'],['titulo','Título','txt']]);
+ var base=aplicarCamara('votadas', votadasCura);
+ base=aplicarBusca('votadas', base, ['titulo','camara']);
  ['Senado','Diputados'].forEach(function(cam){
   var fs=aplicarOrden('votadas', base.filter(function(v){return v.camara===cam;}), {votada_en:'fecha',dias_destacada:'num',titulo:'txt'});
   if(!fs.length)return;
@@ -680,13 +682,29 @@ function rescatarCaducada(billId){
   cargarCuraduria();
  }).catch(function(){toast('No se pudo rescatar');});
 }
+// Mapea el estado de orden del panel al que entiende la base.
+function _curaOrdenBackend(){
+ var e=ordenEstado['cura']||{campo:'curaduria_orden',dir:'desc'};
+ var orden = e.campo==='fecha' ? 'fecha'
+           : e.campo==='puntaje_pnyx' ? 'puntaje'
+           : 'prioridad';   // curaduria_orden (y cualquier otro) -> prioridad
+ return {p_orden:orden, p_dir:(e.dir==='asc'?'asc':'desc')};
+}
 function traerMasCura(){
- rpc('admin_cola_curaduria',{p_limit:curaLimit,p_offset:curaOffset}).then(function(filas){
+ var o=_curaOrdenBackend();
+ rpc('admin_cola_curaduria',{p_limit:curaLimit,p_offset:curaOffset,p_orden:o.p_orden,p_dir:o.p_dir}).then(function(filas){
   filas=Array.isArray(filas)?filas:[];
   curaDatos=curaDatos.concat(filas);
   curaOffset+=filas.length;
   renderCuraduria(filas.length===curaLimit);
  }).catch(function(e){$('#curaLista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
+}
+// Al cambiar el orden en curaduría: reseteamos la cola y recargamos DESDE LA
+// BASE (así el orden abarca TODA la cola, no solo lo cargado en memoria).
+function recargarCuraOrden(){
+ curaDatos=[]; curaOffset=0;
+ $('#curaLista').innerHTML='<div class="card"><div class="empty">Reordenando…</div></div>';
+ traerMasCura();
 }
 /* ¿Es una LEY de verdad, o es "todo lo demás" (homenaje, declaración,
    beneplácito, pedido de informes, resolución interna, acuerdo)?
@@ -713,7 +731,8 @@ function renderCuraduria(hayMas){
  curaDatos.forEach(function(d){(esLeyReal(d)?leyes:otros).push(d);});
  curaOtros=otros;
  leyes=aplicarBusca('cura', leyes, ['titulo','oracion_ia','bill_id','camara','autor']);
- leyes=aplicarOrden('cura', leyes, {puntaje_pnyx:'num',fecha:'fecha',camara:'txt',curaduria_orden:'num'});
+ // El ORDEN ya lo hace la base (admin_cola_curaduria con p_orden): no reordenar
+ // en memoria, porque solo reordenaría lo cargado y enterraría lo nuevo.
  var btnOtros='';
  if(otros.length){
   btnOtros='<div style="text-align:center;margin:14px 0 2px">'
@@ -922,6 +941,7 @@ function renderFeed(){
   if(q){var hay=((d.oracion_ia||'')+' '+(d.titulo||'')+' '+(d.expediente||'')+' '+(d.autor||'')).toLowerCase();if(hay.indexOf(q)<0)return false;}
   return true;
  });
+ lista=aplicarCamara('feedPub', lista);   // filtro Diputados/Senado
  if(lista.length===0){$('#feedLista').innerHTML='<div class="card"><div class="empty">No hay leyes en esta vista.</div></div>';return;}
  // Barra de orden. "feed" = orden real del feed (con flechas manuales); el resto es solo vista.
  var ordEst=ordenEstado['feedPub']||(ordenEstado['feedPub']={campo:'feed',dir:'desc'});
@@ -932,7 +952,7 @@ function renderFeed(){
  // El reordenamiento manual (flechas) solo cuando se ve el orden real del feed.
  var ordenable=(feedFiltro==='pub' && !q && ordEst.campo==='feed');
  feedVisible=lista;  // guardo la lista visible para las flechas
- var h=barra;
+ var h=barraCamara('feedPub')+barra;
  if(ordenable){
   h+='<div class="card" style="padding:9px 14px;background:var(--brand-soft,#eef4ff)"><span style="font-size:12px;color:var(--brand);font-weight:700">↕ Orden del feed: usá las flechas para subir/bajar. Lo que ordenás a mano queda fijo (ningún proceso automático lo cambia).</span></div>';
  }
@@ -1196,6 +1216,31 @@ function toggleLeyVotada(votId){
   .catch(function(){box.innerHTML='<span class="muted" style="font-size:12px">No se pudo cargar. Probá de nuevo.</span>';});
 }
 
+/* Cámara normalizada: 'sen' | 'dip' a partir de cualquier texto de cámara. */
+function _cam(x){ return String(x||'').toLowerCase().indexOf('sen')>=0 ? 'sen' : 'dip'; }
+
+/* Filtro de cámara por panel: 'todas' | 'dip' | 'sen'. */
+var camaraFiltro={feedPub:'todas', votadas:'todas', linkeo:'todas'};
+function setCamara(panelKey,val){
+ camaraFiltro[panelKey]=val;
+ document.querySelectorAll('.chip[data-cf="'+panelKey+'"]').forEach(function(c){
+  c.classList.toggle('on', c.getAttribute('data-cv')===val);
+ });
+ _reRenderPanel(panelKey);
+}
+/* Barra de botones Diputados/Senado (va ARRIBA de los demás criterios). */
+function barraCamara(panelKey){
+ var cur=camaraFiltro[panelKey]||'todas';
+ function b(v,lbl){return '<button class="chip'+(cur===v?' on':'')+'" data-cf="'+panelKey+'" data-cv="'+v+'" onclick="setCamara(\''+panelKey+'\',\''+v+'\')">'+lbl+'</button>';}
+ return '<div class="filtros" style="display:flex;gap:7px;margin-bottom:10px">'
+   +b('todas','Todas')+b('dip','🏛️ Diputados')+b('sen','🏛️ Senado')+'</div>';
+}
+/* Aplica el filtro de cámara a una lista (por el campo camara). */
+function aplicarCamara(panelKey, arr){
+ var f=camaraFiltro[panelKey]||'todas';
+ if(f==='todas')return arr;
+ return arr.filter(function(d){ return _cam(d.camara)===f; });
+}
 /* Días transcurridos desde una fecha texto (YYYY-MM-DD o DD/MM/YYYY). null si no parsea. */
 function diasDesdeFecha(f){
  if(!f)return null;
@@ -1271,8 +1316,10 @@ function cargarFeedSinLink(){
 }
 function renderFeedSinLink(){
  if(!feedSinLink.length){$('#lista').innerHTML='<div class="card"><div class="empty">🎉 Todas las leyes publicadas ya tienen su votación del Congreso linkeada.</div></div>';return;}
- var h=barraOrden('linkeo',[['puntaje_pnyx','Puntaje','num'],['fecha','Fecha','fecha'],['camara','Cámara','txt'],['autor','Autor','txt'],['titulo','Título','txt']]);
- var lista=aplicarBusca('linkeo', feedSinLink, ['titulo','oracion_ia','resumen_ia','expediente','bill_id','camara','autor']);
+ var h=barraCamara('linkeo')
+   +barraOrden('linkeo',[['puntaje_pnyx','Puntaje','num'],['fecha','Fecha','fecha'],['camara','Cámara','txt'],['autor','Autor','txt'],['titulo','Título','txt']]);
+ var lista=aplicarCamara('linkeo', feedSinLink);
+ lista=aplicarBusca('linkeo', lista, ['titulo','oracion_ia','resumen_ia','expediente','bill_id','camara','autor']);
  lista=aplicarOrden('linkeo', lista, {puntaje_pnyx:'num',fecha:'fecha',camara:'txt',autor:'txt',titulo:'txt'});
  if(!lista.length){$('#lista').innerHTML=h+'<div class="card"><div class="empty">Sin resultados para la búsqueda.</div></div>';return;}
  lista.forEach(function(l){
@@ -1311,11 +1358,21 @@ function filaVotacion(bill, v){
    +(nums?'<div style="margin-top:3px">'+nums+'</div>':'')
    +'</div>';
 }
+/* Cámara de la ley que se está linkeando (desde feedSinLink). */
+function _camaraDeLey(bill){
+ var l=(feedSinLink||[]).find(function(x){return x.bill_id===bill;});
+ return l?_cam(l.camara):null;
+}
+/* Deja solo las votaciones de la MISMA cámara que la ley (dip↔dip, sen↔sen). */
+function _soloMismaCamara(bill,rows){
+ var cl=_camaraDeLey(bill); if(!cl)return rows;
+ return rows.filter(function(v){ return _cam(v.camara)===cl; });
+}
 function sugerirVot(bill){
  var cont=document.getElementById('sugv-'+bill);if(cont)cont.innerHTML='<span class="muted" style="font-size:12px">Buscando…</span>';
  rpc('buscar_votaciones_para_ley',{p_bill_id:bill,p_q:null}).then(function(rows){
-  rows=Array.isArray(rows)?rows:[];
-  if(!rows.length){if(cont)cont.innerHTML='<span class="muted" style="font-size:12px">Sin candidata clara. Usá el buscador.</span>';return;}
+  rows=_soloMismaCamara(bill, Array.isArray(rows)?rows:[]);
+  if(!rows.length){if(cont)cont.innerHTML='<span class="muted" style="font-size:12px">Sin candidata clara de la misma cámara. Usá el buscador.</span>';return;}
   if(cont)cont.innerHTML='<div style="border:1px solid var(--brand);border-radius:8px;padding:4px">'+filaVotacion(bill,rows[0])+'</div>';
  }).catch(function(){if(cont)cont.innerHTML='<span class="muted" style="font-size:12px">No se pudo.</span>';});
 }
@@ -1325,13 +1382,19 @@ function buscarVot(input,bill){
  if(q.length<3){cont.innerHTML='';return;}
  buscarTimer=setTimeout(function(){
   rpc('buscar_votaciones_para_ley',{p_bill_id:bill,p_q:q}).then(function(rows){
-   rows=Array.isArray(rows)?rows:[];
-   if(!rows.length){cont.innerHTML='<div class="muted" style="font-size:12px;padding:6px">Sin resultados.</div>';return;}
+   rows=_soloMismaCamara(bill, Array.isArray(rows)?rows:[]);
+   if(!rows.length){cont.innerHTML='<div class="muted" style="font-size:12px;padding:6px">Sin resultados de la misma cámara.</div>';return;}
    cont.innerHTML=rows.map(function(v){return filaVotacion(bill,v);}).join('');
   }).catch(function(){cont.innerHTML='<div class="muted" style="font-size:12px;padding:6px">No se pudo buscar.</div>';});
  },300);
 }
 function linkearDesdeLey(bill,acta,camara){
+ // Seguridad: no permitir linkear cruzado (dip con sen).
+ var cl=_camaraDeLey(bill);
+ if(cl && _cam(camara)!==cl){
+  toast('Solo se puede linkear '+(cl==='dip'?'Diputados con Diputados':'Senado con Senado')+'.');
+  return;
+ }
  rpc('linkear_manual',{p_acta:acta,p_camara:camara,p_bill_id:bill}).then(function(){
   toast('✅ Linkeada y enviada a Destacadas');
   feedSinLink=feedSinLink.filter(function(x){return x.bill_id!==bill;});
