@@ -90,6 +90,33 @@ def texto_de(p):
     return extraer(pdf)
 
 
+def traer_sin_texto_de_supabase():
+    """Trae de Supabase las leyes de Diputados que NO tienen texto_oficial.
+    Es la fuente de verdad: incluye las que vinieron por el CSV, por el
+    scraper web (2b) o por carga manual. Devuelve dicts con los campos que
+    texto_de() necesita (bill_id, expediente, fecha, autor)."""
+    import urllib.parse
+    headers = {"apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY}
+    filas = []
+    offset = 0
+    base = (SUPABASE_URL + "/rest/v1/leyes?select=bill_id,expediente,fecha,autor"
+            "&camara=eq.Diputados&texto_oficial=is.null&limit=1000&offset=")
+    while True:
+        req = urllib.request.Request(base + str(offset), headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                import json as _json
+                parte = _json.loads(r.read().decode("utf-8"))
+        except Exception as e:
+            print("  ! No pude consultar Supabase: %s" % e, file=sys.stderr)
+            break
+        filas.extend(parte)
+        if len(parte) < 1000:
+            break
+        offset += 1000
+    return filas
+
+
 def main():
     if not SUPABASE_KEY:
         print("Falta la clave:  $env:SUPABASE_SERVICE_KEY=\"...\"", file=sys.stderr)
@@ -101,23 +128,13 @@ def main():
         if a.isdigit():
             limite = int(a)
 
-    with open(ARCHIVO, encoding="utf-8") as f:
-        leyes = json.load(f)
+    # FUENTE DE VERDAD = Supabase. Antes leiamos solo proyectos_diputados.json,
+    # pero las leyes que entran por otra via (scraper web 2b, carga manual) no
+    # estan en ese JSON y quedaban sin texto para siempre. Ahora pedimos a la
+    # base TODAS las de Diputados SIN texto; asi no queda ninguna huerfana.
+    faltan = traer_sin_texto_de_supabase()
 
-    # Estado de la nube: que leyes ya tienen texto
-    estado = {}
-    if os.path.exists(ESTADO):
-        with open(ESTADO, encoding="utf-8") as f:
-            estado = json.load(f)
-    else:
-        print("Aviso: no encontre estado_nube.json. Corre el Obrero 1 primero.", file=sys.stderr)
-
-    # Solo las que NO tienen texto en Supabase
-    def tiene_texto_nube(p):
-        e = estado.get(p.get("bill_id"))
-        return e and e.get("tiene_texto")
-
-    faltan = [p for p in leyes if not tiene_texto_nube(p)]
+    # (El JSON local ya no decide que bajar; queda como respaldo historico.)
     # ORDEN DE DESCARGA: las mas nuevas suelen NO tener el PDF subido todavia
     # en HCDN (proyecto recien presentado), asi que bajarlas primero desperdicia
     # la corrida ("sin texto"). Procesamos de MAS VIEJA a mas nueva: esas ya

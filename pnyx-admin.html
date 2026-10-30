@@ -939,6 +939,9 @@ function renderFeed(){
  lista.forEach(function(d,ix){
   var cam=(d.camara||'').toLowerCase().indexOf('sen')>=0?'sen':'dip';
   var ms=d.media_sancion?'<span class="st pend" style="margin-left:6px">media sanción</span>':'';
+  // Cartel de antigüedad: leyes publicadas con más de 70 días desde su fecha.
+  var diasEnRecinto=diasDesdeFecha(d.fecha);
+  var viejo=(d.publicada && diasEnRecinto!=null && diasEnRecinto>70);
   var pubBtn=d.publicada
    ? '<button class="btn warn sm" onclick="togglePub(\''+d.bill_id+'\',false)">Despublicar</button>'
    : '<button class="btn ok sm" onclick="togglePub(\''+d.bill_id+'\',true)">Publicar</button>';
@@ -960,6 +963,9 @@ function renderFeed(){
    +'<span style="font-size:11px;color:var(--muted);margin-left:6px">'+esc(d.fecha||'')+' · '+(d.puntaje_pnyx||0)+' pts'+(d.autor?' · 👤 '+esc(d.autor):'')+'</span>'
    +'<span style="margin-left:auto"></span>'+pubBtn
    +'</div>'
+   +(viejo?'<div style="padding:9px 14px;background:#F6ECD6;color:#7d5a14;font-size:12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)">'
+     +'<span style="font-size:14px">⏰</span><span>Publicada hace <b>'+diasEnRecinto+' días</b>. ¿La dejás o la sacás del feed?</span>'
+     +'<button class="btn warn sm" style="margin-left:auto" onclick="togglePub(\''+d.bill_id+'\',false)">Sacar del feed</button></div>':'')
    +'<div style="padding:14px">'
    +'<div class="lbl" style="font-size:10px;font-weight:800;color:var(--muted);margin-bottom:5px">TÍTULO EDITADO POR IA (editable)</div>'
    +'<textarea class="edit" style="min-height:46px" onblur="guardarFeedTitulo(this,\''+d.bill_id+'\')">'+esc(d.oracion_ia||'')+'</textarea>'
@@ -1190,6 +1196,16 @@ function toggleLeyVotada(votId){
   .catch(function(){box.innerHTML='<span class="muted" style="font-size:12px">No se pudo cargar. Probá de nuevo.</span>';});
 }
 
+/* Días transcurridos desde una fecha texto (YYYY-MM-DD o DD/MM/YYYY). null si no parsea. */
+function diasDesdeFecha(f){
+ if(!f)return null;
+ var s=String(f).slice(0,10), d=null;
+ var m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+ if(m){ d=new Date(+m[1],+m[2]-1,+m[3]); }
+ else { var m2=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/); if(m2)d=new Date(+m2[3],+m2[2]-1,+m2[1]); }
+ if(!d||isNaN(d))return null;
+ return Math.floor((Date.now()-d.getTime())/86400000);
+}
 /* ===== SALUD DE LOS OBREROS (panel de estado, arriba del admin) ===== */
 function fmtHace(horas){
  if(horas==null)return '—';
