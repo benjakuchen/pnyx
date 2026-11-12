@@ -111,15 +111,30 @@ h1{font-size:20px;margin:0 0 4px}
   <div id="tab-comp">
    <div class="card">
     <h1>Linkeo votar ↔ votadas</h1>
-    <p class="muted" style="margin:4px 0 0;font-size:13.5px">Partí de las leyes publicadas en el feed (son pocas) y buscales su votación en el Congreso. Pnyx te sugiere la más parecida; vos confirmás. Al linkear, esa ley pasa a Votadas destacadas.</p>
+    <p class="muted" style="margin:4px 0 0;font-size:13.5px">Conectá cada proyecto del feed con cómo lo votó el Congreso. Al linkear, la ley sale del feed de votar y pasa a Votadas destacadas.</p>
    </div>
-   <div class="filtros">
-    <span class="muted" style="font-size:12.5px;font-weight:700">Ver:</span>
-    <button class="chip on" data-f="feed" onclick="filtrar('feed')">📋 Publicadas sin linkear</button>
-    <button class="chip" data-f="linkeada" onclick="filtrar('linkeada')">Linkeadas</button>
-    <button class="chip" data-f="descartada" onclick="filtrar('descartada')">Descartadas</button>
+   <!-- Dos modos: partir de la ley publicada, o partir de la votación del Congreso. -->
+   <div class="filtros" style="margin-bottom:6px">
+    <button class="chip on" id="modo-ley" onclick="setModoLinkeo('ley')">📋 Desde la ley</button>
+    <button class="chip" id="modo-vot" onclick="setModoLinkeo('vot')">🗳️ Desde la votación</button>
    </div>
-   <div id="lista"><div class="empty">Cargando…</div></div>
+
+   <!-- MODO A: desde la ley (flujo original) -->
+   <div id="linkeo-ley">
+    <div class="filtros">
+     <span class="muted" style="font-size:12.5px;font-weight:700">Ver:</span>
+     <button class="chip on" data-f="feed" onclick="filtrar('feed')">📋 Publicadas sin linkear</button>
+     <button class="chip" data-f="linkeada" onclick="filtrar('linkeada')">Linkeadas</button>
+     <button class="chip" data-f="descartada" onclick="filtrar('descartada')">Descartadas</button>
+    </div>
+    <div id="lista"><div class="empty">Cargando…</div></div>
+   </div>
+
+   <!-- MODO B: desde la votación (nuevo) -->
+   <div id="linkeo-vot" style="display:none">
+    <p class="muted" style="font-size:12.5px;margin:0 0 8px">Votaciones del Congreso sin emparejar. A cada una, Pnyx te sugiere 2-3 proyectos publicados de la misma cámara. Linkeá el correcto (la ley sale del feed), o descartá si no corresponde a ninguno.</p>
+    <div id="listaVot"><div class="empty">Cargando…</div></div>
+   </div>
   </div>
 
   <div id="tab-feed" style="display:none">
@@ -206,6 +221,23 @@ h1{font-size:20px;margin:0 0 4px}
   <div id="tab-proximo" style="display:none">
    <div class="card"><div class="empty">Próximos módulos: carga de opiniones de expertos (link a YouTube), validación de bancas, gestión de curadores y controles sensibles (pisos, regla del 60%).<br>Se conectan a medida que existan sus tablas.</div></div>
   </div>
+
+  <div id="tab-civismo" style="display:none">
+   <div class="card">
+    <h1>🏅 Civismo</h1>
+    <p class="muted" style="margin:4px 0 0;font-size:13.5px">Participación de cada persona, para reconocer a quienes más colaboran. Se cuenta <b>que</b> participaron, nunca <b>qué</b> votaron: el sentido del voto es anónimo y no aparece acá.</p>
+   </div>
+   <div id="civResumen"></div>
+   <div class="filtros" style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+    <span class="muted" style="font-size:12.5px;font-weight:700">Ordenar por</span>
+    <button class="chip on" data-co="total"    onclick="ordenCivismo('total')">🏅 Participación total</button>
+    <button class="chip"    data-co="voto"     onclick="ordenCivismo('voto')">🗳️ Votos</button>
+    <button class="chip"    data-co="creadas"  onclick="ordenCivismo('creadas')">✏️ Iniciativas creadas</button>
+    <button class="chip"    data-co="apoyos"   onclick="ordenCivismo('apoyos')">🤝 Apoyos</button>
+    <button class="chip"    data-co="reciente" onclick="ordenCivismo('reciente')">🕒 Actividad reciente</button>
+   </div>
+   <div id="civLista"><div class="empty">Cargando…</div></div>
+  </div>
  </div>
 </div>
 
@@ -278,6 +310,7 @@ function _reRenderPanel(panelKey){
  else if(panelKey==='cura'){ if(typeof recargarCuraOrden==='function') recargarCuraOrden(); else if(typeof renderCuraduria==='function') renderCuraduria(curaHayMas); }
  else if(panelKey==='votadas' && typeof renderVotadasCura==='function') renderVotadasCura();
  else if(panelKey==='linkeo' && typeof renderFeedSinLink==='function') renderFeedSinLink();
+ else if(panelKey==='linkeoVot' && typeof renderVotacionesSinLink==='function') renderVotacionesSinLink();
  else if(panelKey==='inic' && typeof renderInicAdmin==='function') renderInicAdmin();
 }
 function toast(t){var el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(function(){el.classList.remove('show');},2400);}
@@ -354,10 +387,11 @@ var GRUPOS=[
    {panel:'equiv',     label:'🔎 Equivalencias', cnt:'cntEquiv'},
  ]},
  {g:'sistema', label:'⚙️ Sistema', subs:[
+   {panel:'civismo',   label:'🏅 Civismo'},
    {panel:'proximo',   label:'🎬 Próximamente'},
  ]},
 ];
-var PANELES=['comp','feed','prensa','bancasVal','bancasLeg','curaduria','votadas','videos','inic','equiv','proximo'];
+var PANELES=['comp','feed','prensa','bancasVal','bancasLeg','curaduria','votadas','videos','inic','equiv','proximo','civismo'];
 var grupoActual='feedvotar', panelActual='curaduria';
 
 function pintarGrupos(){
@@ -399,6 +433,7 @@ function mostrarPanel(p){
  if(p==='videos'&&videosDatos.length===0)cargarVideosAdmin();
  if(p==='inic')cargarInicAdmin();
  if(p==='equiv')cargarEquivalencias();
+ if(p==='civismo')cargarCivismo();
 }
 
 // Compatibilidad: si algo viejo llama tab('X'), lo redirigimos al panel nuevo.
@@ -406,6 +441,68 @@ function tab(t){ var map={bancas:'bancasVal'}; irPanel(map[t]||t); }
 
 /* ===== PLAZA: MONITOREO DE INICIATIVAS ===== */
 var inicDatos=[];
+/* ===== CIVISMO: participación por persona ===== */
+var civDatos=[], civOrden='total';
+function ordenCivismo(o){
+ civOrden=o;
+ document.querySelectorAll('.chip[data-co]').forEach(function(c){c.classList.toggle('on',c.getAttribute('data-co')===o);});
+ cargarCivismo();
+}
+function cargarCivismo(){
+ $('#civLista').innerHTML='<div class="card"><div class="empty">Cargando…</div></div>';
+ // resumen global (una vez; si falla, no rompe la lista)
+ rpc('admin_civismo_resumen',{}).then(function(r){
+  var d=(Array.isArray(r)&&r[0])?r[0]:r; if(!d)return;
+  $('#civResumen').innerHTML='<div class="card" style="padding:12px 15px;margin-bottom:10px;display:flex;gap:18px;flex-wrap:wrap">'
+   +civCel('Personas',d.personas)+civCel('Verificadas',d.verificadas)+civCel('Votaron',d.votaron)
+   +civCel('Crearon',d.crearon)+civCel('Apoyaron',d.apoyaron)+civCel('Votos totales',d.votos_totales)+'</div>';
+ }).catch(function(){});
+ rpc('admin_civismo',{p_orden:civOrden,p_limit:200}).then(function(filas){
+  civDatos=Array.isArray(filas)?filas:[];
+  renderCivismo();
+ }).catch(function(e){$('#civLista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+' · ¿Corriste sql_civismo.sql?</div></div>';});
+}
+function civCel(lbl,val){
+ return '<div><div style="font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.03em">'+lbl+'</div>'
+   +'<div style="font-size:18px;font-weight:800;color:var(--ink)">'+(val==null?'—':val)+'</div></div>';
+}
+function civNivel(p){
+ // Nivel cívico por puntos (para felicitar). Umbrales ajustables.
+ if(p>=120)return ['🏛️ Protagonista','#6B4FB0'];
+ if(p>=40) return ['⭐ Comprometido/a','#1E8C57'];
+ if(p>=10) return ['🌱 Participante','#2563C9'];
+ return ['· Nuevo/a','#64748b'];
+}
+function renderCivismo(){
+ if(!civDatos.length){$('#civLista').innerHTML='<div class="card"><div class="empty">Todavía no hay actividad de personas registrada.</div></div>';return;}
+ var h='';
+ civDatos.forEach(function(d,ix){
+  var niv=civNivel(Number(d.puntos||0));
+  var ua=d.ultima_actividad?new Date(d.ultima_actividad).toLocaleDateString('es-AR'):'—';
+  h+='<div class="card" style="padding:12px 15px;margin-bottom:8px">'
+   +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+     +'<span style="font-weight:800;color:var(--muted);font-size:13px;width:26px">#'+(ix+1)+'</span>'
+     +'<span style="font-weight:700;font-size:15px">'+esc(d.nick||'Vecino/a')+'</span>'
+     +(d.verificado?'<span class="st link" style="font-size:10px">✓ verificada</span>':'<span class="st desc" style="font-size:10px">sin verificar</span>')
+     +(d.zona?'<span class="muted" style="font-size:11.5px">📍 '+esc(d.zona)+'</span>':'')
+     +'<span class="st" style="background:'+niv[1]+'20;color:'+niv[1]+';font-weight:700;margin-left:auto">'+niv[0]+' · '+(d.puntos||0)+' pts</span>'
+   +'</div>'
+   +'<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:9px;font-size:12.5px">'
+     +civStat('🗳️','Votó en',d.voto_plebiscitos,'plebiscitos')
+     +civStat('✏️','Creó',d.creadas,'iniciativas')
+     +civStat('🧩','Colaboró en',d.colaboradas,'')
+     +civStat('🤝','Apoyó',d.apoyos,'')
+     +'<span class="muted" style="margin-left:auto;font-size:11.5px">última actividad: '+ua+'</span>'
+   +'</div></div>';
+ });
+ $('#civLista').innerHTML=h;
+}
+function civStat(ic,lbl,n,suf){
+ n=Number(n||0);
+ var fuerte=n>0?'color:var(--ink);font-weight:700':'color:var(--faint)';
+ return '<span style="'+fuerte+'">'+ic+' '+lbl+' <b>'+n+'</b>'+(suf?' '+suf:'')+'</span>';
+}
+
 function cargarInicAdmin(){
  var cont=document.getElementById('inicLista'); if(cont)cont.innerHTML='<div class="empty">Cargando…</div>';
  rpc('admin_iniciativas',{p_estado:null}).then(function(rows){
@@ -926,9 +1023,17 @@ function accionPrensa(billId,accion){
 /* ===== FEED DE VOTACIÓN ===== */
 var feedDatos=[], feedFiltro='pub';
 function filtrarFeed(f){feedFiltro=f;document.querySelectorAll('.chip[data-ff]').forEach(function(c){c.classList.toggle('on',c.getAttribute('data-ff')===f);});renderFeed();}
+var sesionesSinTratar={};  // bill_id -> nº de sesiones sin tratarse
 function cargarFeed(){
  rpc('admin_feed_leyes',{}).then(function(filas){
-  feedDatos=Array.isArray(filas)?filas:[];renderFeed();
+  feedDatos=Array.isArray(filas)?filas:[];
+  renderFeed();
+  // en paralelo: traer el contador de "no tratado" y re-renderizar
+  rpc('admin_sesiones_sin_tratar',{}).then(function(rows){
+   sesionesSinTratar={};
+   (Array.isArray(rows)?rows:[]).forEach(function(r){ sesionesSinTratar[r.bill_id]=r.sesiones; });
+   renderFeed();
+  }).catch(function(){/* si falla (SQL no corrido aún), el feed igual se ve */});
  }).catch(function(e){$('#feedLista').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+'</div></div>';});
 }
 function renderFeed(){
@@ -964,6 +1069,11 @@ function renderFeed(){
   // Cartel de antigüedad: leyes publicadas con más de 70 días desde su fecha.
   var diasEnRecinto=diasDesdeFecha(d.fecha);
   var viejo=(d.publicada && diasEnRecinto!=null && diasEnRecinto>70);
+  // Contador "no tratado": sesiones de su cámara desde que se publicó.
+  var SES_UMBRAL=4;
+  var ses=sesionesSinTratar[d.bill_id];
+  var sesTxt=(d.publicada && ses!=null)?('🏛️ '+ses+' sesión'+(ses===1?'':'es')+' sin tratarse'):'';
+  var sesAlerta=(d.publicada && ses!=null && ses>=SES_UMBRAL);
   var pubBtn=d.publicada
    ? '<button class="btn warn sm" onclick="togglePub(\''+d.bill_id+'\',false)">Despublicar</button>'
    : '<button class="btn ok sm" onclick="togglePub(\''+d.bill_id+'\',true)">Publicar</button>';
@@ -982,11 +1092,14 @@ function renderFeed(){
    +estado+ms+manu
    +'<span class="pill '+cam+'" style="margin-left:8px">'+esc(d.camara)+'</span>'
    +'<span class="exp" style="color:var(--brand);font-size:11.5px;font-weight:700;margin-left:6px">'+esc(d.expediente||d.bill_id)+'</span>'
-   +'<span style="font-size:11px;color:var(--muted);margin-left:6px">'+esc(d.fecha||'')+' · '+(d.puntaje_pnyx||0)+' pts'+(d.autor?' · 👤 '+esc(d.autor):'')+'</span>'
+   +'<span style="font-size:11px;color:var(--muted);margin-left:6px">'+esc(d.fecha||'')+' · '+(d.puntaje_pnyx||0)+' pts'+(d.autor?' · 👤 '+esc(d.autor):'')+(sesTxt?' · '+(sesAlerta?'<b style="color:#b3431f">'+sesTxt+'</b>':sesTxt):'')+'</span>'
    +'<span style="margin-left:auto"></span>'+pubBtn
    +'</div>'
    +(viejo?'<div style="padding:9px 14px;background:#F6ECD6;color:#7d5a14;font-size:12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)">'
      +'<span style="font-size:14px">⏰</span><span>Publicada hace <b>'+diasEnRecinto+' días</b>. ¿La dejás o la sacás del feed?</span>'
+     +'<button class="btn warn sm" style="margin-left:auto" onclick="togglePub(\''+d.bill_id+'\',false)">Sacar del feed</button></div>':'')
+   +(sesAlerta?'<div style="padding:9px 14px;background:#F7E5E1;color:#9a3620;font-size:12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line)">'
+     +'<span style="font-size:14px">🏛️</span><span>Pasaron <b>'+ses+' sesiones</b> de '+esc(d.camara)+' sin que se trate. Quizás no se va a votar: ¿la sacás?</span>'
      +'<button class="btn warn sm" style="margin-left:auto" onclick="togglePub(\''+d.bill_id+'\',false)">Sacar del feed</button></div>':'')
    +'<div style="padding:14px">'
    +'<div class="lbl" style="font-size:10px;font-weight:800;color:var(--muted);margin-bottom:5px">TÍTULO EDITADO POR IA (editable)</div>'
@@ -1222,7 +1335,7 @@ function toggleLeyVotada(votId){
 function _cam(x){ return String(x||'').toLowerCase().indexOf('sen')>=0 ? 'sen' : 'dip'; }
 
 /* Filtro de cámara por panel: 'todas' | 'dip' | 'sen'. */
-var camaraFiltro={feedPub:'todas', votadas:'todas', linkeo:'todas', cura:'todas'};
+var camaraFiltro={feedPub:'todas', votadas:'todas', linkeo:'todas', cura:'todas', linkeoVot:'todas'};
 function setCamara(panelKey,val){
  camaraFiltro[panelKey]=val;
  document.querySelectorAll('.chip[data-cf="'+panelKey+'"]').forEach(function(c){
@@ -1403,6 +1516,77 @@ function linkearDesdeLey(bill,acta,camara){
   renderFeedSinLink();
   var cp=$('#cntPend'); if(cp){ if(feedSinLink.length>0){cp.textContent=feedSinLink.length;} else cp.style.display='none'; }
  }).catch(function(){toast('No se pudo linkear');});
+}
+
+/* ===== LINKEO MODO B: desde la votación del Congreso ===== */
+var modoLinkeo='ley', votSinLink=[];
+function setModoLinkeo(m){
+ modoLinkeo=m;
+ $('#modo-ley').classList.toggle('on', m==='ley');
+ $('#modo-vot').classList.toggle('on', m==='vot');
+ $('#linkeo-ley').style.display = (m==='ley')?'block':'none';
+ $('#linkeo-vot').style.display = (m==='vot')?'block':'none';
+ if(m==='vot' && !votSinLink.length) cargarVotacionesSinLink();
+}
+function cargarVotacionesSinLink(){
+ $('#listaVot').innerHTML='<div class="card"><div class="empty">Cargando votaciones…</div></div>';
+ rpc('admin_votaciones_sin_linkear',{p_camara:null,p_limit:100}).then(function(filas){
+  votSinLink=Array.isArray(filas)?filas:[];
+  renderVotacionesSinLink();
+ }).catch(function(e){$('#listaVot').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+' · ¿Corriste sql_linkeo_desde_votacion.sql?</div></div>';});
+}
+function renderVotacionesSinLink(){
+ if(!votSinLink.length){$('#listaVot').innerHTML='<div class="card"><div class="empty">🎉 No hay votaciones del Congreso sin linkear.</div></div>';return;}
+ // Filtro de cámara (reusa la barra existente, clave 'linkeoVot').
+ var lista=aplicarCamara('linkeoVot', votSinLink);
+ var h=barraCamara('linkeoVot');
+ lista.forEach(function(v){
+  var cam=_cam(v.camara);
+  var f=v.votada_en?new Date(v.votada_en).toLocaleDateString('es-AR'):'';
+  var nums='👍 '+(v.afirmativos||0)+' · 👎 '+(v.negativos||0)+(v.abstenciones?' · ➖ '+v.abstenciones:'');
+  h+='<div class="card" id="vot-'+v.acta_id+'" style="padding:14px">'
+   +'<div style="display:flex;gap:7px;align-items:center;margin-bottom:5px;flex-wrap:wrap"><span class="pill '+cam+'">'+esc(v.camara)+'</span>'
+   +'<span class="st '+(String(v.resultado||'').toUpperCase().indexOf("AFIRMATIV")>=0?"link":"desc")+'">'+esc(v.resultado||'')+'</span>'
+   +(f?'<span class="muted" style="font-size:11px">· '+f+'</span>':'')+'<span class="muted" style="font-size:11px">· '+nums+'</span></div>'
+   +'<div style="font-weight:700;font-size:14px;line-height:1.35;margin-bottom:4px">'+esc(v.titulo||'')+'</div>'
+   +(v.orden_del_dia&&v.orden_del_dia!==v.titulo?'<div class="muted" style="font-size:12px;line-height:1.4;margin-bottom:8px">'+esc(v.orden_del_dia)+'</div>':'')
+   +'<div class="lbl" style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-top:6px">Proyectos sugeridos (misma cámara)</div>'
+   +'<div id="sug-'+v.acta_id+'"><span class="muted" style="font-size:12px">Cargando sugerencias…</span></div>'
+   +'<div style="margin-top:8px"><button class="btn sec sm" onclick="descartarVot(\''+v.acta_id+'\',\''+esc(v.camara)+'\')">✕ Ninguno corresponde (descartar)</button></div>'
+   +'</div>';
+ });
+ $('#listaVot').innerHTML=h;
+ // cargar las sugerencias (2-3) de cada votación visible
+ lista.forEach(function(v){ cargarSugerencias(v.acta_id, v.camara); });
+}
+function cargarSugerencias(acta,camara){
+ rpc('sugerencia_linkeo',{p_acta:acta,p_camara:camara,p_n:3}).then(function(rows){
+  rows=Array.isArray(rows)?rows:[];
+  var cont=document.getElementById('sug-'+acta); if(!cont)return;
+  if(!rows.length){cont.innerHTML='<span class="muted" style="font-size:12px">Sin proyectos publicados parecidos de esta cámara.</span>';return;}
+  cont.innerHTML=rows.map(function(l){
+   var conf=(l.sim!=null)?Math.round(l.sim*100):null;
+   var badge=conf!=null?'<span class="st '+(conf>=50?'link':(conf>=25?'pend':'desc'))+'" style="margin-right:6px">'+conf+'%</span>':'';
+   return '<div class="res" style="display:block;padding:9px 10px;cursor:pointer" onclick="linkearDesdeVot(\''+acta+'\',\''+esc(camara)+'\',\''+l.bill_id+'\')">'
+     +'<div style="margin-bottom:2px">'+badge+'<span class="exp" style="color:var(--brand);font-size:11px;font-weight:700">'+esc(l.expediente||l.bill_id)+'</span>'+(l.fecha?'<span class="muted" style="font-size:11px"> · '+esc(String(l.fecha).slice(0,10))+'</span>':'')+'</div>'
+     +'<div style="font-size:12.5px;line-height:1.4;font-weight:600">'+esc(l.oracion_ia||l.titulo||l.bill_id)+'</div></div>';
+  }).join('');
+ }).catch(function(){var cont=document.getElementById('sug-'+acta);if(cont)cont.innerHTML='<span class="muted" style="font-size:12px">No se pudo cargar.</span>';});
+}
+function linkearDesdeVot(acta,camara,bill){
+ rpc('linkear_manual',{p_acta:acta,p_camara:camara,p_bill_id:bill}).then(function(){
+  toast('✅ Linkeada: la ley salió del feed y pasó a Destacadas');
+  votSinLink=votSinLink.filter(function(x){return x.acta_id!==acta;});
+  renderVotacionesSinLink();
+ }).catch(function(){toast('No se pudo linkear');});
+}
+function descartarVot(acta,camara){
+ if(!confirm('¿Descartar esta votación? (no corresponde a ningún proyecto del feed)'))return;
+ rpc('descartar_link',{p_acta:acta,p_camara:camara}).then(function(){
+  toast('Votación descartada');
+  votSinLink=votSinLink.filter(function(x){return x.acta_id!==acta;});
+  renderVotacionesSinLink();
+ }).catch(function(){toast('No se pudo descartar');});
 }
 
 function render(){

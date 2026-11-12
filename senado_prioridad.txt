@@ -1,73 +1,67 @@
-SENADO — QUE BAJAR PRIMERO (por prensa) — 552 sin texto, 41 con mencion
+SENADO — QUE BAJAR PRIMERO (por prensa) — 563 sin texto, 25 con mencion
 Las de arriba son las que mas estan sonando en los medios hoy.
 Baja el PDF y guardalo en senado_pdfs\ con el nombre indicado.
 ========================================================================
 
-Guardar como: SENADO1602-26.pdf  ⭐ x2 diarios
-  En: El Cronista (economia), Perfil (politica)
-  Exp: 1602/26 (Senado)
-  Titulo: ESTABLECE UN REGIMEN DE PROTECCION DE LA SOBERANÍA Y CONTROL PARLAMENTARIO DE LA BASE NAVAL INTEGRADA USHUAIA.
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1602.26/S/PL
+Guardar como: SENADO1130-26.pdf  ⭐ x3 diarios
+  En: Ambito (economia), Ambito (politica), El Cronista (economia)
+  Exp: 1130/26 (Senado)
+  Titulo: MODIFICA SU SIMILAR 27.802 - MODERNIZACION LABORAL - RESPECTO A LOS SUJETOS ALCANZADOS DEL REGIMEN DE INCENTIVO PARA MEDIANAS INVERSIONES Y LOS MONTOS
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1130.26/S/PL
 
-Guardar como: SENADO450-26.pdf  ⭐ x2 diarios
-  En: Ambito (economia), Perfil (economia)
-  Exp: 450/26 (Senado)
-  Titulo: INCORPORA EL ART. 5 BIS Y EL ART. 10 BIS, A SU SIMILAR 17.622 - CREACION DEL INSTITUTO NACIONAL DE ESTADISTICAS Y CENSOS-, RESPECTO A LA ACTUALIZACION
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/450.26/S/PL
+Guardar como: SENADO1599-26.pdf  ⭐ x2 diarios
+  En: Ambito (politica), El Cronista (economia)
+  Exp: 1599/26 (Senado)
+  Titulo: MODIFICA SU SIMILAR 27.742 -BASES Y PUNTOS DE PARTIDA PARA LA LIBERTAD DE LOS ARGENTINOS-, RESPECTO DE INCLUIR EN EL RÉGIMEN DE INCENTIVO PARA GRANDES
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1599.26/S/PL
 
-Guardar como: SENADO1051-26.pdf  ⭐ x1 diarios
-  En: Perfil (politica)
-  Exp: 1051/26 (Senado)
-  Titulo: MODIFICA SUS SIMILARES 26.215 —FINANCIAMIENTO DE LOS PARTIDOS POLÍTICOS— Y 26.571 —DEMOCRATIZACIÓN DE LA REPRESENTACIÓN POLÍTICA, LA TRANSPARENCIA Y L
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1051.26/S/PL
+Guardar como: SENADO470-26.pdf  ⭐ x2 diarios
+  En: Clarin (economia), El Cronista (economia)
+  Exp: 470/26 (Senado)
+  Titulo: REPRODUCE PROYECTO DE LEY QUE PRORROGA EL PLAZO DEL ART. 33 DE LA LEY 21.499 (EXPROPIACIONES) PARA PROMOVER EL JUICIO DE EXPROPIACION EN RELACION, UNI
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/470.26/S/PL
 
-Guardar como: SENADO586-26.pdf  ⭐ x1 diarios
-  En: Perfil (politica)
-  Exp: 586/26 (Senado)
-  Titulo: MODIFICA EL TITULO II DE LA LEY 26.571 -DE DEMOCRATIZACION DE LA REPRESENTACION POLITICA, LA TRANSPARENCIA Y LA EQUIDAD ELECTORAL- RESPECTO DE LAS ELE
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/586.26/S/PL
+Guardar como: SENADO206-26.pdf  ⭐ x2 diarios
+  En: Clarin (economia), El Cronista (economia)
+  Exp: 206/26 (Senado)
+  Titulo: REPRODUCE PROYECTO DE LEY QUE PRORROGA EL PLAZO DEL ART. 33 DE LA LEY 21.499 (EXPROPIACIONES) PARA PROMOVER EL JUICIO DE EXPROPIACION EN RELACION, UNI
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/206.26/S/PL
 
-Guardar como: SENADO1336-26.pdf  ⭐ x1 diarios
-  En: Perfil (economia)
-  Exp: 1336/26 (Senado)
-  Titulo: MODIFICA EL ART. 67 DEL CÓDIGO PENAL, RESPECTO A LA INCORPORACIÓN DE UNA CAUSAL DE INTERRUPCIÓN DE LA PRESCRIPCIÓN DE LA ACCIÓN PENAL PARA DELITOS CON
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1336.26/S/PL
+Guardar como: SENADO164-26.pdf  ⭐ x2 diarios
+  En: Clarin (economia), El Cronista (economia)
+  Exp: 164/26 (Senado)
+  Titulo: ESTABLECE UNA REDUCCIÓN DEL CINCUENTA POR CIENTO (50%) EN LOS MONTOS FIJOS CORRESPONDIENTES AL IMPUESTO SOBRE LOS COMBUSTIBLES LÍQUIDOS Y AL DIÓXIDO D
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/164.26/S/PL
 
-Guardar como: SENADO500-26.pdf  ⭐ x1 diarios
-  En: Perfil (economia)
-  Exp: 500/26 (Senado)
-  Titulo: REPRODUCE PROYECTO DE LEY DE CAPACITACION ESTATAL OBLIGATORIA EN DATOS E INTELIGENCIA ARTIFICIAL PARA UN GOBIERNO DEL FUTURO. (REF. S. 2205/24)
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/500.26/S/PL
+Guardar como: SENADO41-26.pdf  ⭐ x2 diarios
+  En: Ambito (politica), Clarin (politica)
+  Exp: 41/26 (Senado)
+  Titulo: CREA EL FUERO ESPECIAL DE MEDIDAS CAUTELARES ADMINISTRATIVAS Y EJECUCION EN LA ORBITA DEL PODER JUDICIAL DE LA NACION.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/41.26/S/PL
 
-Guardar como: SENADO448-26.pdf  ⭐ x1 diarios
-  En: Perfil (economia)
-  Exp: 448/26 (Senado)
-  Titulo: DECLARA LA EMERGENCIA ECONOMICA, PRODUCTIVA, FINANCIERA Y FISCAL DE LAS MICRO, PEQUEÑAS Y MEDIANAS EMPRESAS, HASTA EL 1 DE MARZO DE 2027.
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/448.26/S/PL
+Guardar como: SENADO1844-26.pdf  ⭐ x1 diarios
+  En: El Cronista (economia)
+  Exp: 1844/26 (Senado)
+  Titulo: CREA EL REGIMEN DE CABOTAJE, MARINA MERCANTE Y ADMISIÓN TEMPORARIA.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1844.26/S/PL
 
-Guardar como: SENADO1694-26.pdf  ⭐ x1 diarios
-  En: Perfil (politica)
-  Exp: 1694/26 (Senado)
-  Titulo: DE RECUPERACION ECONOMICA DE LAS FAMILIAS Y PROTECCION CONTRA EL ENDEUDAMIENTO DE CONSUMO
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1694.26/S/PL
+Guardar como: SENADO1685-26.pdf  ⭐ x1 diarios
+  En: Ambito (economia)
+  Exp: 1685/26 (Senado)
+  Titulo: PRORROGA LA EMERGENCIA SANITARIA DE LA SALUD PEDIATRICA Y DE LAS RESIDENCIAS NACIONALES EN SALUD, DECLARADA EN EL ART. 1° DE LA LEY N° 27.796, HASTA E
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1685.26/S/PL
 
-Guardar como: SENADO1568-26.pdf  ⭐ x1 diarios
-  En: Perfil (economia)
-  Exp: 1568/26 (Senado)
-  Titulo: MODIFICA SU SIMILAR 27.742- BASES Y PUNTOS DE PARTIDA PARA LA LIBERTAD DE LOS ARGENTINOS- RESPECTO DE ESTABLECER UNA GARANTIA DE INTEGRIDAD SOBERANA E
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1568.26/S/PL
+Guardar como: SENADO1679-26.pdf  ⭐ x1 diarios
+  En: Ambito (economia)
+  Exp: 1679/26 (Senado)
+  Titulo: PRORROGA LA EMERGENCIA SANITARIA DE LA SALUD PEDIATRICA Y DE LAS RESIDENCIAS NACIONALES EN SALUD, DECLARADA EN EL ART. 1° DE LA LEY N° 27.796, HASTA E
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1679.26/S/PL
 
-Guardar como: SENADO1537-26.pdf  ⭐ x1 diarios
-  En: Perfil (economia)
-  Exp: 1537/26 (Senado)
-  Titulo: PROMUEVE EL DESARROLLO ECONOMICO Y LA GENERACION DE EMPLEO EN LAS PROVINCIAS PRODUCTORAS DE MINERALES, EN EL MARCO ESTABLECIDO POR LA LEY 24.196.
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1537.26/S/PL
-
-Guardar como: SENADO1515-26.pdf  ⭐ x1 diarios
-  En: Perfil (economia)
-  Exp: 1515/26 (Senado)
-  Titulo: CREA UN REGIMEN DE FOMENTO, INCENTIVO Y SIMPLIFICACION TRIBUTARIA PARA MICRO, PEQUEÑAS Y MEDIANAS EMPRESAS (RF-MIPYME).
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1515.26/S/PL
+Guardar como: SENADO1542-26.pdf  ⭐ x1 diarios
+  En: Ambito (politica)
+  Exp: 1542/26 (Senado)
+  Titulo: GARANTIZA EL DERECHO DEL PACIENTE A CONOCER EL COSTO DE SU ATENCION EN SALUD.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1542.26/S/PL
 
 Guardar como: SENADO1485-26.pdf  ⭐ x1 diarios
   En: Ambito (politica)
@@ -75,83 +69,35 @@ Guardar como: SENADO1485-26.pdf  ⭐ x1 diarios
   Titulo: DECLARA DE INTERES LA VISITA APOSTOLICA DE SU SANTIDAD EL PAPA LEON XIV A LA REPUBLICA ARGENTINA, ENTRE EL 8 Y EL 11 DE NOVIEMBRE DE 2026.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1485.26/S/PL
 
-Guardar como: SENADO1465-26.pdf  ⭐ x1 diarios
-  En: Ambito (politica)
-  Exp: 1465/26 (Senado)
-  Titulo: SUSTITUYE EL INC. 6 DEL ART. 3 DEL CONVENIO SOBRE COMUNICACIONES ENTRE TRIBUNALES DE DISTINTA JURISDICCIÓN TERRITORIAL, RESPECTO DE LOS REQUISITOS DE 
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1465.26/S/PL
-
-Guardar como: SENADO1450-26.pdf  ⭐ x1 diarios
-  En: Perfil (economia)
-  Exp: 1450/26 (Senado)
-  Titulo: INCORPORA UN ART. SIN NUMERO A CONTINUACION DEL ART. 39 DE SU SIMILAR 11.683 - PROCEDIMIENTO TRIBUTARIO (T.O. 1998 Y S/M), RESPECTO DE UN REGIMEN DE P
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1450.26/S/PL
-
-Guardar como: SENADO1445-26.pdf  ⭐ x1 diarios
-  En: Ambito (politica)
-  Exp: 1445/26 (Senado)
-  Titulo: INSTITUYE EL 26 DE AGOSTO DE CADA AÑO COMO "DIA NACIONAL DEL VETERANO Y CAIDOS INDIGENAS EN LA GUERRA DE MALVINAS".
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1445.26/S/PL
-
-Guardar como: SENADO1440-26.pdf  ⭐ x1 diarios
-  En: Perfil (economia)
-  Exp: 1440/26 (Senado)
-  Titulo: ESTABLECE UN MARCO JURÍDICO PARA LA GARANTÍA DE EJECUCIÓN DE PROYECTOS PÚBLICOS ESTRATÉGICOS DE LA NACIÓN ARGENTINA.
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1440.26/S/PL
-
-Guardar como: SENADO1438-26.pdf  ⭐ x1 diarios
-  En: Perfil (economia)
-  Exp: 1438/26 (Senado)
-  Titulo: CREA EL REGIMEN ESPECIAL DE REGULARIZACION FISCAL Y ALIVIO FINANCIERO PARA PEQUEÑOS CONTRIBUYENTES Y MICRO, PEQUEÑAS Y MEDIANAS EMPRESAS.
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1438.26/S/PL
-
-Guardar como: SENADO1252-26.pdf  ⭐ x1 diarios
-  En: Ambito (economia)
-  Exp: 1252/26 (Senado)
-  Titulo: MODIFICA SU SIMILAR 24.240 - DEFENSA DEL CONSUMIDOR-, RESPECTO DE ESTABLECER UNA ADVERTENCIA PREVIA EN OPERACIONES DE CREDITO PARA EL CONSUMO, PARA PR
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1252.26/S/PL
-
-Guardar como: SENADO1143-26.pdf  ⭐ x1 diarios
-  En: Perfil (economia)
-  Exp: 1143/26 (Senado)
-  Titulo: INCORPORA EL INC. C AL ART. 44 DE SU SIMILAR 25.300 - FOMENTO PARA LA MICRO, PEQUEÑA Y MEDIANA EMPRESA -, RESPECTO A LA INTEGRACION DEL CONSEJO FEDERA
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1143.26/S/PL
-
-Guardar como: SENADO1130-26.pdf  ⭐ x1 diarios
-  En: Perfil (economia)
-  Exp: 1130/26 (Senado)
-  Titulo: MODIFICA SU SIMILAR 27.802 - MODERNIZACION LABORAL - RESPECTO A LOS SUJETOS ALCANZADOS DEL REGIMEN DE INCENTIVO PARA MEDIANAS INVERSIONES Y LOS MONTOS
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1130.26/S/PL
-
-Guardar como: SENADO1055-26.pdf  ⭐ x1 diarios
-  En: Clarin (economia)
-  Exp: 1055/26 (Senado)
-  Titulo: DE TRANSPARENCIA, PUBLICIDAD Y PARTICIPACION CIUDADANA EN EL PROCEDIMIENTO DE SELECCIÓN DE CANDIDATOS PARA CUBRIR VACANTES EN LA CORTE SUPREMA DE JUST
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1055.26/S/PL
-
-Guardar como: SENADO634-26.pdf  ⭐ x1 diarios
-  En: Perfil (economia)
-  Exp: 634/26 (Senado)
-  Titulo: DECLARA ESTADO DE EMERGENCIA Y/O DESASTRE AGROPECUARIO NACIONAL, POR EL TERMINO DE 90 DIAS A PARTIR DEL 1° DE MAYO DE 2026, A LAS EXPLOTACIONES AGROPE
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/634.26/S/PL
-
-Guardar como: SENADO611-26.pdf  ⭐ x1 diarios
-  En: Perfil (economia)
-  Exp: 611/26 (Senado)
-  Titulo: DECLARA LA EMERGENCIA TARIFARIA, IMPOSITIVA, PRODUCTIVA Y LABORAL, DE LAS MICRO, PEQUEÑAS Y MEDIANAS EMPRESAS (MIPYMES), EN TODO EL TERRITORIO DE LA R
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/611.26/S/PL
-
-Guardar como: SENADO581-26.pdf  ⭐ x1 diarios
-  En: Clarin (economia)
-  Exp: 581/26 (Senado)
-  Titulo: REPRODUCE PROYECTO DE LEY DE PARIDAD DE GÉNERO EN LA CORTE SUPREMA DE JUSTICIA Y LOS TRIBUNALES FEDERALES COLEGIADOS DE JUSTICIA DE LA NACIÓN (REF. S.
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/581.26/S/PL
-
-Guardar como: SENADO508-26.pdf  ⭐ x1 diarios
+Guardar como: SENADO1470-26.pdf  ⭐ x1 diarios
   En: El Cronista (economia)
-  Exp: 508/26 (Senado)
-  Titulo: SOBRE REGIMEN NACIONAL DE REGULACION DE JUEGOS Y APUESTAS ONLINE.
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/508.26/S/PL
+  Exp: 1470/26 (Senado)
+  Titulo: DE AMPLIACION DEL REGIMEN DE INCENTIVO PARA GRANDES INVERSIONES A LAS NUEVAS ACTIVIDADES TECNOLÓGICAS ESTRATÉGICAS Y DE FORTALECIMIENTO DE SUS DISPOSI
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1470.26/S/PL
+
+Guardar como: SENADO1247-26.pdf  ⭐ x1 diarios
+  En: El Cronista (economia)
+  Exp: 1247/26 (Senado)
+  Titulo: CREA EL REGIMEN ESPECIAL TEMPORAL PARA EL FORTALECIMIENTO DEL CABOTAJE NACIONAL Y DE LA MARINA MERCANTE ARGENTINA (RETCAN).
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1247.26/S/PL
+
+Guardar como: SENADO1216-26.pdf  ⭐ x1 diarios
+  En: El Cronista (economia)
+  Exp: 1216/26 (Senado)
+  Titulo: CREA EL RÉGIMEN ESPECIAL TEMPORAL PARA EL FORTALECIMIENTO DEL CABOTAJE NACIONAL Y DE LA MARINA MERCANTE ARGENTINA (RETCAN).
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1216.26/S/PL
+
+Guardar como: SENADO628-26.pdf  ⭐ x1 diarios
+  En: Ambito (politica)
+  Exp: 628/26 (Senado)
+  Titulo: SOBRE EL ABORDAJE INTEGRAL DE LA SALUD MENTAL EN ESTABLECIMIENTOS EDUCATIVOS.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/628.26/S/PL
+
+Guardar como: SENADO513-26.pdf  ⭐ x1 diarios
+  En: El Cronista (economia)
+  Exp: 513/26 (Senado)
+  Titulo: MODIFICA SU SIMILAR 23.966 -IMPUESTOS-, RESPECTO DE REASIGNAR LOS RECURSOS RECAUDADOS EN VIRTUD DEL IMPUESTO A LOS COMBUSTIBLES Y AL DIÓXIDO DE CARBON
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/513.26/S/PL
 
 Guardar como: SENADO504-26.pdf  ⭐ x1 diarios
   En: El Cronista (economia)
@@ -159,95 +105,123 @@ Guardar como: SENADO504-26.pdf  ⭐ x1 diarios
   Titulo: DECLARA LA EMERGENCIA DEL INSTITUTO NACIONAL DE SERVICIOS SOCIALES PARA JUBILADOS Y PENSIONADOS (PAMI), POR EL PLAZO DE DOCE (12) MESES, PRORROGABLE P
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/504.26/S/PL
 
-Guardar como: SENADO497-26.pdf  ⭐ x1 diarios
-  En: Perfil (politica)
-  Exp: 497/26 (Senado)
-  Titulo: INCORPORA LOS INCISOS H, E I, AL ART. 33 DE SU SIMILAR 23.298 - LEY ORGANICA DE LOS PARTIDOS POLITICOS SOBRE INHABILITACION PARA PRECANDIDATURAS, CAND
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/497.26/S/PL
-
-Guardar como: SENADO424-26.pdf  ⭐ x1 diarios
-  En: Perfil (politica)
-  Exp: 424/26 (Senado)
-  Titulo: TRANSFIERE A TITULO GRATUITO A FAVOR DE LA PROV. DE ENTRE RIOS, EL INMUEBLE PROPIEDAD DEL ESTADO NACIONAL, UBICADO EN EL EJIDO DE LA CDAD. DE FEDERACI
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/424.26/S/PL
-
-Guardar como: SENADO393-26.pdf  ⭐ x1 diarios
-  En: Ambito (politica)
-  Exp: 393/26 (Senado)
-  Titulo: MODIFICA EL ART. 2º INCISO C), LL) Y M) DE LA LEY 24.804 (ACTIVIDAD NUCLEAR), RESPECTO A LA AUTORIZACION DEL CONGRESO PARA LA TRANSFERENCIA DE TECNOLO
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/393.26/S/PL
-
-Guardar como: SENADO350-26.pdf  ⭐ x1 diarios
+Guardar como: SENADO360-26.pdf  ⭐ x1 diarios
   En: El Cronista (economia)
-  Exp: 350/26 (Senado)
-  Titulo: REPRODUCE PROYECTO DE LEY QUE REGULA LA PUBLICIDAD DE LOS JUEGOS DE AZAR ONLINE EN TODOS LOS MEDIOS DE COMUNICACION. (REF. S. 803/24).
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/350.26/S/PL
+  Exp: 360/26 (Senado)
+  Titulo: CREA LA UNIVERSIDAD NACIONAL DE LA CUENCA DEL SALADO, CON SEDE CENTRAL EN EL DISTRITO DE CAÑUELAS, PROV. DE BUENOS AIRES.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/360.26/S/PL
 
-Guardar como: SENADO326-26.pdf  ⭐ x1 diarios
-  En: Perfil (economia)
-  Exp: 326/26 (Senado)
-  Titulo: REPRODUCE PROYECTO DE LEY QUE CREA EL PROGRAMA DE FOMENTO PARA LA ARTICULACION ENTRE INSTITUCIONES EDUCATIVAS AGROSUSTENTABLES Y PROYECTOS PRODUCTIVOS
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/326.26/S/PL
-
-Guardar como: SENADO245-26.pdf  ⭐ x1 diarios
-  En: Clarin (economia)
-  Exp: 245/26 (Senado)
-  Titulo: REPRODUCE PROYECTO DE LEY SOBRE EQUILIBRIO DE GÉNERO EN LA CORTE SUPREMA DE JUSTICIA Y LOS TRIBUNALES FEDERALES COLEGIADOS DE JUSTICIA DE TODO EL PAÍS
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/245.26/S/PL
-
-Guardar como: SENADO221-26.pdf  ⭐ x1 diarios
-  En: Perfil (politica)
-  Exp: 221/26 (Senado)
-  Titulo: DE INTEGRIDAD Y SIMPLIFICACIÓN ELECTORAL QUE REFORMA EL CÓDIGO ELECTORAL NACIONAL Y CREA EL SISTEMA FEDERAL DE ESTÁNDARES ELECTORALES.
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/221.26/S/PL
-
-Guardar como: SENADO219-26.pdf  ⭐ x1 diarios
-  En: Perfil (economia)
-  Exp: 219/26 (Senado)
-  Titulo: DECLARA LA EMERGENCIA PRODUCTIVA, FISCAL, LABORAL, FINANCIERA Y TARIFARIA DE LAS MICRO, PEQUEÑAS Y MEDIANAS EMPRESAS DE LA REPUBLICA ARGENTINA.
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/219.26/S/PL
-
-Guardar como: SENADO201-26.pdf  ⭐ x1 diarios
+Guardar como: SENADO359-26.pdf  ⭐ x1 diarios
   En: El Cronista (economia)
-  Exp: 201/26 (Senado)
-  Titulo: REPRODUCE PROYECTO DE LEY QUE GARANTIZA A LAS PERSONAS CON DISCAPACIDAD EL DERECHO DE ACCESO A LA INFORMACIÓN ADECUADA DE LOS MEDICAMENTOS, PARA SU AP
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/201.26/S/PL
+  Exp: 359/26 (Senado)
+  Titulo: CREA LA UNIVERSIDAD NACIONAL DE SALADILLO, EN LA CDAD. DE SALADILLO, PROV. DE BUENOS AIRES.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/359.26/S/PL
 
-Guardar como: SENADO157-26.pdf  ⭐ x1 diarios
+Guardar como: SENADO332-26.pdf  ⭐ x1 diarios
+  En: Perfil (politica)
+  Exp: 332/26 (Senado)
+  Titulo: REPRODUCE PROYECTO DE LEY QUE CREA EL REGISTRO NACIONAL DE CONDENADOS POR DELITOS CONTRA LA INTEGRIDAD SEXUAL. (REF. S. 1128/24)
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/332.26/S/PL
+
+Guardar como: SENADO280-26.pdf  ⭐ x1 diarios
+  En: Perfil (politica)
+  Exp: 280/26 (Senado)
+  Titulo: REPRODUCE PROYECTO DE LEY QUE CREA REGIMEN DE GESTION DE INTERESES, EN EL AMBITO DEL PODER EJECUTIVO Y LEGISLATIVO. (REF. S.1328-24).
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/280.26/S/PL
+
+Guardar como: SENADO133-26.pdf  ⭐ x1 diarios
   En: Ambito (economia)
-  Exp: 157/26 (Senado)
-  Titulo: SOBRE MOVILIDAD DEL PROGRAMA HOGARES CON GARRAFA (HOGAR). MODIFICACION LEY 26.020 - REGIMEN REGULATORIO DE LA INDUSTRIA Y COMERCIALIZACION DE GAS LICU
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/157.26/S/PL
+  Exp: 133/26 (Senado)
+  Titulo: REPRODUCE PROYECTO DE LEY QUE DECLARA "FIESTA NACIONAL DEL HELADO ARTESANAL", QUE SE CELEBRA EN LA CIUDAD DE ROSARIO, PROV. DE SANTA FE, EN EL MES DE 
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/133.26/S/PL
 
-Guardar como: SENADO142-26.pdf  ⭐ x1 diarios
-  En: Perfil (economia)
-  Exp: 142/26 (Senado)
-  Titulo: REPRODUCE PROYECTO DE LEY QUE OTORGA JERARQUÍA CONSTITUCIONAL AL ACUERDO REGIONAL SOBRE EL ACCESO A LA INFORMACIÓN, LA PARTICIPACIÓN PÚBLICA Y EL ACCE
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/142.26/S/PL
-
-Guardar como: SENADO82-26.pdf  ⭐ x1 diarios
+Guardar como: SENADO97-26.pdf  ⭐ x1 diarios
   En: El Cronista (economia)
-  Exp: 82/26 (Senado)
-  Titulo: MODIFICA EL ART. 22 BIS DE SU SIMILAR 24.241 - SISTEMA INTEGRADO DE JUBILACIONES Y PENSIONES -, RESPECTO DEL RECONOCIMIENTO PREVISIONAL DE AÑOS DE SER
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/82.26/S/PL
+  Exp: 97/26 (Poder Ejecutivo)
+  Titulo: MENSAJE N° 106/26 Y PROYECTO DE LEY QUE APRUEBA LA ENMIENDA AL PROTOCOLO DE MONTEVIDEO SOBRE EL COMERCIO DE SERVICIOS DEL MERCOSUR - LISTAS DE COMPROM
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/97.26/PE/PL
 
-Guardar como: SENADO53-26.pdf  ⭐ x1 diarios
-  En: Ambito (politica)
-  Exp: 53/26 (Senado)
-  Titulo: REPRODUCE PROYECTO DE LEY QUE TRANSFIERE A TITULO GRATUITO A FAVOR DE LA COMUNA DE LANTERI EL PREDIO PROPIEDAD DEL ESTADO NACIONAL, UBICADO ENTRE LAS 
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/53.26/S/PL
+Guardar como: SENADO74-26.pdf  ⭐ x1 diarios
+  En: El Cronista (economia)
+  Exp: 74/26 (Poder Ejecutivo)
+  Titulo: MENSAJE Nº 82/26 Y PROYECTO DE LEY QUE APRUEBA EL ACUERDO DE LIBRE COMERCIO ENTRE EL MERCADO COMUN DEL SUR "MERCOSUR" Y LA REPUBLICA DE SINGAPUR, CELE
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/74.26/PE/PL
 
-Guardar como: SENADO33-26.pdf  ⭐ x1 diarios
-  En: Perfil (economia)
-  Exp: 33/26 (Senado)
-  Titulo: CREA EL RÉGIMEN FEDERAL DE SUBSIDIO AL TRANSPORTE PÚBLICO DEL AUTOMOTOR DE PASAJEROS DEL NORTE GRANDE ARGENTINO.
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/33.26/S/PL
+Guardar como: SENADO8-26.pdf  ⭐ x1 diarios
+  En: Clarin (politica)
+  Exp: 8/26 (Poder Ejecutivo)
+  Titulo: MENSAJE Nº 12/26 Y PROYECTO DE LEY QUE APRUEBA EL "ACUERDO SOBRE MEDIDAS DEL ESTADO RECTOR DEL PUERTO DESTINADAS A PREVENIR, DESALENTAR Y ELIMINAR LA 
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/8.26/PE/PL
 
-Guardar como: SENADO13-26.pdf  ⭐ x1 diarios
-  En: Ambito (politica)
-  Exp: 13/26 (Poder Ejecutivo)
-  Titulo: MENSAJE Nº 22/26 Y PROYECTO DE LEY SOBRE INVIOLABILIDAD DE LA PROPIEDAD PRIVADA.
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/13.26/PE/PL
+Guardar como: SENADO1868-26.pdf  (sin prensa)
+  Exp: 1868/26 (Senado)
+  Titulo: MODIFICA LOS ARTS. 128 Y 131 DEL CÓDIGO PENAL, RESPECTO DE LOS DELITOS CONTRA LA INTEGRIDAD SEXUAL DE PERSONAS MENORES DE EDAD.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1868.26/S/PL
+
+Guardar como: SENADO1866-26.pdf  (sin prensa)
+  Exp: 1866/26 (Senado)
+  Titulo: MODIFICA SU SIMILAR 26.122 - RÉGIMEN LEGAL DE LOS DECRETOS DE NECESIDAD Y URGENCIA, DE DELEGACIÓN LEGISLATIVA Y DE PROMULGACIÓN PARCIAL DE LEYES.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1866.26/S/PL
+
+Guardar como: SENADO1856-26.pdf  (sin prensa)
+  Exp: 1856/26 (Senado)
+  Titulo: ESTABLECE UN RÉGIMEN DE ALIVIO Y REESTRUCTURACIÓN DE DEUDAS DE CONSUMO DE LAS FAMILIAS.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1856.26/S/PL
+
+Guardar como: SENADO1842-26.pdf  (sin prensa)
+  Exp: 1842/26 (Senado)
+  Titulo: ESTABLECE LOS PRESUPUESTOS MÍNIMOS DE GESTIÓN AMBIENTAL DE ENVASES Y EMBALAJES POST CONSUMO MEDIANTE LA RESPONSANBILIDAD EXTENDIDA DEL PRODUCTOR.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1842.26/S/PL
+
+Guardar como: SENADO1835-26.pdf  (sin prensa)
+  Exp: 1835/26 (Senado)
+  Titulo: DECLARA A LA PROV. DE SANTA FE COMO CAPITAL NACIONAL DEL DEPORTE.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1835.26/S/PL
+
+Guardar como: SENADO1825-26.pdf  (sin prensa)
+  Exp: 1825/26 (Senado)
+  Titulo: MODIFICA SU SIMILAR 14.346 -MALOS TRATOS Y ACTOS DE CRUELDAD A LOS ANIMALES-, RESPECTO DEL AGRAVAMIENTO DE LAS PENAS, LA IMPOSICIÓN DE MULTAS Y LA INC
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1825.26/S/PL
+
+Guardar como: SENADO1816-26.pdf  (sin prensa)
+  Exp: 1816/26 (Senado)
+  Titulo: DECLARA LA EMERGENCIA ECONOMICA, FISCAL, PRODUCTIVA Y SOCIAL PARA ENTRE RIOS Y OTRAS PROVINCIAS AFECTADAS POR LAS INUNDACIONES PRODUCTO DEL FENOMENO C
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1816.26/S/PL
+
+Guardar como: SENADO1812-26.pdf  (sin prensa)
+  Exp: 1812/26 (Senado)
+  Titulo: INSTITUYE EL 19 DE JULIO DE CADA AÑO COMO "DIA NACIONAL DE CONMEMORACION DE LA MASACRE DE NAPALPI".
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1812.26/S/PL
+
+Guardar como: SENADO1809-26.pdf  (sin prensa)
+  Exp: 1809/26 (Senado)
+  Titulo: CREA EL REGIMEN NACIONAL DE PROMOCION, INNOVACION Y ARRAIGO PARA LA GANADERIA CAPRINA Y OVINA. -
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1809.26/S/PL
+
+Guardar como: SENADO1806-26.pdf  (sin prensa)
+  Exp: 1806/26 (Senado)
+  Titulo: MODIFICA SU SIMILAR 26.331 - PRESUPUESTOS MÍNIMOS DE PROTECCIÓN AMBIENTAL DE LOS BOSQUES NATIVOS- RESPECTO DE INCORPORAR UN RÉGIMEN DE PREVENCIÓN DE I
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1806.26/S/PL
+
+Guardar como: SENADO1805-26.pdf  (sin prensa)
+  Exp: 1805/26 (Senado)
+  Titulo: MODIFICA SU SIMILAR 24.747 - INICIATIVA LEGISLATIVA POPULAR -, RESPECTO DE LA MODERNIZACION DEL PROCEDIMIENTO DE ADHESION MEDIANTE LA INCORPORACION DE
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1805.26/S/PL
+
+Guardar como: SENADO1799-26.pdf  (sin prensa)
+  Exp: 1799/26 (Senado)
+  Titulo: ESTABLECE UN RÉGIMEN PREVISIONAL DIFERENCIAL PARA EL PERSONAL DE SALUD EN ÁREAS DE DESARROLLO DE FRONTERA.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1799.26/S/PL
+
+Guardar como: SENADO1795-26.pdf  (sin prensa)
+  Exp: 1795/26 (Senado)
+  Titulo: SUSTITUYE EL ART. 78 DE SU SIMILAR N° 11.683 (T.O. 1998 Y S/M) - PROCEDIMIENTO TRIBUTARIO- RESPECTO A AMPLIAR EL DESTINO SOCIAL DE LAS MERCADERIAS DEC
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1795.26/S/PL
+
+Guardar como: SENADO1794-26.pdf  (sin prensa)
+  Exp: 1794/26 (Senado)
+  Titulo: SOBRE PROTECCIÓN DE NIÑAS, NIÑOS Y ADOLESCENTES EN EL USO DE REDES SOCIALES.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1794.26/S/PL
 
 Guardar como: SENADO1788-26.pdf  (sin prensa)
   Exp: 1788/26 (Senado)
@@ -354,6 +328,11 @@ Guardar como: SENADO1695-26.pdf  (sin prensa)
   Titulo: CREA EL REGIMEN FEDERAL DE PROMOCION PARA LA INSTALACION DE HUBS SOLARES Y SISTEMAS DE ALMACENAMIENTO DE ENERGIA ELECTRICA MEDIANTE BESS, CON EL OBJET
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1695.26/S/PL
 
+Guardar como: SENADO1694-26.pdf  (sin prensa)
+  Exp: 1694/26 (Senado)
+  Titulo: DE RECUPERACION ECONOMICA DE LAS FAMILIAS Y PROTECCION CONTRA EL ENDEUDAMIENTO DE CONSUMO
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1694.26/S/PL
+
 Guardar como: SENADO1692-26.pdf  (sin prensa)
   Exp: 1692/26 (Senado)
   Titulo: SOBRE REGIMEN DE ACCESO Y PROMOCION DE FERTILIZANTES COMO INSUMO ESTRATEGICO.
@@ -363,16 +342,6 @@ Guardar como: SENADO1687-26.pdf  (sin prensa)
   Exp: 1687/26 (Senado)
   Titulo: DE PROHIBICION DEL PATROCINIO DE EMPRESAS DE JUEGOS Y APUESTAS EN LA INDUMENTARIA DEPORTIVA.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1687.26/S/PL
-
-Guardar como: SENADO1685-26.pdf  (sin prensa)
-  Exp: 1685/26 (Senado)
-  Titulo: PRORROGA LA EMERGENCIA SANITARIA DE LA SALUD PEDIATRICA Y DE LAS RESIDENCIAS NACIONALES EN SALUD, DECLARADA EN EL ART. 1° DE LA LEY N° 27.796, HASTA E
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1685.26/S/PL
-
-Guardar como: SENADO1679-26.pdf  (sin prensa)
-  Exp: 1679/26 (Senado)
-  Titulo: PRORROGA LA EMERGENCIA SANITARIA DE LA SALUD PEDIATRICA Y DE LAS RESIDENCIAS NACIONALES EN SALUD, DECLARADA EN EL ART. 1° DE LA LEY N° 27.796, HASTA E
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1679.26/S/PL
 
 Guardar como: SENADO1676-26.pdf  (sin prensa)
   Exp: 1676/26 (Senado)
@@ -414,11 +383,6 @@ Guardar como: SENADO1621-26.pdf  (sin prensa)
   Titulo: CREA EL PROGRAMA FEDERAL DE PORTALES DIGITALES PARA GOBIERNOS LOCALES.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1621.26/S/PL
 
-Guardar como: SENADO1599-26.pdf  (sin prensa)
-  Exp: 1599/26 (Senado)
-  Titulo: MODIFICA SU SIMILAR 27.742 -BASES Y PUNTOS DE PARTIDA PARA LA LIBERTAD DE LOS ARGENTINOS-, RESPECTO DE INCLUIR EN EL RÉGIMEN DE INCENTIVO PARA GRANDES
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1599.26/S/PL
-
 Guardar como: SENADO1592-26.pdf  (sin prensa)
   Exp: 1592/26 (Senado)
   Titulo: CREA EL SISTEMA ARGENTINO DE TRAZABILIDAD DE LA PESCA Y LA ACUICULTURA.
@@ -433,6 +397,11 @@ Guardar como: SENADO1580-26.pdf  (sin prensa)
   Exp: 1580/26 (Senado)
   Titulo: MODIFICA SU SIMILAR 27.130 - PREVENCION DEL SUICIDIO -, RESPECTO A LINEAMIENTOS NACIONALES DE PREVENCION, ATENCION Y POSVENCION DEL SUICIDIO.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1580.26/S/PL
+
+Guardar como: SENADO1568-26.pdf  (sin prensa)
+  Exp: 1568/26 (Senado)
+  Titulo: MODIFICA SU SIMILAR 27.742- BASES Y PUNTOS DE PARTIDA PARA LA LIBERTAD DE LOS ARGENTINOS- RESPECTO DE ESTABLECER UNA GARANTIA DE INTEGRIDAD SOBERANA E
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1568.26/S/PL
 
 Guardar como: SENADO1566-26.pdf  (sin prensa)
   Exp: 1566/26 (Senado)
@@ -464,11 +433,6 @@ Guardar como: SENADO1553-26.pdf  (sin prensa)
   Titulo: GARANTIZA EL SISTEMA SOLIDARIO DE SALUD.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1553.26/S/PL
 
-Guardar como: SENADO1542-26.pdf  (sin prensa)
-  Exp: 1542/26 (Senado)
-  Titulo: GARANTIZA EL DERECHO DEL PACIENTE A CONOCER EL COSTO DE SU ATENCION EN SALUD.
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1542.26/S/PL
-
 Guardar como: SENADO1541-26.pdf  (sin prensa)
   Exp: 1541/26 (Senado)
   Titulo: ESTABLECE UN REGIMEN FEDERAL DE TRANSPARENCIA Y PROTECCION DE MENORES EN EL JUEGO Y APUESTAS ONLINE
@@ -483,6 +447,11 @@ Guardar como: SENADO1538-26.pdf  (sin prensa)
   Exp: 1538/26 (Senado)
   Titulo: CREA UN REGIMEN GRATUITO Y SIMPLIFICADO PARA LA CONSTITUCIÓN DE CLUBES DE BARRIO Y DE PUEBLO Y CENTROS DE JUBILADOS Y PENSIONADOS.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1538.26/S/PL
+
+Guardar como: SENADO1537-26.pdf  (sin prensa)
+  Exp: 1537/26 (Senado)
+  Titulo: PROMUEVE EL DESARROLLO ECONOMICO Y LA GENERACION DE EMPLEO EN LAS PROVINCIAS PRODUCTORAS DE MINERALES, EN EL MARCO ESTABLECIDO POR LA LEY 24.196.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1537.26/S/PL
 
 Guardar como: SENADO1535-26.pdf  (sin prensa)
   Exp: 1535/26 (Senado)
@@ -513,6 +482,11 @@ Guardar como: SENADO1517-26.pdf  (sin prensa)
   Exp: 1517/26 (Senado)
   Titulo: CREA EL PROGRAMA NACIONAL DE ABORDAJE INTEGRAL DE LA PATOLOGÍA LINFOVENOSA.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1517.26/S/PL
+
+Guardar como: SENADO1515-26.pdf  (sin prensa)
+  Exp: 1515/26 (Senado)
+  Titulo: CREA UN REGIMEN DE FOMENTO, INCENTIVO Y SIMPLIFICACION TRIBUTARIA PARA MICRO, PEQUEÑAS Y MEDIANAS EMPRESAS (RF-MIPYME).
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1515.26/S/PL
 
 Guardar como: SENADO1513-26.pdf  (sin prensa)
   Exp: 1513/26 (Senado)
@@ -589,11 +563,6 @@ Guardar como: SENADO1471-26.pdf  (sin prensa)
   Titulo: SUSTITUYE EL ART. 19 DE SU SIMILAR 23.966 - COMBUSTIBLES LIQUIDOS Y GAS NATURAL- SOBRE LA DISTRIBUCIÓN DE LOS FONDOS RECAUDADOS.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1471.26/S/PL
 
-Guardar como: SENADO1470-26.pdf  (sin prensa)
-  Exp: 1470/26 (Senado)
-  Titulo: DE AMPLIACION DEL REGIMEN DE INCENTIVO PARA GRANDES INVERSIONES A LAS NUEVAS ACTIVIDADES TECNOLÓGICAS ESTRATÉGICAS Y DE FORTALECIMIENTO DE SUS DISPOSI
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1470.26/S/PL
-
 Guardar como: SENADO1469-26.pdf  (sin prensa)
   Exp: 1469/26 (Senado)
   Titulo: CREA EL PROGRAMA NACIONAL DE ACCESO A LA VIVIENDA UNICA, FAMILIAR Y PERMANENTE, "PROGRAMA HABITAR TU FUTURO"
@@ -603,6 +572,11 @@ Guardar como: SENADO1468-26.pdf  (sin prensa)
   Exp: 1468/26 (Senado)
   Titulo: MODIFICA SU SIMILAR 26.485 - PROTECCION INTEGRAL A LAS MUJERES- RESPECTO A INCORPORAR LA VIOLENCIA VICARIA Y AGRAVANDO LAS PENAS EN EL CODIGO PENAL.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1468.26/S/PL
+
+Guardar como: SENADO1465-26.pdf  (sin prensa)
+  Exp: 1465/26 (Senado)
+  Titulo: SUSTITUYE EL INC. 6 DEL ART. 3 DEL CONVENIO SOBRE COMUNICACIONES ENTRE TRIBUNALES DE DISTINTA JURISDICCIÓN TERRITORIAL, RESPECTO DE LOS REQUISITOS DE 
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1465.26/S/PL
 
 Guardar como: SENADO1462-26.pdf  (sin prensa)
   Exp: 1462/26 (Senado)
@@ -624,10 +598,20 @@ Guardar como: SENADO1453-26.pdf  (sin prensa)
   Titulo: MODIFICA EL ART. 28, INCISO A) DE SU SIMILAR 23.349 -IMPUESTO AL VALOR AGREGADO-, RESPECTO DE INCORPORAR A LA FECULA, HARINA Y FARIÑA DE MANDIOCA (YUC
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1453.26/S/PL
 
+Guardar como: SENADO1450-26.pdf  (sin prensa)
+  Exp: 1450/26 (Senado)
+  Titulo: INCORPORA UN ART. SIN NUMERO A CONTINUACION DEL ART. 39 DE SU SIMILAR 11.683 - PROCEDIMIENTO TRIBUTARIO (T.O. 1998 Y S/M), RESPECTO DE UN REGIMEN DE P
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1450.26/S/PL
+
 Guardar como: SENADO1446-26.pdf  (sin prensa)
   Exp: 1446/26 (Senado)
   Titulo: MODIFICA EL CODIGO DE MINERIA RESPECTO DE INCORPORAR "TIERRAS RARAS Y SUS ELEMENTOS ASOCIADOS" AL REGIMEN DE SUSTANCIAS MINERALES DE PRIMERA CATEGORIA
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1446.26/S/PL
+
+Guardar como: SENADO1445-26.pdf  (sin prensa)
+  Exp: 1445/26 (Senado)
+  Titulo: INSTITUYE EL 26 DE AGOSTO DE CADA AÑO COMO "DIA NACIONAL DEL VETERANO Y CAIDOS INDIGENAS EN LA GUERRA DE MALVINAS".
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1445.26/S/PL
 
 Guardar como: SENADO1442-26.pdf  (sin prensa)
   Exp: 1442/26 (Senado)
@@ -639,10 +623,20 @@ Guardar como: SENADO1441-26.pdf  (sin prensa)
   Titulo: SOBRE RÉGIMEN DE PROTECCIÓN DE LA CIUDADANÍA ARGENTINA Y PROHIBICIÓN DE SU OTORGAMIENTO POR INVERSIÓN.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1441.26/S/PL
 
+Guardar como: SENADO1440-26.pdf  (sin prensa)
+  Exp: 1440/26 (Senado)
+  Titulo: ESTABLECE UN MARCO JURÍDICO PARA LA GARANTÍA DE EJECUCIÓN DE PROYECTOS PÚBLICOS ESTRATÉGICOS DE LA NACIÓN ARGENTINA.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1440.26/S/PL
+
 Guardar como: SENADO1439-26.pdf  (sin prensa)
   Exp: 1439/26 (Senado)
   Titulo: DE NEGOCIACION, APROBACION Y CONTROL DE LOS PROGRAMAS CON EL FONDO MONETARIO INTERNACIONAL.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1439.26/S/PL
+
+Guardar como: SENADO1438-26.pdf  (sin prensa)
+  Exp: 1438/26 (Senado)
+  Titulo: CREA EL REGIMEN ESPECIAL DE REGULARIZACION FISCAL Y ALIVIO FINANCIERO PARA PEQUEÑOS CONTRIBUYENTES Y MICRO, PEQUEÑAS Y MEDIANAS EMPRESAS.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1438.26/S/PL
 
 Guardar como: SENADO1432-26.pdf  (sin prensa)
   Exp: 1432/26 (Senado)
@@ -718,6 +712,11 @@ Guardar como: SENADO1346-26.pdf  (sin prensa)
   Exp: 1346/26 (Senado)
   Titulo: TRANSFIERE A TITULO GRATUITO A FAVOR DE LA PROVINCIA DEL CHUBUT, UN INMUEBLE PROPIEDAD DEL ESTADO NACIONAL, UBICADO EN LA CDAD. DE PUERTO MADRYN, PROV
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1346.26/S/PL
+
+Guardar como: SENADO1336-26.pdf  (sin prensa)
+  Exp: 1336/26 (Senado)
+  Titulo: MODIFICA EL ART. 67 DEL CÓDIGO PENAL, RESPECTO A LA INCORPORACIÓN DE UNA CAUSAL DE INTERRUPCIÓN DE LA PRESCRIPCIÓN DE LA ACCIÓN PENAL PARA DELITOS CON
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1336.26/S/PL
 
 Guardar como: SENADO1332-26.pdf  (sin prensa)
   Exp: 1332/26 (Senado)
@@ -804,6 +803,11 @@ Guardar como: SENADO1255-26.pdf  (sin prensa)
   Titulo: CREA EL RÉGIMEN DE PROMOCIÓN TECNOLÓGICA AVANZADA PARA LA ZONA FRANCA DE GENERAL PICO (ZFGP), PROV. DE LA PAMPA.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1255.26/S/PL
 
+Guardar como: SENADO1252-26.pdf  (sin prensa)
+  Exp: 1252/26 (Senado)
+  Titulo: MODIFICA SU SIMILAR 24.240 - DEFENSA DEL CONSUMIDOR-, RESPECTO DE ESTABLECER UNA ADVERTENCIA PREVIA EN OPERACIONES DE CREDITO PARA EL CONSUMO, PARA PR
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1252.26/S/PL
+
 Guardar como: SENADO1251-26.pdf  (sin prensa)
   Exp: 1251/26 (Senado)
   Titulo: DECLARA "ITINERARIO CULTURAL NACIONAL" AL CAMINO DE LA FE, CORREDOR RELIGIOSO Y CULTURAL DE LA PROV. DEL NEUQUEN QUE UNE LAS LOC. DE AILINCO Y MANZANO
@@ -813,11 +817,6 @@ Guardar como: SENADO1250-26.pdf  (sin prensa)
   Exp: 1250/26 (Senado)
   Titulo: INSTITUYE EL MES DE AGOSTO DE CADA AÑO COMO EL "MES DE LA VIDA Y LA FAMILIA".
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1250.26/S/PL
-
-Guardar como: SENADO1247-26.pdf  (sin prensa)
-  Exp: 1247/26 (Senado)
-  Titulo: CREA EL REGIMEN ESPECIAL TEMPORAL PARA EL FORTALECIMIENTO DEL CABOTAJE NACIONAL Y DE LA MARINA MERCANTE ARGENTINA (RETCAN).
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1247.26/S/PL
 
 Guardar como: SENADO1246-26.pdf  (sin prensa)
   Exp: 1246/26 (Senado)
@@ -863,11 +862,6 @@ Guardar como: SENADO1219-26.pdf  (sin prensa)
   Exp: 1219/26 (Senado)
   Titulo: CREA EL REGIMEN PARA LA REGULACION DE LA PUBLICIDAD, PROMOCION Y PATROCINIO DEL JUEGO DE APUESTAS EN LINEA.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1219.26/S/PL
-
-Guardar como: SENADO1216-26.pdf  (sin prensa)
-  Exp: 1216/26 (Senado)
-  Titulo: CREA EL RÉGIMEN ESPECIAL TEMPORAL PARA EL FORTALECIMIENTO DEL CABOTAJE NACIONAL Y DE LA MARINA MERCANTE ARGENTINA (RETCAN).
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1216.26/S/PL
 
 Guardar como: SENADO1215-26.pdf  (sin prensa)
   Exp: 1215/26 (Senado)
@@ -978,6 +972,11 @@ Guardar como: SENADO1144-26.pdf  (sin prensa)
   Exp: 1144/26 (Senado)
   Titulo: DECLARA HEROE NACIONAL POST MORTEM AL GENERAL MANUEL EDUARDO ARIAS, EN RECONOCIMIENTO A SU ACCIONAR EN LAS GUERRAS POR LA INDEPENDENCIA
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1144.26/S/PL
+
+Guardar como: SENADO1143-26.pdf  (sin prensa)
+  Exp: 1143/26 (Senado)
+  Titulo: INCORPORA EL INC. C AL ART. 44 DE SU SIMILAR 25.300 - FOMENTO PARA LA MICRO, PEQUEÑA Y MEDIANA EMPRESA -, RESPECTO A LA INTEGRACION DEL CONSEJO FEDERA
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1143.26/S/PL
 
 Guardar como: SENADO1142-26.pdf  (sin prensa)
   Exp: 1142/26 (Senado)
@@ -1134,6 +1133,11 @@ Guardar como: SENADO1057-26.pdf  (sin prensa)
   Titulo: SOBRE EL PROCEDIMIENTO PARA EL NOMBRAMIENTO DE JUECES Y MAGISTRADOS DEL MINISTERIO PUBLICO DE LA NACION, EN LOS TERMINOS DEL INC. 4 DEL ART. 99 DE LA 
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1057.26/S/PL
 
+Guardar como: SENADO1055-26.pdf  (sin prensa)
+  Exp: 1055/26 (Senado)
+  Titulo: DE TRANSPARENCIA, PUBLICIDAD Y PARTICIPACION CIUDADANA EN EL PROCEDIMIENTO DE SELECCIÓN DE CANDIDATOS PARA CUBRIR VACANTES EN LA CORTE SUPREMA DE JUST
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/1055.26/S/PL
+
 Guardar como: SENADO1052-26.pdf  (sin prensa)
   Exp: 1052/26 (Senado)
   Titulo: MODIFICA SU SIMILAR 27.343 - OFICINA DE PRESUPUESTO DEL CONGRESO - RESPECTO DE SU FORTALECIMIENTO INSTITUCIONAL.
@@ -1144,15 +1148,15 @@ Guardar como: SENADO636-26.pdf  (sin prensa)
   Titulo: REPRODUCE PROYECTO DE LEY QUE APRUEBA EL CONVENIO SOBRE LAS CUARENTA HORAS (N° 47) ADOPTADO EN LA 19° REUNION DE LA CONFERENCIA INTERNACIONAL DEL TRAB
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/636.26/S/PL
 
+Guardar como: SENADO634-26.pdf  (sin prensa)
+  Exp: 634/26 (Senado)
+  Titulo: DECLARA ESTADO DE EMERGENCIA Y/O DESASTRE AGROPECUARIO NACIONAL, POR EL TERMINO DE 90 DIAS A PARTIR DEL 1° DE MAYO DE 2026, A LAS EXPLOTACIONES AGROPE
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/634.26/S/PL
+
 Guardar como: SENADO633-26.pdf  (sin prensa)
   Exp: 633/26 (Senado)
   Titulo: CREA EL RÉGIMEN FEDERAL DE PROMOCIÓN Y ARRAIGO DE PROFESIONALES DE LA SALUD.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/633.26/S/PL
-
-Guardar como: SENADO628-26.pdf  (sin prensa)
-  Exp: 628/26 (Senado)
-  Titulo: SOBRE EL ABORDAJE INTEGRAL DE LA SALUD MENTAL EN ESTABLECIMIENTOS EDUCATIVOS.
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/628.26/S/PL
 
 Guardar como: SENADO627-26.pdf  (sin prensa)
   Exp: 627/26 (Senado)
@@ -1183,6 +1187,11 @@ Guardar como: SENADO614-26.pdf  (sin prensa)
   Exp: 614/26 (Senado)
   Titulo: DE PROMOCIÓN DEL HIDROGENO DE ORIGEN RENOVABLE Y DE BAJAS EMISIONES DE CARBONO Y OTROS GASES DE EFECTO INVERNADERO.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/614.26/S/PL
+
+Guardar como: SENADO611-26.pdf  (sin prensa)
+  Exp: 611/26 (Senado)
+  Titulo: DECLARA LA EMERGENCIA TARIFARIA, IMPOSITIVA, PRODUCTIVA Y LABORAL, DE LAS MICRO, PEQUEÑAS Y MEDIANAS EMPRESAS (MIPYMES), EN TODO EL TERRITORIO DE LA R
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/611.26/S/PL
 
 Guardar como: SENADO610-26.pdf  (sin prensa)
   Exp: 610/26 (Senado)
@@ -1233,6 +1242,11 @@ Guardar como: SENADO582-26.pdf  (sin prensa)
   Exp: 582/26 (Senado)
   Titulo: MODIFICA SUS SIMILARES 26.741 - -YACIMIENTOS PETROLIFEROS FISCALES - Y 17.319 - HIDROCARBUROS -, SOBRE REESTABLECIMIENTO DE SUS PRINCIPIOS.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/582.26/S/PL
+
+Guardar como: SENADO581-26.pdf  (sin prensa)
+  Exp: 581/26 (Senado)
+  Titulo: REPRODUCE PROYECTO DE LEY DE PARIDAD DE GÉNERO EN LA CORTE SUPREMA DE JUSTICIA Y LOS TRIBUNALES FEDERALES COLEGIADOS DE JUSTICIA DE LA NACIÓN (REF. S.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/581.26/S/PL
 
 Guardar como: SENADO579-26.pdf  (sin prensa)
   Exp: 579/26 (Senado)
@@ -1379,11 +1393,6 @@ Guardar como: SENADO516-26.pdf  (sin prensa)
   Titulo: ESTABLECE UN PROGRAMA DE PREVENCION DEL JUEGO POR PARTE DE MENORES DE EDAD A TRAVES DE LAS APUESTAS EN LINEA EN EL AMBITO EDUCATIVO.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/516.26/S/PL
 
-Guardar como: SENADO513-26.pdf  (sin prensa)
-  Exp: 513/26 (Senado)
-  Titulo: MODIFICA SU SIMILAR 23.966 -IMPUESTOS-, RESPECTO DE REASIGNAR LOS RECURSOS RECAUDADOS EN VIRTUD DEL IMPUESTO A LOS COMBUSTIBLES Y AL DIÓXIDO DE CARBON
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/513.26/S/PL
-
 Guardar como: SENADO510-26.pdf  (sin prensa)
   Exp: 510/26 (Senado)
   Titulo: CREA EL FONDO FEDERAL DE EQUIDAD DE SALUD (FEFES).
@@ -1393,6 +1402,11 @@ Guardar como: SENADO509-26.pdf  (sin prensa)
   Exp: 509/26 (Senado)
   Titulo: ESTABLECE EL JUICIO DE RESIDENCIA PARA LOS FUNCIONARIOS PUBLICOS.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/509.26/S/PL
+
+Guardar como: SENADO508-26.pdf  (sin prensa)
+  Exp: 508/26 (Senado)
+  Titulo: SOBRE REGIMEN NACIONAL DE REGULACION DE JUEGOS Y APUESTAS ONLINE.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/508.26/S/PL
 
 Guardar como: SENADO507-26.pdf  (sin prensa)
   Exp: 507/26 (Senado)
@@ -1409,6 +1423,11 @@ Guardar como: SENADO505-26.pdf  (sin prensa)
   Titulo: MODIFICA SU SIMILAR 26.906 -PRODUCTOS MEDICOS- SOBRE ACTUALIZACION DEL REGIMEN SANCIONATORIO.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/505.26/S/PL
 
+Guardar como: SENADO500-26.pdf  (sin prensa)
+  Exp: 500/26 (Senado)
+  Titulo: REPRODUCE PROYECTO DE LEY DE CAPACITACION ESTATAL OBLIGATORIA EN DATOS E INTELIGENCIA ARTIFICIAL PARA UN GOBIERNO DEL FUTURO. (REF. S. 2205/24)
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/500.26/S/PL
+
 Guardar como: SENADO499-26.pdf  (sin prensa)
   Exp: 499/26 (Senado)
   Titulo: DE REGIMEN PROCESAL DE LA ACCION CIVIL DE EXTINCION DE DOMINIO.
@@ -1418,6 +1437,11 @@ Guardar como: SENADO498-26.pdf  (sin prensa)
   Exp: 498/26 (Senado)
   Titulo: TRANSFIERE A TÍTULO GRATUITO A FAVOR DE LA MUNICIPALIDAD DE TRELEW EL INMUEBLE PROPIEDAD DEL ESTADO NACIONAL SITO EN LA PROV. DEL CHUBUT.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/498.26/S/PL
+
+Guardar como: SENADO497-26.pdf  (sin prensa)
+  Exp: 497/26 (Senado)
+  Titulo: INCORPORA LOS INCISOS H, E I, AL ART. 33 DE SU SIMILAR 23.298 - LEY ORGANICA DE LOS PARTIDOS POLITICOS SOBRE INHABILITACION PARA PRECANDIDATURAS, CAND
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/497.26/S/PL
 
 Guardar como: SENADO496-26.pdf  (sin prensa)
   Exp: 496/26 (Senado)
@@ -1504,11 +1528,6 @@ Guardar como: SENADO471-26.pdf  (sin prensa)
   Titulo: REPRODUCE PROYECTO DE LEY QUE CREA EL PROGRAMA NACIONAL DE EDUCACIÓN PARA LA PREVENCIÓN Y CONCIENTIZACIÓN DE LA CIBERLUDOPATÍA EN LAS NIÑAS, NIÑOS Y A
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/471.26/S/PL
 
-Guardar como: SENADO470-26.pdf  (sin prensa)
-  Exp: 470/26 (Senado)
-  Titulo: REPRODUCE PROYECTO DE LEY QUE PRORROGA EL PLAZO DEL ART. 33 DE LA LEY 21.499 (EXPROPIACIONES) PARA PROMOVER EL JUICIO DE EXPROPIACION EN RELACION, UNI
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/470.26/S/PL
-
 Guardar como: SENADO465-26.pdf  (sin prensa)
   Exp: 465/26 (Senado)
   Titulo: REPRODUCE PROYECTO DE LEY QUE DECLARA FIESTA NACIONAL A LA "FIESTA DEL TERNERO, LA YERRA Y EL PIAL", QUE SE REALIZARA ANUALMENTE EN LA LOC. DE GRAL. A
@@ -1528,6 +1547,11 @@ Guardar como: SENADO449-26.pdf  (sin prensa)
   Exp: 449/26 (Senado)
   Titulo: INCORPORA EL ART. 5 BIS A SU SIMILAR 17.622 -ESTADISTICAS Y CENSOS- SOBRE LA MEDICION MENSUAL DE LA CANASTA DE CRIANZA.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/449.26/S/PL
+
+Guardar como: SENADO448-26.pdf  (sin prensa)
+  Exp: 448/26 (Senado)
+  Titulo: DECLARA LA EMERGENCIA ECONOMICA, PRODUCTIVA, FINANCIERA Y FISCAL DE LAS MICRO, PEQUEÑAS Y MEDIANAS EMPRESAS, HASTA EL 1 DE MARZO DE 2027.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/448.26/S/PL
 
 Guardar como: SENADO447-26.pdf  (sin prensa)
   Exp: 447/26 (Senado)
@@ -1578,6 +1602,11 @@ Guardar como: SENADO425-26.pdf  (sin prensa)
   Exp: 425/26 (Senado)
   Titulo: MODIFICA EL ART. 208 DE SU SIMILAR 20.744 -CONTRATO DE TRABAJO- RESPECTO AL PAGO DE REMUNERACION EN CASO DE ACCIDENTE O ENFERMEDAD INCULPABLE.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/425.26/S/PL
+
+Guardar como: SENADO424-26.pdf  (sin prensa)
+  Exp: 424/26 (Senado)
+  Titulo: TRANSFIERE A TITULO GRATUITO A FAVOR DE LA PROV. DE ENTRE RIOS, EL INMUEBLE PROPIEDAD DEL ESTADO NACIONAL, UBICADO EN EL EJIDO DE LA CDAD. DE FEDERACI
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/424.26/S/PL
 
 Guardar como: SENADO412-26.pdf  (sin prensa)
   Exp: 412/26 (Senado)
@@ -1633,6 +1662,11 @@ Guardar como: SENADO397-26.pdf  (sin prensa)
   Exp: 397/26 (Senado)
   Titulo: REPRODUCE PROYECTO DE LEY QUE CREA UNA LINEA TELEFONICA NACIONAL DE ASISTENCIA Y PREVENCION DEL SUICIDIO. (REF. S. 840/24)
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/397.26/S/PL
+
+Guardar como: SENADO393-26.pdf  (sin prensa)
+  Exp: 393/26 (Senado)
+  Titulo: MODIFICA EL ART. 2º INCISO C), LL) Y M) DE LA LEY 24.804 (ACTIVIDAD NUCLEAR), RESPECTO A LA AUTORIZACION DEL CONGRESO PARA LA TRANSFERENCIA DE TECNOLO
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/393.26/S/PL
 
 Guardar como: SENADO390-26.pdf  (sin prensa)
   Exp: 390/26 (Senado)
@@ -1714,16 +1748,6 @@ Guardar como: SENADO361-26.pdf  (sin prensa)
   Titulo: APRUEBA EL CONVENIO DE CREACION DEL PARQUE INTERJURISDICCIONAL MARINO MONTE LEON, ENTRE EL ESTADO NACIONAL Y LA PROVINCIA DE SANTA CRUZ.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/361.26/S/PL
 
-Guardar como: SENADO360-26.pdf  (sin prensa)
-  Exp: 360/26 (Senado)
-  Titulo: CREA LA UNIVERSIDAD NACIONAL DE LA CUENCA DEL SALADO, CON SEDE CENTRAL EN EL DISTRITO DE CAÑUELAS, PROV. DE BUENOS AIRES.
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/360.26/S/PL
-
-Guardar como: SENADO359-26.pdf  (sin prensa)
-  Exp: 359/26 (Senado)
-  Titulo: CREA LA UNIVERSIDAD NACIONAL DE SALADILLO, EN LA CDAD. DE SALADILLO, PROV. DE BUENOS AIRES.
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/359.26/S/PL
-
 Guardar como: SENADO358-26.pdf  (sin prensa)
   Exp: 358/26 (Senado)
   Titulo: DISPONE LA REALIZACION DE UNA CAMPAÑA NACIONAL DE COMUNICACIÓN REFERIDA A LOS BENEFICIOS DEL USO RESPONSABLE DE ENERGIA Y LA EFICIENCIA ENERGETICA.
@@ -1748,6 +1772,11 @@ Guardar como: SENADO351-26.pdf  (sin prensa)
   Exp: 351/26 (Senado)
   Titulo: REPRODUCE PROYECTO DE LEY QUE ESTABLECE LA OBLIGATORIEDAD DE IMPLEMENTAR EN ESPACIOS Y EDIFICIOS PÚBLICOS DEL PAIS SEÑALETICA INCLUSIVA. (REF. S. 802/
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/351.26/S/PL
+
+Guardar como: SENADO350-26.pdf  (sin prensa)
+  Exp: 350/26 (Senado)
+  Titulo: REPRODUCE PROYECTO DE LEY QUE REGULA LA PUBLICIDAD DE LOS JUEGOS DE AZAR ONLINE EN TODOS LOS MEDIOS DE COMUNICACION. (REF. S. 803/24).
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/350.26/S/PL
 
 Guardar como: SENADO349-26.pdf  (sin prensa)
   Exp: 349/26 (Senado)
@@ -1814,11 +1843,6 @@ Guardar como: SENADO333-26.pdf  (sin prensa)
   Titulo: REPRODUCE PROYECTO DE LEY QUE MODIFICA SU SIMILAR 25.959 - CREACION DE UN JUZGADO FEDERAL DE PRIMERA INSTANCIA CON ASIENTO EN LA CDAD. DE GRAL. PICO, 
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/333.26/S/PL
 
-Guardar como: SENADO332-26.pdf  (sin prensa)
-  Exp: 332/26 (Senado)
-  Titulo: REPRODUCE PROYECTO DE LEY QUE CREA EL REGISTRO NACIONAL DE CONDENADOS POR DELITOS CONTRA LA INTEGRIDAD SEXUAL. (REF. S. 1128/24)
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/332.26/S/PL
-
 Guardar como: SENADO331-26.pdf  (sin prensa)
   Exp: 331/26 (Senado)
   Titulo: REPRODUCE PROYECTO DE LEY QUE CREA EL PROGRAMA NACIONAL DE SALUD MENTAL PARA ADOLESCENTES. (REF. S. 879/24)
@@ -1843,6 +1867,11 @@ Guardar como: SENADO327-26.pdf  (sin prensa)
   Exp: 327/26 (Senado)
   Titulo: REPRODUCE PROYECTO DE LEY QUE DECLARA NULO DE NULIDAD ABSOLUTA DCTO. N° 780/24, QUE REGLAMENTA LA LEY 27.275 "DERECHO DE ACCESO A LA INFORMACION PUBLI
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/327.26/S/PL
+
+Guardar como: SENADO326-26.pdf  (sin prensa)
+  Exp: 326/26 (Senado)
+  Titulo: REPRODUCE PROYECTO DE LEY QUE CREA EL PROGRAMA DE FOMENTO PARA LA ARTICULACION ENTRE INSTITUCIONES EDUCATIVAS AGROSUSTENTABLES Y PROYECTOS PRODUCTIVOS
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/326.26/S/PL
 
 Guardar como: SENADO325-26.pdf  (sin prensa)
   Exp: 325/26 (Senado)
@@ -1974,11 +2003,6 @@ Guardar como: SENADO283-26.pdf  (sin prensa)
   Titulo: MODIFICA EL ART. 600 Y 611 DEL CODIGO CIVIL Y COMERCIAL DE LA NACION, RESPECTO DE GARANTIZAR EL DERECHO A LA ADOPCION DE FAMILIAS DE GUARDA SIN PARENT
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/283.26/S/PL
 
-Guardar como: SENADO280-26.pdf  (sin prensa)
-  Exp: 280/26 (Senado)
-  Titulo: REPRODUCE PROYECTO DE LEY QUE CREA REGIMEN DE GESTION DE INTERESES, EN EL AMBITO DEL PODER EJECUTIVO Y LEGISLATIVO. (REF. S.1328-24).
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/280.26/S/PL
-
 Guardar como: SENADO279-26.pdf  (sin prensa)
   Exp: 279/26 (Senado)
   Titulo: REPRODUCE PROYECTO DE LEY QUE ESTABLECE EL REGIMEN DE MOVILIZACION DE MERCADERIAS MEDIANTE TRANSPORTE INTERMODAL (REF. S.2238/24).
@@ -2074,6 +2098,11 @@ Guardar como: SENADO247-26.pdf  (sin prensa)
   Titulo: ESTABLECE UN REGIMEN DE PROMOCION DE LA AUTONOMIA ENERGETICA PARA EL ENTRAMADO MIPYME.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/247.26/S/PL
 
+Guardar como: SENADO245-26.pdf  (sin prensa)
+  Exp: 245/26 (Senado)
+  Titulo: REPRODUCE PROYECTO DE LEY SOBRE EQUILIBRIO DE GÉNERO EN LA CORTE SUPREMA DE JUSTICIA Y LOS TRIBUNALES FEDERALES COLEGIADOS DE JUSTICIA DE TODO EL PAÍS
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/245.26/S/PL
+
 Guardar como: SENADO235-26.pdf  (sin prensa)
   Exp: 235/26 (Poder Ejecutivo)
   Titulo: MENSAJE N°220/26 Y PROYECTO DE LEY QUE APRUEBA LAS ENMIENDAS AL CONVENIO CONSTITUTIVO DE LA ORGANIZACIÓN MARÍTIMA INTERNACIONAL, ADOPTADAS POR LA ASAM
@@ -2104,10 +2133,20 @@ Guardar como: SENADO222-26.pdf  (sin prensa)
   Titulo: DE INTEGRIDAD DIGITAL.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/222.26/S/PL
 
+Guardar como: SENADO221-26.pdf  (sin prensa)
+  Exp: 221/26 (Senado)
+  Titulo: DE INTEGRIDAD Y SIMPLIFICACIÓN ELECTORAL QUE REFORMA EL CÓDIGO ELECTORAL NACIONAL Y CREA EL SISTEMA FEDERAL DE ESTÁNDARES ELECTORALES.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/221.26/S/PL
+
 Guardar como: SENADO220-26.pdf  (sin prensa)
   Exp: 220/26 (Senado)
   Titulo: SOBRE PRODUCCION NACIONAL EN PLATAFORMAS AUDIOVISUALES.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/220.26/S/PL
+
+Guardar como: SENADO219-26.pdf  (sin prensa)
+  Exp: 219/26 (Senado)
+  Titulo: DECLARA LA EMERGENCIA PRODUCTIVA, FISCAL, LABORAL, FINANCIERA Y TARIFARIA DE LAS MICRO, PEQUEÑAS Y MEDIANAS EMPRESAS DE LA REPUBLICA ARGENTINA.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/219.26/S/PL
 
 Guardar como: SENADO218-26.pdf  (sin prensa)
   Exp: 218/26 (Senado)
@@ -2134,11 +2173,6 @@ Guardar como: SENADO211-26.pdf  (sin prensa)
   Titulo: SOBRE MARCO REGULATORIO DE LOS FONDOS FIDUCIARIOS PUBLICOS.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/211.26/S/PL
 
-Guardar como: SENADO206-26.pdf  (sin prensa)
-  Exp: 206/26 (Senado)
-  Titulo: REPRODUCE PROYECTO DE LEY QUE PRORROGA EL PLAZO DEL ART. 33 DE LA LEY 21.499 (EXPROPIACIONES) PARA PROMOVER EL JUICIO DE EXPROPIACION EN RELACION, UNI
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/206.26/S/PL
-
 Guardar como: SENADO205-26.pdf  (sin prensa)
   Exp: 205/26 (Senado)
   Titulo: REPRODUCE PROYECTO DE LEY INTEGRAL PARA ASEGURAR EL DERECHO ALIMENTARIO DE NIÑAS, NIÑOS Y ADOLESCENTES. (REF. S. 2182/24).
@@ -2158,6 +2192,11 @@ Guardar como: SENADO202-26.pdf  (sin prensa)
   Exp: 202/26 (Senado)
   Titulo: REPRODUCE PROYECTO DE LEY SOBRE EL PROCEDIMIENTO DE RESTITUCIÓN INTERPROVINCIAL DE NIÑAS, NIÑOS Y ADOLESCENTES. (REF. S. 756/24).
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/202.26/S/PL
+
+Guardar como: SENADO201-26.pdf  (sin prensa)
+  Exp: 201/26 (Senado)
+  Titulo: REPRODUCE PROYECTO DE LEY QUE GARANTIZA A LAS PERSONAS CON DISCAPACIDAD EL DERECHO DE ACCESO A LA INFORMACIÓN ADECUADA DE LOS MEDICAMENTOS, PARA SU AP
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/201.26/S/PL
 
 Guardar como: SENADO200-26.pdf  (sin prensa)
   Exp: 200/26 (Senado)
@@ -2319,11 +2358,6 @@ Guardar como: SENADO165-26.pdf  (sin prensa)
   Titulo: DECLARA DE INTERES NACIONAL LA RECUPERACION Y FORTALECIMIENTO DEL INSTITUTO NACIONAL DE TECNOLOGIA AGROPECUARIA (INTA).
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/165.26/S/PL
 
-Guardar como: SENADO164-26.pdf  (sin prensa)
-  Exp: 164/26 (Senado)
-  Titulo: ESTABLECE UNA REDUCCIÓN DEL CINCUENTA POR CIENTO (50%) EN LOS MONTOS FIJOS CORRESPONDIENTES AL IMPUESTO SOBRE LOS COMBUSTIBLES LÍQUIDOS Y AL DIÓXIDO D
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/164.26/S/PL
-
 Guardar como: SENADO163-26.pdf  (sin prensa)
   Exp: 163/26 (Senado)
   Titulo: MODIFICA EL CODIGO PENAL DE LA NACION, RESPECTO A LA POSESION DE MATERIAL PORNOGRAFICO.
@@ -2333,6 +2367,11 @@ Guardar como: SENADO158-26.pdf  (sin prensa)
   Exp: 158/26 (Senado)
   Titulo: MODIFICA EL ART. 5 DE SU SIMILAR 25.614 - ERRADICACION DE LAS PLAGAS CARPOCAPSA Y GRAFOLITA- RESPECTO DE LA INCLUSION DE NUEVAS HERRAMIENTAS SELECTIVA
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/158.26/S/PL
+
+Guardar como: SENADO157-26.pdf  (sin prensa)
+  Exp: 157/26 (Senado)
+  Titulo: SOBRE MOVILIDAD DEL PROGRAMA HOGARES CON GARRAFA (HOGAR). MODIFICACION LEY 26.020 - REGIMEN REGULATORIO DE LA INDUSTRIA Y COMERCIALIZACION DE GAS LICU
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/157.26/S/PL
 
 Guardar como: SENADO156-26.pdf  (sin prensa)
   Exp: 156/26 (Senado)
@@ -2374,6 +2413,11 @@ Guardar como: SENADO143-26.pdf  (sin prensa)
   Titulo: SUSTITUYE EL ART. 4 INC. A) DE SU SIMILAR 25.164- MARCO DE REGULACIÓN DE EMPLEO PÚBLICO NACIONAL- RESPECTO DE LOS REQUISITOS PARA EL INGRESO A LA ADMI
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/143.26/S/PL
 
+Guardar como: SENADO142-26.pdf  (sin prensa)
+  Exp: 142/26 (Senado)
+  Titulo: REPRODUCE PROYECTO DE LEY QUE OTORGA JERARQUÍA CONSTITUCIONAL AL ACUERDO REGIONAL SOBRE EL ACCESO A LA INFORMACIÓN, LA PARTICIPACIÓN PÚBLICA Y EL ACCE
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/142.26/S/PL
+
 Guardar como: SENADO141-26.pdf  (sin prensa)
   Exp: 141/26 (Senado)
   Titulo: REPRODUCE PROYECTO DE LEY QUE CREA LA AGENCIA FEDERAL DE INTEGRACION SOCIO URBANA (AFISU). (REF. S.1263/24)
@@ -2413,11 +2457,6 @@ Guardar como: SENADO134-26.pdf  (sin prensa)
   Exp: 134/26 (Senado)
   Titulo: REPRODUCE PROYECTO DE LEY DE INVERSIONES PRODUCTIVAS. (REF. S.1356/24)
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/134.26/S/PL
-
-Guardar como: SENADO133-26.pdf  (sin prensa)
-  Exp: 133/26 (Senado)
-  Titulo: REPRODUCE PROYECTO DE LEY QUE DECLARA "FIESTA NACIONAL DEL HELADO ARTESANAL", QUE SE CELEBRA EN LA CIUDAD DE ROSARIO, PROV. DE SANTA FE, EN EL MES DE 
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/133.26/S/PL
 
 Guardar como: SENADO132-26.pdf  (sin prensa)
   Exp: 132/26 (Senado)
@@ -2509,11 +2548,6 @@ Guardar como: SENADO98-26.pdf  (sin prensa)
   Titulo: MENSAJE N° 107/26 Y PROYECTO DE LEY QUE APRUEBA EL ACUERDO DE CONCILIACION CON BAINBRIDGE LTD. Y EL GRUPO DE ACREEDORES ENCABEZADO POR ATTESTOR VALUE 
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/98.26/PE/PL
 
-Guardar como: SENADO97-26.pdf  (sin prensa)
-  Exp: 97/26 (Poder Ejecutivo)
-  Titulo: MENSAJE N° 106/26 Y PROYECTO DE LEY QUE APRUEBA LA ENMIENDA AL PROTOCOLO DE MONTEVIDEO SOBRE EL COMERCIO DE SERVICIOS DEL MERCOSUR - LISTAS DE COMPROM
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/97.26/PE/PL
-
 Guardar como: SENADO96-26.pdf  (sin prensa)
   Exp: 96/26 (Senado)
   Titulo: REPRODUCE PROYECTO DE LEY QUE CREA UNA NUEVA SALA EN LA CAMARA FEDERAL DE APELACIONES DE MAR DEL PLATA. (REF. S. 1064/24)
@@ -2549,15 +2583,15 @@ Guardar como: SENADO83-26.pdf  (sin prensa)
   Titulo: ESTABLECE LA ELIMINACIÓN DE CARGOS HEREDITARIOS EN LA ADMINISTRACIÓN PÚBLICA NACIONAL.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/83.26/S/PL
 
+Guardar como: SENADO82-26.pdf  (sin prensa)
+  Exp: 82/26 (Senado)
+  Titulo: MODIFICA EL ART. 22 BIS DE SU SIMILAR 24.241 - SISTEMA INTEGRADO DE JUBILACIONES Y PENSIONES -, RESPECTO DEL RECONOCIMIENTO PREVISIONAL DE AÑOS DE SER
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/82.26/S/PL
+
 Guardar como: SENADO78-26.pdf  (sin prensa)
   Exp: 78/26 (Senado)
   Titulo: REPRODUCE PROYECTO DE LEY QUE INSTITUYE EL 9 DE OCTUBRE DE CADA AÑO COMO EL "DÍA NACIONAL DE LA CONCIENTIZACIÓN DE LA ENFERMEDAD CARDIOVASCULAR EN LA 
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/78.26/S/PL
-
-Guardar como: SENADO74-26.pdf  (sin prensa)
-  Exp: 74/26 (Poder Ejecutivo)
-  Titulo: MENSAJE Nº 82/26 Y PROYECTO DE LEY QUE APRUEBA EL ACUERDO DE LIBRE COMERCIO ENTRE EL MERCADO COMUN DEL SUR "MERCOSUR" Y LA REPUBLICA DE SINGAPUR, CELE
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/74.26/PE/PL
 
 Guardar como: SENADO70-26.pdf  (sin prensa)
   Exp: 70/26 (Senado)
@@ -2634,6 +2668,11 @@ Guardar como: SENADO54-26.pdf  (sin prensa)
   Titulo: REPRODUCE PROYECTO DE LEY DE ACCESO A LA INFORMACION SOBRE REPARACION Y MANTENIMIENTO DEL VEHICULO AUTOMOTOR (REF. S. 1989/24)
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/54.26/S/PL
 
+Guardar como: SENADO53-26.pdf  (sin prensa)
+  Exp: 53/26 (Senado)
+  Titulo: REPRODUCE PROYECTO DE LEY QUE TRANSFIERE A TITULO GRATUITO A FAVOR DE LA COMUNA DE LANTERI EL PREDIO PROPIEDAD DEL ESTADO NACIONAL, UBICADO ENTRE LAS 
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/53.26/S/PL
+
 Guardar como: SENADO52-26.pdf  (sin prensa)
   Exp: 52/26 (Senado)
   Titulo: REPRODUCE PROYECTO DE LEY QUE TRANSFIERE A TITULO GRATUITO A FAVOR DE LA COMUNA DE LANTERI EL PREDIO PROPIEDAD DEL ESTADO NACIONAL, UBICADO EN LA ZONA
@@ -2674,11 +2713,6 @@ Guardar como: SENADO42-26.pdf  (sin prensa)
   Titulo: CREA LA ASIGNACIÓN UNIVERSAL DEPORTIVA Y CULTURAL EN TODO EL TERRITORIO DE LA REPÚBLICA ARGENTINA.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/42.26/S/PL
 
-Guardar como: SENADO41-26.pdf  (sin prensa)
-  Exp: 41/26 (Senado)
-  Titulo: CREA EL FUERO ESPECIAL DE MEDIDAS CAUTELARES ADMINISTRATIVAS Y EJECUCION EN LA ORBITA DEL PODER JUDICIAL DE LA NACION.
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/41.26/S/PL
-
 Guardar como: SENADO40-26.pdf  (sin prensa)
   Exp: 40/26 (Senado)
   Titulo: TRANSFIERE A TITULO GRATUITO A FAVOR DE LA PROV. DEL CHACO, DIVERSOS INMUEBLES PROPIEDAD DEL ESTADO NACIONAL.
@@ -2713,6 +2747,11 @@ Guardar como: SENADO34-26.pdf  (sin prensa)
   Exp: 34/26 (Senado)
   Titulo: DECLARA LA EMERGENCIA ALIMENTARIA REGIONAL EN TODO EL TERRITORIO DEL NORTE GRANDE ARGENTINO POR EL PERIODO DE UN AÑO, PRORROGABLE POR IGUAL TERMINO.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/34.26/S/PL
+
+Guardar como: SENADO33-26.pdf  (sin prensa)
+  Exp: 33/26 (Senado)
+  Titulo: CREA EL RÉGIMEN FEDERAL DE SUBSIDIO AL TRANSPORTE PÚBLICO DEL AUTOMOTOR DE PASAJEROS DEL NORTE GRANDE ARGENTINO.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/33.26/S/PL
 
 Guardar como: SENADO32-26.pdf  (sin prensa)
   Exp: 32/26 (Senado)
@@ -2779,6 +2818,11 @@ Guardar como: SENADO14-26.pdf  (sin prensa)
   Titulo: CREA UN JUZGADO FEDERAL DE PRIMERA INSTANCIA EN CHARATA, PROV. DEL CHACO.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/14.26/S/PL
 
+Guardar como: SENADO13-26.pdf  (sin prensa)
+  Exp: 13/26 (Poder Ejecutivo)
+  Titulo: MENSAJE Nº 22/26 Y PROYECTO DE LEY SOBRE INVIOLABILIDAD DE LA PROPIEDAD PRIVADA.
+  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/13.26/PE/PL
+
 Guardar como: SENADO12-26.pdf  (sin prensa)
   Exp: 12/26 (Senado)
   Titulo: MODIFICA SU SIMILAR 20.247- LEY DE SEMILLAS Y CREACIONES FITOGENETICAS.
@@ -2798,9 +2842,4 @@ Guardar como: SENADO9-26.pdf  (sin prensa)
   Exp: 9/26 (Senado)
   Titulo: ESTABLECE UN REGIMEN COMPENSATORIO DE SEGMENTACION DE DERECHOS DE EXPORTACION (DEX) PARA PEQUEÑOS Y MEDIANOS PRODUCTORES AGRICOLAS.
   Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/9.26/S/PL
-
-Guardar como: SENADO8-26.pdf  (sin prensa)
-  Exp: 8/26 (Poder Ejecutivo)
-  Titulo: MENSAJE Nº 12/26 Y PROYECTO DE LEY QUE APRUEBA EL "ACUERDO SOBRE MEDIDAS DEL ESTADO RECTOR DEL PUERTO DESTINADAS A PREVENIR, DESALENTAR Y ELIMINAR LA 
-  Ficha:  https://www.senado.gob.ar/parlamentario/comisiones/verExp/8.26/PE/PL
 
