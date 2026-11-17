@@ -1535,11 +1535,32 @@ function cargarVotacionesSinLink(){
   renderVotacionesSinLink();
  }).catch(function(e){$('#listaVot').innerHTML='<div class="card"><div class="empty">Error: '+esc(String(e))+' · ¿Corriste sql_linkeo_desde_votacion.sql?</div></div>';});
 }
+var votOrden='fecha';   // 'fecha' | 'afirmativos' | 'titulo'
+function ordenVot(o){ votOrden=o; document.querySelectorAll('.chip[data-vo]').forEach(function(c){c.classList.toggle('on',c.getAttribute('data-vo')===o);}); renderVotacionesSinLink(); }
+function buscaVotLista(inp){ votBusca=inp.value.toLowerCase(); clearTimeout(votBuscaTimer); votBuscaTimer=setTimeout(renderVotacionesSinLink,200); }
+var votBusca='', votBuscaTimer=null;
+
 function renderVotacionesSinLink(){
  if(!votSinLink.length){$('#listaVot').innerHTML='<div class="card"><div class="empty">🎉 No hay votaciones del Congreso sin linkear.</div></div>';return;}
- // Filtro de cámara (reusa la barra existente, clave 'linkeoVot').
+ // Filtro de cámara + búsqueda + orden sobre las VOTACIONES.
  var lista=aplicarCamara('linkeoVot', votSinLink);
- var h=barraCamara('linkeoVot');
+ if(votBusca){ lista=lista.filter(function(v){ return ((v.titulo||'')+' '+(v.orden_del_dia||'')).toLowerCase().indexOf(votBusca)>=0; }); }
+ lista=lista.slice().sort(function(a,b){
+  if(votOrden==='fecha') return new Date(b.votada_en||0)-new Date(a.votada_en||0);
+  if(votOrden==='afirmativos') return (b.afirmativos||0)-(a.afirmativos||0);
+  if(votOrden==='titulo') return String(a.titulo||'').localeCompare(String(b.titulo||''));
+  return 0;
+ });
+ // Barra: cámara + buscador + orden.
+ var h=barraCamara('linkeoVot')
+  +'<div class="filtros" style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:10px">'
+   +'<input type="text" placeholder="🔎 Buscar votación…" oninput="buscaVotLista(this)" value="'+esc(votBusca)+'" style="padding:7px 11px;border:1px solid var(--line);border-radius:8px;min-width:200px;flex:1">'
+   +'<span class="muted" style="font-size:12px;font-weight:700">Ordenar</span>'
+   +'<button class="chip'+(votOrden==='fecha'?' on':'')+'" data-vo="fecha" onclick="ordenVot(\'fecha\')">📅 Fecha</button>'
+   +'<button class="chip'+(votOrden==='afirmativos'?' on':'')+'" data-vo="afirmativos" onclick="ordenVot(\'afirmativos\')">👍 Votos</button>'
+   +'<button class="chip'+(votOrden==='titulo'?' on':'')+'" data-vo="titulo" onclick="ordenVot(\'titulo\')">🔤 Título</button>'
+  +'</div>'
+  +'<div class="muted" style="font-size:11.5px;margin-bottom:8px">'+lista.length+' votación(es) sin linkear</div>';
  lista.forEach(function(v){
   var cam=_cam(v.camara);
   var f=v.votada_en?new Date(v.votada_en).toLocaleDateString('es-AR'):'';
@@ -1552,12 +1573,36 @@ function renderVotacionesSinLink(){
    +(v.orden_del_dia&&v.orden_del_dia!==v.titulo?'<div class="muted" style="font-size:12px;line-height:1.4;margin-bottom:8px">'+esc(v.orden_del_dia)+'</div>':'')
    +'<div class="lbl" style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-top:6px">Proyectos sugeridos (misma cámara)</div>'
    +'<div id="sug-'+v.acta_id+'"><span class="muted" style="font-size:12px">Cargando sugerencias…</span></div>'
+   // Buscador de PROYECTO para esta votación (cuando la sugerencia no acierta).
+   +'<div style="margin-top:10px"><input type="text" placeholder="🔎 ¿No es ninguno? Buscá el proyecto por título o expediente…" '
+     +'oninput="buscarProyParaVot(this,\''+v.acta_id+'\',\''+esc(v.camara)+'\')" '
+     +'style="width:100%;padding:8px 11px;border:1px solid var(--celeste);border-radius:9px;box-sizing:border-box;font-size:12.5px">'
+     +'<div id="busq-'+v.acta_id+'"></div></div>'
    +'<div style="margin-top:8px"><button class="btn sec sm" onclick="descartarVot(\''+v.acta_id+'\',\''+esc(v.camara)+'\')">✕ Ninguno corresponde (descartar)</button></div>'
    +'</div>';
  });
  $('#listaVot').innerHTML=h;
- // cargar las sugerencias (2-3) de cada votación visible
  lista.forEach(function(v){ cargarSugerencias(v.acta_id, v.camara); });
+}
+
+// Buscador libre de proyecto para una votación (cuando las sugerencias no sirven).
+var busqProyTimer=null;
+function buscarProyParaVot(inp,acta,camara){
+ var q=inp.value.trim(); var cont=document.getElementById('busq-'+acta);
+ if(q.length<3){ if(cont)cont.innerHTML=''; return; }
+ clearTimeout(busqProyTimer);
+ busqProyTimer=setTimeout(function(){
+  rpc('buscar_leyes_linkeo',{p_camara:camara,p_q:q}).then(function(rows){
+   rows=Array.isArray(rows)?rows:[];
+   if(!cont)return;
+   if(!rows.length){cont.innerHTML='<div class="muted" style="font-size:12px;padding:6px">Sin resultados de '+esc(camara)+'.</div>';return;}
+   cont.innerHTML=rows.map(function(l){
+    return '<div class="res" style="display:block;padding:8px 10px;cursor:pointer" onclick="linkearDesdeVot(\''+acta+'\',\''+esc(camara)+'\',\''+l.bill_id+'\')">'
+      +'<span class="exp" style="color:var(--brand);font-size:11px;font-weight:700">'+esc(l.expediente||l.bill_id)+'</span>'+(l.fecha?'<span class="muted" style="font-size:11px"> · '+esc(String(l.fecha).slice(0,10))+'</span>':'')
+      +'<div style="font-size:12.5px;line-height:1.4;font-weight:600">'+esc(l.oracion_ia||l.titulo||l.bill_id)+'</div></div>';
+   }).join('');
+  }).catch(function(){if(cont)cont.innerHTML='<div class="muted" style="font-size:12px;padding:6px">No se pudo buscar.</div>';});
+ },300);
 }
 function cargarSugerencias(acta,camara){
  rpc('sugerencia_linkeo',{p_acta:acta,p_camara:camara,p_n:3}).then(function(rows){
