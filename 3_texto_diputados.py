@@ -74,6 +74,13 @@ def extraer(pdf_bytes):
 
 
 def texto_de(p):
+    # CAMINO NUEVO: si la ley trae pdf_url (viene del obrero 2c, Tramites
+    # Parlamentarios), bajamos el texto directo de ese link.
+    pdf_url = p.get("pdf_url")
+    if pdf_url:
+        pdf = _get(pdf_url)
+        return extraer(pdf)
+    # CAMINO VIEJO: armar la URL desde el bill_id HCDN<id> (buscador clasico).
     bid = p.get("bill_id", "")
     m = re.search(r"(\d+)", bid)
     if not m:
@@ -99,7 +106,7 @@ def traer_sin_texto_de_supabase():
     headers = {"apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY}
     filas = []
     offset = 0
-    base = (SUPABASE_URL + "/rest/v1/leyes?select=bill_id,expediente,fecha,autor"
+    base = (SUPABASE_URL + "/rest/v1/leyes?select=bill_id,expediente,fecha,autor,pdf_url"
             "&camara=eq.Diputados&texto_oficial=is.null&limit=1000&offset=")
     while True:
         req = urllib.request.Request(base + str(offset), headers=headers)

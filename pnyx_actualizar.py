@@ -29,8 +29,15 @@ FULL = "--full" in sys.argv
 # (script, argumentos, es_critico)
 PASOS = [
     ("1_consultar_supabase.py", [], True),                              # estado + existentes.json
-    ("2_bajar_diputados.py", [], False),                               # lista Diputados
-    ("3_texto_diputados.py", (["--todos"] if FULL else []), False),    # texto Diputados -> Supabase
+    ("2_bajar_diputados.py", [], False),                               # lista Diputados (CSV datos abiertos)
+    # 2b: buscador web de Diputados. En nov/2026 la HCDN lo cerro ("solo
+    # intranet"); el obrero detecta eso y corta rapido. Queda por si vuelve.
+    ("2b_diputados_web.py", ["45"], False),                            # lista Diputados (web buscador)
+    # 2c: FUENTE PRINCIPAL desde nov/2026. Lee TRAMITES PARLAMENTARIOS (seccion
+    # que sigue publica y al dia). Primero baja solo el indice (1 request) y
+    # solo abre TPs si hay expedientes nuevos: minima huella en el servidor.
+    ("2c_diputados_tp.py", ["45"], False),                            # lista Diputados (tramites parlamentarios)
+    ("3_texto_diputados.py", (["--todos"] if FULL else []), False),    # texto Diputados -> Supabase (usa pdf_url si existe)
     # SENADO: NO se puede automatizar. El sitio del Senado tiene un anti-bot
     # (F5 Shape / TSPD): devuelve un JavaScript-challenge en vez del Excel a
     # cualquier script (probado 23/09/2026, falla incluso desde la PC). Solo

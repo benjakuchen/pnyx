@@ -101,7 +101,8 @@ def traer_pagina(desde, hasta, pagina):
         "strCantPagina": "100",
     }
     url = BUSCADOR if pagina == 1 else (BUSCADOR + "?pagina=%d" % pagina)
-    r = requests.post(url, headers=HEADERS, data=data, timeout=60)
+    # timeout corto: si el sitio esta caido/en obras, no colgar la corrida.
+    r = requests.post(url, headers=HEADERS, data=data, timeout=25)
     r.raise_for_status()
     r.encoding = r.apparent_encoding or "utf-8"
     return r.text
@@ -196,6 +197,14 @@ def main():
             break
         filas = parse_wrappers(html_text)
         if not filas:
+            # Si la PRIMERA pagina no trae nada, el buscador esta caido o en
+            # obras (Dic. 2026: HCDN rehizo el sitio). Avisar claro y cortar,
+            # para no colgar la corrida ni ensuciar el log.
+            if pagina == 1:
+                if "construcc" in html_text.lower() or "proximamente" in html_text.lower():
+                    print("  (!) El buscador de Diputados esta EN OBRAS. No hay fuente web ahora; se omite.", file=sys.stderr)
+                else:
+                    print("  (!) El buscador no devolvio proyectos (sitio caido o cambiado). Se omite.", file=sys.stderr)
             break
         en = [p for p in filas if en_rango(p)]
         todos.extend(en)
